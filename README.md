@@ -1,5 +1,7 @@
 # ws-meetingwhiteboard
 
+> 会议白板
+
 ## Project setup
 ```
 npm install

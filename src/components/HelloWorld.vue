@@ -27,20 +27,41 @@
       <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
       <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
     </ul>
+    <canvas id="'the-canvas'"></canvas>
   </div>
 </template>
 
 <script>
+import pdfjsLib from 'pdfjsLib'
 export default {
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  mounted(){
+  const loadingTask = pdfjsLib.getDocument('./large.pdf');
+  loadingTask.promise.then(function(pdf) {
+    pdf.getPage(1).then(function(page) {
+      var scale = 1.5;
+      var viewport = page.getViewport({ scale: scale, });
+      var canvas = document.getElementById('the-canvas');
+      var context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      var renderContext = {
+        canvasContext: context,
+        viewport: viewport,
+      };
+      page.render(renderContext);
+    });
+  })
   }
+
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
 h3 {
   margin: 40px 0 0;
 }
