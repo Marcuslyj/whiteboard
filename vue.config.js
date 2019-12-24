@@ -14,6 +14,7 @@ module.exports = {
     externals:{
         pdfjsLib:'pdfjsLib'
     },
+    devtool:process.env.NODE_ENV==='production'?'none':'cheap-eval-source-map',
     plugins: (
       process.env.NODE_ENV === 'production' ?
         [
@@ -27,7 +28,7 @@ module.exports = {
               from:__dirname+'/assets',
               to:__dirname+'/dist/assets'
             }
-          ])
+        ])
     )
   },
 
