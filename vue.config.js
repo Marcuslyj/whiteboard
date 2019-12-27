@@ -8,28 +8,39 @@ module.exports = {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        '@assets': path.resolve(__dirname, './src/assets')
+        '@assets': path.resolve(__dirname, './src/assets'),
+        '@common': path.resolve(__dirname, './src/common')
       }
     },
-    externals:{
-        pdfjsLib:'pdfjsLib'
+    externals: {
+      pdfjsLib: 'pdfjsLib'
     },
-    devtool:process.env.NODE_ENV==='production'?'none':'cheap-eval-source-map',
-    plugins: (
-      process.env.NODE_ENV === 'production' ?
-        [
-          new CompressionPlugin({
-            minRatio: 0.8,
-          })
-        ] : []
-    ).concat(
-        new CopyWebpackPlugin([
-            {
-              from:__dirname+'/assets',
-              to:__dirname+'/dist/assets'
-            }
-        ])
-    )
+    devtool: process.env.NODE_ENV === 'production' ? 'none' : 'cheap-eval-source-map',
+    plugins: getPlugins()
   },
 
+}
+
+// 获取plugin参数
+function getPlugins() {
+  // 生产
+  let prod = [
+    // gzip
+    new CompressionPlugin({
+      minRatio: 0.8,
+    })
+  ];
+  // 开发
+  let dev = [];
+  // common
+  let common = [
+    // 复制静态资源
+    new CopyWebpackPlugin([
+      {
+        from: __dirname + '/assets',
+        to: __dirname + '/dist/assets'
+      }
+    ])
+  ];
+  return (process.env.NODE_ENV === 'production' ? prod : dev).concat(common)
 }
