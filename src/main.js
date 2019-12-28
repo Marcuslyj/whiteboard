@@ -8,8 +8,13 @@ Vue.config.productionTip = false
 
 import globalConf from '@/common/config'
 
+import '@common/konvaPolyfill.js'
+
 //全局都能访问的响应式数据
 Vue.prototype.$globalConf = globalConf
+
+//用来通信
+Vue.eventBus=new Vue()
 
 new Vue({
   router,

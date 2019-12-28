@@ -8,16 +8,41 @@ Description
   <div class="board-page">
     <section id="board-container"><i class="iconfont icon-jiami"></i>画板</section>
     <div class="tool-wrapper">
-      <tool-bar class="tool"></tool-bar>
+      <tool-bar ref="tool-bar" class="tool"></tool-bar>
     </div>
   </div>
 </template>
 
 <script>
   import ToolBar from '@/components/toolBar/ToolBar'
+  import konva from 'konva'
+  import {initTool} from '@common/tool'
+
   export default {
     components:{
       ToolBar
+    },
+    data(){
+      return {
+        stage:null
+      }
+    },
+    mounted(){
+      const el=document.querySelector('#board-container')
+      this.$globalConf.board=this.stage=new konva.Stage({
+        container:'board-container',
+        width:el.clientWidth,
+        height:el.clientHeight
+      })
+      Object.keys(this.$globalConf.layerIds).map(layerId=>{
+        const layer=new konva.Layer({
+          id:layerId
+        })
+        this.$globalConf.layerManager[layerId]=layer
+        this.stage.add(layer)
+      })
+      initTool()
+      this.$refs['tool-bar'].active()
     }
   }
 </script>
@@ -35,9 +60,8 @@ Description
       border:1px solid #eee;
     }
     .tool-wrapper{
-      margin:20px;
+      margin:10px;
     }
-
   }
 
 </style>
