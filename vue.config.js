@@ -13,12 +13,12 @@ module.exports = {
       }
     },
     externals: {
-      pdfjsLib: 'pdfjsLib'
+      pdfjsLib: 'pdfjsLib',
+      // konva:'konva'
     },
-    devtool: process.env.NODE_ENV === 'production' ? 'none' : 'cheap-eval-source-map',
+    devtool: process.env.NODE_ENV === 'production' ? 'none' : 'eval-source-map',
     plugins: getPlugins()
-  },
-
+  }
 }
 
 // 获取plugin参数

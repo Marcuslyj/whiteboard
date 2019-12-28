@@ -15,9 +15,33 @@ Description
 
 <script>
   import ToolBar from '@/components/toolBar/ToolBar'
+  import konva from 'konva'
+  import {initTool} from '@common/tool'
+
   export default {
     components:{
       ToolBar
+    },
+    data(){
+      return {
+        stage:null
+      }
+    },
+    mounted(){
+      const el=document.querySelector('#board-container')
+      this.$globalConf.board=this.stage=new konva.Stage({
+        container:'board-container',
+        width:el.clientWidth,
+        height:el.clientHeight
+      })
+      Object.keys(this.$globalConf.layerIds).map(layerId=>{
+        const layer=new konva.Layer({
+          id:layerId
+        })
+        this.$globalConf.layerManager[layerId]=layer
+        this.stage.add(layer)
+      })
+      initTool()
     }
   }
 </script>
@@ -35,7 +59,7 @@ Description
       border:1px solid #eee;
     }
     .tool-wrapper{
-      margin:20px;
+      margin:10px;
     }
 
   }
