@@ -6,10 +6,8 @@ Description
 -->
 <template>
   <div class="toolbar">
-    <div
-      class="left part"
-      v-if="isSimple"
-    >
+    <div class="mask" v-show="!enable"></div>
+    <div class="left part" v-if="isHome">
       <span><i class="iconfont icon-add"></i></span>
       <span><i class="iconfont icon-boards"></i></span>
     </div>
@@ -23,11 +21,12 @@ Description
             <div class="preview-wrapper">
               <canvas id="preview-canvas"></canvas>
             </div>
-            <div class="tool-control row">
+            <div class="tool-control row" >
               <div
                 v-for="(pencilTool,index) in pencilToolArr"
                 :Key="index"
                 :class="{'item-wrapper':true,'active-item':activePencilTool===pencilTool.name}"
+                @click="changePencilTool(pencilTool.name)"
               >
                 <span><i :class="['iconfont',pencilTool.icon]"></i></span>
               </div>
@@ -37,6 +36,7 @@ Description
                 v-for="(color,index) in pencilColorArr"
                 :key="index"
                 :class="{'item-wrapper':true,'active-item':activePencilColor===color}"
+                @click="changePencilColor(color)"
               >
                 <span
                   class="circle"
@@ -48,13 +48,14 @@ Description
             <div class="width-control row">
               <div class="width-level">{{activePencilWidth}}</div>
               <div
-                v-for="(radius,index) in radiusArr"
+                v-for="(item,index) in widthArr"
                 :key="index"
-                :class="{'item-wrapper':true,'active-item':activePencilWidth===radius}"
+                :class="{'item-wrapper':true,'active-item':activePencilWidth===item.lineWidth}"
+                @click="changePencilWidth(width)"
               >
                 <span
                   class="cirlce"
-                  :style="{width:`${radius}vw`,height:`${radius}vw`,'border-radius':`${radius/2}vw`,backgroundColor:`${activePencilColor}`}"
+                  :style="{width:`${item.width}vw`,height:`${item.width}vw`,'border-radius':`${item.width/2}vw`,backgroundColor:`${activePencilColor}`}"
                 ></span>
               </div>
             </div>
@@ -75,13 +76,13 @@ Description
             <div class="row width-control">
               <div class="width-level">{{activePencilWidth}}</div>
               <div
-                v-for="(radius,index) in radiusArr"
+                v-for="(item,index) in widthArr"
                 :key="index"
-                :class="{'item-wrapper':true,'active-item':activeEraserWidth===radius}"
+                :class="{'item-wrapper':true,'active-item':activeEraserWidth===item.lineWidth}"
               >
                 <span
                   class="circle"
-                  :style="{width:`${radius}vw`,height:`${radius}vw`,'border-radius':`${radius/2}vw`}"
+                  :style="{width:`${item.width}vw`,height:`${item.width}vw`,'border-radius':`${item.width/2}vw`}"
                 ></span>
               </div>
             </div>
@@ -119,11 +120,15 @@ Description
 <script>
 import { Upload } from 'view-design';
 import common from '@common/common'
-
+import Vue from 'vue'
 export default {
   props: {
     //简单模式，没有左边的工具
-    isSimple: {
+    isHome: {
+      type: Boolean,
+      default: true
+    },
+    enable:{
       type: Boolean,
       default: true
     }
@@ -137,14 +142,30 @@ export default {
       activeTool: 'select',
       //笔
       pencilColorArr: ['#000', '#f00', 'yellow', '#0f0', '#00f'],
-      radiusArr: [0.4, 0.6, 1, 1.2, 1.6],
+      widthArr: [{
+        width:0.4,
+        lineWidth:4,
+      },{
+        width:0.6,
+        lineWidth:6
+      },{
+        width:1,
+        lineWidth:10
+      },{
+        width:1.2,
+        lineWidth:12
+      },
+      {
+        width:1.6,
+        lineWidth:16
+      }],
       pencilToolArr: [
         {
-          name: 'icon-gangbi',
+          name: 'pen',
           icon: 'icon-gangbi',
         },
         {
-          name: 'icon-makebi',
+          name: 'markPencil',
           icon: 'icon-makebi',
         },
         {
@@ -152,9 +173,9 @@ export default {
           icon: 'icon-arrow',
         }
       ],
-      activePencilTool: 'icon-gangbi',
+      activePencilTool: 'markPencil',
       activePencilColor: '#000',
-      activePencilWidth: 1,
+      activePencilWidth: 10,
 
       //eraserToolArr
       eraserToolArr: [
@@ -176,172 +197,33 @@ export default {
     }
   },
   mounted() {
-
+    this.changePencilTool(this.activePencilTool)
   },
   methods: {
     uploadSuccess({ data, ret }) {
       if (0 == ret.retCode) {
         let filePath = data.filePath
       }
+    },
+    changePencilTool(name){
+      this.activePencilTool=name
+      const stage=this.$globalConf.board
+      const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']]
+      const toolConfig={
+        lineWidth:this.activePencilWidth,
+        color:this.activePencilColor
+      }
+      Vue.eventBus.$emit('active-tool',{toolName:'markPencil',stage,layer,toolConfig})
+    },
+    changePencilColor(color){
+      this.activePencilColor=color
+    },
+    changePencilWidth(width){
+      this.activePencilWidth=width
     }
+
   }
 }
 </script>
 
-<style lang="scss" scoped>
-.toolbar {
-  position: relative;
-  display: flex;
-  padding: 0.5vw;
-  .center {
-    display: flex;
-    margin: auto;
-    max-width: 100%;
-    background: #f3f4f7;
-    border-radius: 8px;
-    box-shadow: 0 0 6px #919191;
-    .group {
-      &:not(:last-child) {
-        border-right: 1px solid #999;
-      }
-      display: flex;
-      li {
-        position: relative;
-        padding: 0.5vw 1vw;
-        height: 2vw;
-        overflow: hidden;
-        .iconfont {
-          font-size: 2vw;
-        }
-        &:hover {
-          overflow: visible;
-        }
-        cursor: pointer;
-      }
-      .menu {
-        position: absolute;
-        bottom: 4vw;
-        left: 50%;
-        text-align: center;
-        max-width: 24vw;
-        transform: translateX(-50%);
-        background: #f3f4f7;
-        padding: 1vw;
-        &::before {
-          position: absolute;
-          bottom: -2vw;
-          left: 50%;
-          transform: translateX(-50%);
-          content: "";
-          display: block;
-          height: 0;
-          width: 0;
-          border: 1vw solid transparent;
-          border-top: 1vw solid #f3f4f7;
-        }
-        .row {
-          display: flex;
-          justify-content: space-between;
-          &:not(:first-child) {
-            margin-top: 0.5vw;
-          }
-          .item-wrapper {
-            box-sizing: border-box;
-            width: 3vw;
-            height: 3vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 3px solid transparent;
-            &.active-item,
-            &:hover {
-              border: 0.2vw solid #f48924;
-              border-radius: 0.3vw;
-            }
-          }
-        }
-      }
-      .pencil {
-        #preview-canvas {
-          background: #fff;
-          width: 100%;
-          height: 10vw;
-          border-radius: 0.5vw;
-        }
-        .tool-control {
-          justify-content: space-around;
-          .item-wrapper {
-            flex-grow: 0;
-          }
-          .iconfont {
-            font-size: 2vw;
-            margin: 0.2vw 1vw;
-          }
-        }
-        .color-control {
-          .circle {
-            display: inline-block;
-            width: 1.4vw;
-            height: 1.4vw;
-            border-radius: 0.7vw;
-          }
-        }
-        .width-control {
-          .width-level {
-            width: 3vw;
-            height: 3vw;
-            box-sizing: border-box;
-            line-height: 3vw;
-            font-size: 1.5vw;
-            flex: 1;
-            background-color: #fff;
-            border-radius: 8px;
-          }
-        }
-      }
-      .eraser {
-        .width-control {
-          .width-level {
-            width: 3vw;
-            height: 3vw;
-            box-sizing: border-box;
-            line-height: 3vw;
-            font-size: 1.5vw;
-            flex: 1;
-            background-color: #fff;
-            border-radius: 8px;
-          }
-        }
-        .circle {
-          display: inline-block;
-          background: #000;
-        }
-      }
-    }
-  }
-  .part {
-    position: absolute;
-    > span {
-      display: inline-block;
-      cursor: pointer;
-      background: #f3f4f7;
-      padding: 0.5vw;
-      border-radius: 8px;
-      height: 2vw;
-      box-shadow: 0 0 6px #919191;
-      &:not(:first-child) {
-        margin-left: 1vw;
-      }
-      .iconfont {
-        font-size: 2vw;
-      }
-    }
-  }
-  .left {
-    left: 5vw;
-  }
-  .right {
-    right: 5vw;
-  }
-}
-</style>
+<style lang="scss" src="./ToolBar.scss" scoped></style>  
