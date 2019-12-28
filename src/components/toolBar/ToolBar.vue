@@ -196,9 +196,6 @@ export default {
       activeEraserTool: 'icon-eraser',
     }
   },
-  mounted() {
-    this.changePencilTool(this.activePencilTool)
-  },
   methods: {
     uploadSuccess({ data, ret }) {
       if (0 == ret.retCode) {
@@ -220,8 +217,10 @@ export default {
     },
     changePencilWidth(width){
       this.activePencilWidth=width
+    },
+    active(){
+      this.changePencilTool(this.activePencilTool)
     }
-
   }
 }
 </script>

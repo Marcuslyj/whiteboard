@@ -17,7 +17,6 @@ function create(params) {
 		layer.add(line);
 
 		stage.on("mousemove", function({ evt }) {
-			console.log(line.points())
 			line.points(line.points().concat(evt.offsetX, evt.offsetY))
 			layer.draw()
 		})
@@ -30,7 +29,9 @@ function create(params) {
 	});
 }
 
-function destroy() {}
+function destroy(stage){
+	stage.off('mousedown')
+}
 
 export default {
   create,

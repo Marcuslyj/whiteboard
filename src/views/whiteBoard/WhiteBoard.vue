@@ -8,7 +8,7 @@ Description
   <div class="board-page">
     <section id="board-container"><i class="iconfont icon-jiami"></i>画板</section>
     <div class="tool-wrapper">
-      <tool-bar class="tool"></tool-bar>
+      <tool-bar ref="tool-bar" class="tool"></tool-bar>
     </div>
   </div>
 </template>
@@ -42,6 +42,7 @@ Description
         this.stage.add(layer)
       })
       initTool()
+      this.$refs['tool-bar'].active()
     }
   }
 </script>
@@ -61,7 +62,6 @@ Description
     .tool-wrapper{
       margin:10px;
     }
-
   }
 
 </style>
