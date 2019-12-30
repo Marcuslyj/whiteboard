@@ -51,9 +51,9 @@ konva.Line.prototype._sceneFunc = function (context) {
     let _points = [];
     for (let i = 0; i < points.length; i += 2) {
       // 去掉太紧密的点，但不能去掉最始最末的点，否则不跟手
-      if (i < points.length - 6 && i > 2) {
+      if (i < points.length - 6 && i > 6) {
         let dis = Math.sqrt(Math.pow(points[i] - points[i + 2], 2) + Math.pow(points[i + 1] - points[i + 3], 2));
-        if (dis < 5) points.splice(i + 2, 2);
+        if (dis < 6) points.splice(i + 2, 2);
       }
       _points.push({
         x: points[i],
