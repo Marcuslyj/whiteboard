@@ -53,6 +53,7 @@ Description
     height:100%;
     display:flex;
     flex-direction: column;
+    overflow: hidden;
     #board-container{ 
       background-color:#fff;
       flex:1;
