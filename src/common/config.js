@@ -9,4 +9,6 @@ export default Vue.observable({
         REMARK_LAYER:'REMARK_LAYER'
     },
     layerManager:{},
+    //组件管理，用于撤退还原
+    components:[]
 })
