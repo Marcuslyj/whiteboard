@@ -221,6 +221,7 @@ export default {
     active(){
       this.changePencilTool(this.activePencilTool)
     }
+    
   }
 }
 </script>
