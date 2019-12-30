@@ -14,7 +14,7 @@ import '@common/konvaPolyfill.js'
 Vue.prototype.$globalConf = globalConf
 
 //用来通信
-Vue.eventBus=new Vue()
+Vue.eventBus = new Vue()
 
 new Vue({
   router,
