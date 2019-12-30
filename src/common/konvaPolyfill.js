@@ -1,7 +1,7 @@
 import konva from "konva";
 
 //覆盖了bezier 的实现方式,提高了马克笔的柔顺度
-konva.Line.prototype._sceneFunc = function(context) {
+konva.Line.prototype._sceneFunc = function (context) {
   var points = this.points(),
     length = points.length,
     tension = this.tension(),
@@ -48,25 +48,28 @@ konva.Line.prototype._sceneFunc = function(context) {
       );
     }
   } else if (bezier) {
-    let i = 0;
-    let arr = [];
-    while (i < points.length) {
-      arr.push({
+    let _points = [];
+    for (let i = 0; i < points.length; i += 2) {
+      // 去掉太紧密的点，但不能去掉最始最末的点，否则不跟手
+      if (i < points.length - 6 && i > 2) {
+        let dis = Math.sqrt(Math.pow(points[i] - points[i + 2], 2) + Math.pow(points[i + 1] - points[i + 3], 2));
+        if (dis < 5) points.splice(i + 2, 2);
+      }
+      _points.push({
         x: points[i],
-        y: points[++i]
-      });
-      i++;
+        y: points[i + 1]
+      })
     }
-    if (points.length >= 3) {
+    if (_points.length > 3) {
       let end;
-      context.beginPath();
-      for (let i = 1; i < arr.length - 1; i++) {
-        end ? context.moveTo(end.x, end.y) : context.moveTo(arr[0].x, arr[0].y);
+      // context.beginPath();
+      for (let i = 1; i < _points.length - 1; i++) {
+        end ? context.moveTo(end.x, end.y) : context.moveTo(points[0].x, points[0].y);
         end = {
-          x: (arr[i].x + arr[i + 1].x) / 2,
-          y: (arr[i].y + arr[i + 1].y) / 2
+          x: (_points[i].x + _points[i + 1].x) / 2,
+          y: (_points[i].y + _points[i + 1].y) / 2
         };
-        const c = arr[i];
+        const c = _points[i];
         context.quadraticCurveTo(c.x, c.y, end.x, end.y);
       }
     }
