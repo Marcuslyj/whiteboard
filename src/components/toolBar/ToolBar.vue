@@ -128,8 +128,6 @@ Description
 import { Upload } from 'view-design';
 import common from '@common/common'
 import Vue from 'vue'
-import pdfjsLib from 'pdfjsLib'
-import { addCover } from '@common/tool/docCover'
 
 export default {
   props: {
@@ -214,12 +212,8 @@ export default {
     })
   },
   methods: {
-    async uploadSuccess({ data, ret }) {
-      if (0 == ret.retCode) {
-        let filePath = common.fileService + data.filePath
-        let pdf = await pdfjsLib.getDocument(filePath).promise
-        addCover(pdf, this.$parent)
-      }
+    uploadSuccess(res) {
+      this.$emit('uploadSuccess', res)
     },
     changePencilTool(name) {
       this.activePencilTool = name

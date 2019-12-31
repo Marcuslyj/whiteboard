@@ -14,6 +14,7 @@ Description
       <tool-bar
         ref="tool-bar"
         class="tool"
+        @uploadSuccess="uploadSuccess"
       ></tool-bar>
     </div>
     <!-- 用于转换图片 -->
@@ -29,6 +30,9 @@ Description
 import ToolBar from '@/components/toolBar/ToolBar'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
+import { addCover } from '@common/tool/docCover'
+import pdfjsLib from 'pdfjsLib'
+import common from '@common/common'
 
 export default {
   components: {
@@ -38,6 +42,7 @@ export default {
     return {
       stage: null,
       shouldConvert: false,
+      convertCanvas: null,
     }
   },
   mounted() {
@@ -81,6 +86,25 @@ export default {
       this.convertCanvas.layer = new Konva.Layer()
       this.convertCanvas.add(this.convertCanvas.layer);
     },
+    // 文档上传成功
+    async uploadSuccess({ data, ret }) {
+      if (0 == ret.retCode) {
+        let filePath = common.fileService + data.filePath
+        let pdf = await pdfjsLib.getDocument(filePath).promise
+
+        this.shouldConvert = true
+
+        this.$nextTick(() => {
+          this.initConvertCanvas()
+
+          addCover(pdf, {
+            stage: this.stage,
+            layer: this.$globalConf.layerManager[this.$globalConf.layerIds['BG_LAYER']],
+            convertCanvas: this.convertCanvas
+          })
+        })
+      }
+    }
   }
 }
 </script>
@@ -91,6 +115,7 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: #fff;
   #board-container {
     background-color: #fff;
     flex: 1;
