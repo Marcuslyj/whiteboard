@@ -1,5 +1,3 @@
-
-
 // 深冻结
 export function deepFreeze(obj) {
     obj = isObject(obj) ? obj : {};

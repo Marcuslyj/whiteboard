@@ -143,7 +143,7 @@ export default {
     return {
       common,
       //激活的工具
-      activeTool: 'markPencil',
+      activeTool: 'pen',
       //笔
       pencilColorArr: ['#000', '#f00', 'yellow', '#0f0', '#00f'],
       widthArr: [{
@@ -200,10 +200,10 @@ export default {
   },
   mounted() {
     // 模拟测试
-    // this.uploadSuccess({
-    //   data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
-    //   ret: { retCode: 0 }
-    // })
+    this.uploadSuccess({
+      data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+      ret: { retCode: 0 }
+    })
     document.body.addEventListener('click',()=>{
       this.boxName='';
     });
@@ -278,11 +278,21 @@ export default {
       switch(this.activeTool){
         case 'markPencil':
           ctx.beginPath()
+          ctx.globalAlpha=0.5
           ctx.moveTo(start[0],start[1])
           ctx.bezierCurveTo(start[0],start[1],mid[0], mid[1],end[0],end[1]);
           ctx.stroke()
           break
+        case 'pen':
+          ctx.beginPath()
+          ctx.globalAlpha=1
+          ctx.lineWidth=this.$globalConf.pencil.lineWidth/2
+          ctx.moveTo(start[0],start[1])
+          ctx.bezierCurveTo(start[0],start[1],mid[0], mid[1],end[0],end[1]);
+          ctx.stroke()
+        break
         case 'arrow':
+          ctx.globalAlpha=1
           ctx.beginPath()
           ctx.lineCap='butt'
           ctx.lineJoin='bevel'
@@ -290,7 +300,6 @@ export default {
           ctx.moveTo(start[0],start[1])
           ctx.lineTo(end[0],end[1])
           ctx.stroke()
-         
           ctx.save();
           PI2 = Math.PI * 2
           var dx, dy;

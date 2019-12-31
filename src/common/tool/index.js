@@ -2,11 +2,13 @@
 import Vue from 'vue';
 import markPencil from './markPencil';
 import arrow from './arrow';
+import pen from './pen'
 
 
 const toolCollection={
 	markPencil,
-	arrow
+	arrow,
+	pen
 };
 
 export const initTool=()=>{
