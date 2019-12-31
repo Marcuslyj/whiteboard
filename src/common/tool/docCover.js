@@ -4,7 +4,7 @@ import { generateUID } from '@common/utils'
 export async function addCover(pdf, vm) {
     let pdfID = generateUID()
     // 添加转换图片canvas
-    this.shouldConvert = true
+    vm.shouldConvert = true
     let page = await pdf.getPage(1)
     let viewport = getCoverViewport(page)
     let width = viewport.width
