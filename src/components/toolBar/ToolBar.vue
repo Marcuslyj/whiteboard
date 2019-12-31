@@ -18,7 +18,7 @@ Description
           <i class="iconfont icon-select"></i>
         </li>
         <li ref="pencil-tool" @click.stop="clickPencilTool"><i class="iconfont icon-pen"></i>
-          <div class="menu pencil" v-if="boxName==='pencil'">
+          <div class="menu pencil" v-show="boxName==='pencil'">
             <div class="preview-wrapper">
               <canvas id="preview-canvas"></canvas>
             </div>
@@ -27,7 +27,7 @@ Description
                 v-for="(pencilTool,index) in pencilToolArr"
                 :Key="index"
                 :class="{'item-wrapper':true,'active-item':$globalConf.pencil.activePencilTool===pencilTool.name}"
-                @click="changePencilTool(pencilTool.name)"
+                @click.stop="changePencilTool(pencilTool.name)"
               >
                 <span><i :class="['iconfont',pencilTool.icon]"></i></span>
               </div>
@@ -37,7 +37,7 @@ Description
                 v-for="(color,index) in pencilColorArr"
                 :key="index"
                 :class="{'item-wrapper':true,'active-item':$globalConf.pencil.color===color}"
-                @click="changePencilColor(color)"
+                @click.stop="changePencilColor(color)"
               >
                 <span
                   class="circle"
@@ -52,7 +52,7 @@ Description
                 v-for="(item,index) in widthArr"
                 :key="index"
                 :class="{'item-wrapper':true,'active-item':$globalConf.pencil.lineWidth===item.lineWidth}"
-                @click="changePencilWidth(item.lineWidth)"
+                @click.stop="changePencilWidth(item.lineWidth)"
               >
                 <span
                   class="cirlce"
@@ -196,15 +196,14 @@ export default {
       activeEraserWidth: 1,
       activeEraserTool: 'icon-eraser',
       boxName:'',
-
     };
   },
   mounted() {
     // 模拟测试
-    this.uploadSuccess({
-      data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
-      ret: { retCode: 0 }
-    })
+    // this.uploadSuccess({
+    //   data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+    //   ret: { retCode: 0 }
+    // })
     document.body.addEventListener('click',()=>{
       this.boxName='';
     });
@@ -213,24 +212,30 @@ export default {
     uploadSuccess(res) {
       this.$emit('uploadSuccess', res)
     },
-     changePencilTool(name){
+    changePencilTool(name,isFirst=false){
       const stage=this.$globalConf.board;
       const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
-      if(name!=this.activeTool){
+      if(name!=this.activeTool&&!isFirst){
         Vue.eventBus.$emit('deactive-tool',{toolName:this.activeTool,stage});
+        this.activeTool=this.$globalConf.pencil.activePencilTool=name;
+        Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
       }
-      this.activeTool=this.$globalConf.pencil.activePencilTool=name;
-      Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
+      else if(isFirst){
+        Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
+      }
+       this.resetCanvas()
     },
     changePencilColor(color){
       this.$globalConf.pencil.color=color;
+      this.resetCanvas()
     },
     changePencilWidth(lineWidth){
-      this.$globalConf.pencil.lineWidth=lineWidth;
+      this.$globalConf.pencil.lineWidth=lineWidth
+      this.resetCanvas()
     },
     active(){
-      this.clickPencilTool()
-      this.setBoxName('');
+      this.setLiStyle('pencil-tool');
+      this.changePencilTool(this.activeTool,true);
     },
     clickSelectTool(){
       this.setLiStyle('select-tool');
@@ -254,7 +259,58 @@ export default {
       this.$refs[ref].classList.add('activeTool');
     },
     setBoxName(boxName){
-      this.boxName=boxName;
+      this.boxName=boxName
+    },
+    //预览图
+    resetCanvas(){
+      const el=document.querySelector('#preview-canvas')
+      const ctx=el.getContext('2d')
+      //获取3个点
+      const start=[15,el.height/2]
+      const mid=[(el.width-30)/2,el.height/2]
+      let end=[el.width-15,el.height/2]
+      ctx.strokeStyle=this.$globalConf.pencil.color
+      ctx.lineWidth=this.$globalConf.pencil.lineWidth
+      ctx.lineJoin='round'
+      ctx.lineCap='round'
+      ctx.clearRect(0,0,el.width,el.height)
+      let PI2
+      switch(this.activeTool){
+        case 'markPencil':
+          ctx.beginPath()
+          ctx.moveTo(start[0],start[1])
+          ctx.bezierCurveTo(start[0],start[1],mid[0], mid[1],end[0],end[1]);
+          ctx.stroke()
+          break
+        case 'arrow':
+          ctx.beginPath()
+          ctx.lineCap='butt'
+          ctx.lineJoin='bevel'
+          end=[el.width-30,el.height/2]
+          ctx.moveTo(start[0],start[1])
+          ctx.lineTo(end[0],end[1])
+          ctx.stroke()
+         
+          ctx.save();
+          PI2 = Math.PI * 2
+          var dx, dy;
+          dx = end[0] - start[0];
+          dy = end[1] - start[1];
+          var radians = (Math.atan2(dy, dx) + PI2) % PI2;
+          var length = this.$globalConf.pencil.lineWidth+15;
+          var width = this.$globalConf.pencil.lineWidth+15;
+          ctx.beginPath();
+          ctx.fillStyle=this.$globalConf.pencil.color
+          ctx.translate(end[0]+15,end[1]);
+          ctx.rotate(radians);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-length, width / 2);
+          ctx.lineTo(-length, -width / 2);
+          ctx.fill()
+          ctx.closePath();
+          ctx.restore();
+          break
+      }
     }
 
   }
