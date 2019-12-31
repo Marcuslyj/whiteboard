@@ -62,24 +62,26 @@ Description
             </div>
           </div>
         </li>
-        <li ref="eraser-tool" @click="clickEraserTool">
+        <li ref="eraser-tool" @click.stop="clickEraserTool">
           <i class="iconfont icon-eraser"></i>
           <div class="menu eraser" v-if="boxName==='eraser'">
             <div class="row">
               <div
                 v-for="(eraserTool,index) in eraserToolArr"
                 :Key="index"
-                :class="{'item-wrapper':true,'active-item':activeEraserTool===eraserTool.name}"
+                :class="{'item-wrapper':true,'active-item':$globalConf.eraser.activeEraserTool===eraserTool.name}"
+                @click.stop="changeEraserTool(eraserTool.name)"
               >
                 <span><i :class="['iconfont',eraserTool.icon]"></i></span>
               </div>
             </div>
             <div class="row width-control">
-              <div class="width-level">{{$globalConf.pencil.lineWidth}}</div>
+              <div class="width-level">{{$globalConf.eraser.lineWidth}}</div>
               <div
-                v-for="(item,index) in widthArr"
+                v-for="(item,index) in eraserWidthArr"
                 :key="index"
-                :class="{'item-wrapper':true,'active-item':activeEraserWidth===item.lineWidth}"
+                :class="{'item-wrapper':true,'active-item':$globalConf.eraser.lineWidth===item.lineWidth}"
+                @click.stop="changeEraserWidth(item.lineWidth)"
               >
                 <span
                   class="circle"
@@ -181,20 +183,36 @@ export default {
       //eraserToolArr
       eraserToolArr: [
         {
-          name: 'icon-eraser',
+          name: 'eraser',
           icon: 'icon-eraser',
         },
         {
-          name: 'icon-qingkong',
+          name: 'delete',
           icon: 'icon-qingkong',
         },
         {
-          name: 'icon-clear',
+          name: 'clear',
           icon: 'icon-clear',
         }
       ],
-      activeEraserWidth: 1,
-      activeEraserTool: 'icon-eraser',
+      eraserWidthArr: [{
+        width: 0.4,
+        lineWidth: 4,
+      }, {
+        width: 0.6,
+        lineWidth: 6
+      }, {
+        width: 1,
+        lineWidth: 10
+      }, {
+        width: 1.2,
+        lineWidth: 12
+      },
+      {
+        width: 1.6,
+        lineWidth: 16
+      }],
+
       boxName:'',
     };
   },
@@ -205,6 +223,7 @@ export default {
       ret: { retCode: 0 }
     })
     document.body.addEventListener('click',()=>{
+      console.log('click')
       this.boxName='';
     });
   },
@@ -233,6 +252,25 @@ export default {
       this.$globalConf.pencil.lineWidth=lineWidth
       this.resetCanvas()
     },
+
+    //eraser
+    changeEraserTool(name){
+      if(this.activeTool===name) return
+      const stage=this.$globalConf.board;
+      const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
+      if(name==='eraser'||name==='delete'){
+        Vue.eventBus.$emit('deactive-tool',{toolName:this.activeTool,stage});
+        this.activeTool=this.$globalConf.eraser.activeEraserTool=name
+        Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
+      }
+    },
+    changeEraserWidth(lineWidth){
+      this.$globalConf.eraser.lineWidth=lineWidth
+      if(this.$globalConf.eraser.activeEraserTool!=='eraser'){
+        return
+      }
+    },
+  
     active(){
       this.setLiStyle('pencil-tool');
       this.changePencilTool(this.activeTool,true);
@@ -244,11 +282,12 @@ export default {
     clickPencilTool(){
       this.setLiStyle('pencil-tool');
       this.setBoxName('pencil');
-      this.changePencilTool(this.activeTool);
+      this.changePencilTool(this.$globalConf.pencil.activePencilTool);
     },
     clickEraserTool(){
       this.setLiStyle('eraser-tool');
-       this.setBoxName('eraser');
+      this.setBoxName('eraser');
+      this.changeEraserTool(this.$globalConf.eraser.activeEraserTool)
     },
     clickTextTool(){
       this.setLiStyle('text-tool');
@@ -260,6 +299,7 @@ export default {
     },
     setBoxName(boxName){
       this.boxName=boxName
+      console.log(this.boxName)
     },
     //预览图
     resetCanvas(){

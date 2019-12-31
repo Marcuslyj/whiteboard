@@ -15,5 +15,10 @@ export default Vue.observable({
         color:'#000',
         lineWidth:6,
     },
+    eraser:{
+        activeEraserTool:'eraser',
+        lineWidth:6,
+        color:'#fff'
+    }
     
 });
