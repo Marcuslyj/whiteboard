@@ -16,12 +16,18 @@ Description
         class="tool"
       ></tool-bar>
     </div>
+    <!-- 用于转换图片 -->
+    <div
+      v-if="shouldConvert"
+      ref="convertCanvas"
+      class="convertCanvas"
+    ></div>
   </div>
 </template>
 
 <script>
 import ToolBar from '@/components/toolBar/ToolBar'
-import konva from 'konva'
+import Konva from 'konva'
 import { initTool } from '@common/tool'
 
 export default {
@@ -30,18 +36,19 @@ export default {
   },
   data() {
     return {
-      stage: null
+      stage: null,
+      shouldConvert: false,
     }
   },
   mounted() {
     const el = document.querySelector('#board-container')
-    this.$globalConf.board = this.stage = new konva.Stage({
+    this.$globalConf.board = this.stage = new Konva.Stage({
       container: 'board-container',
       width: el.clientWidth,
       height: el.clientHeight
     })
     Object.keys(this.$globalConf.layerIds).map(layerId => {
-      const layer = new konva.Layer({
+      const layer = new Konva.Layer({
         id: layerId
       })
       this.$globalConf.layerManager[layerId] = layer
@@ -61,6 +68,19 @@ export default {
         height
       })
     })
+  },
+  methods: {
+    // 初始化转换画板
+    initConvertCanvas() {
+      if (this.convertCanvas) {
+        return
+      }
+      this.convertCanvas = new Konva.Stage({
+        container: this.$refs['convertCanvas'],
+      })
+      this.convertCanvas.layer = new Konva.Layer()
+      this.convertCanvas.add(this.convertCanvas.layer);
+    },
   }
 }
 </script>
@@ -80,6 +100,12 @@ export default {
   }
   .tool-wrapper {
     margin: 10px;
+  }
+  .convertCanvas {
+    position: absolute;
+    z-index: -10;
+    top: 0;
+    left: 0;
   }
 }
 </style>
