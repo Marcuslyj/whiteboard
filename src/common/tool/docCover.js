@@ -20,8 +20,8 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
         viewport
     }
 
-    let width_safe = Math.floor(stage.width() - viewport.width)
-    let height_safe = Math.floor(stage.height() - viewport.height)
+    let width_safe = Math.floor((stage.width() - viewport.width) * .8)
+    let height_safe = Math.floor((stage.height() - viewport.height) * .8)
     let x = Math.floor(Math.random() * width_safe)
     let y = Math.floor(Math.random() * height_safe)
 
@@ -30,7 +30,6 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
         let imgUrl = convertCanvas.layer.canvas['_canvas'].toDataURL()
 
         // 上传图片
-
 
         let img = new Image()
         img.src = imgUrl
