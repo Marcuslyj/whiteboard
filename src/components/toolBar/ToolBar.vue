@@ -216,9 +216,9 @@ export default {
      changePencilTool(name){
       const stage=this.$globalConf.board;
       const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
-      if(name!=this.activeTool){
+      // if(name!=this.activeTool){
         Vue.eventBus.$emit('deactive-tool',{toolName:this.activeTool,stage});
-      }
+      // }
       this.activeTool=this.$globalConf.pencil.activePencilTool=name;
       Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
     },

@@ -25,9 +25,6 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
     let x = Math.floor(Math.random() * width_safe)
     let y = Math.floor(Math.random() * height_safe)
 
-    console.log(x, y)
-
-
     const render = async (page, renderContext) => {
         await page.render(renderContext).promise
         let imgUrl = convertCanvas.layer.canvas['_canvas'].toDataURL()
@@ -53,8 +50,6 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
             imgK.cache()
             imgK.filters([Konva.Filters.Contrast])
 
-            console.log(layer)
-
             layer.add(imgK)
             layer.draw()
 
@@ -76,11 +71,6 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
     }
     // 渲染
     render(page, renderContext)
-
-    console.log(page, viewport, width, height, renderContext)
-
-
-
 
     // width = stage.width()
 }
