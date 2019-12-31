@@ -17,7 +17,18 @@ module.exports = {
       Konva:'Konva'
     },
     devtool: process.env.NODE_ENV === 'production' ? 'none' : 'eval-source-map',
-    plugins: getPlugins()
+    plugins: getPlugins(),
+    devServer: process.env.NODE_ENV === 'development' ? {
+      proxy: {
+        '/file': {
+          target: 'https://dev-file.tvflnet.com',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/file': '/'
+          }
+        }
+      }
+    } : {}
   }
 }
 

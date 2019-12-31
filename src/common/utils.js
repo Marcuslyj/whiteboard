@@ -19,26 +19,14 @@ export function isObject(obj) {
     return typeof obj === 'object' && obj !== null;
 }
 
-//前端生成id
+// uid
 export const generateUID = function (prefix, suffix) {
-    const sessionid = getCookie("sesionid");
-    let uid;
-    if (sessionid) {
-        uid = sessionid + Date.now().toString(36)+Math.random().toString(36).substr(2);
-    } else {
-        uid = Date.now().toString(36); //Create the uids in chronological order
-        uid +=Math.random().toString(36).substr(2);
-    }
-    if (prefix) uid = prefix + uid;
-    if (suffix) uid = uid + suffix;
-    return uid;
+    let uid = Date.now().toString(36)
+    Array.from({ length: 3 }).map(() => {
+        uid += `_${Math.floor(Math.random() * 10000).toString(36)}`
+    })
+    if (prefix) uid = prefix + uid
+    if (suffix) uid = uid + suffix
+    return uid
 };
-
-const getCookie = name => {
-let arr,
-    reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
-if ((arr = document.cookie.match(reg))) return unescape(arr[2]);
-else return null;
-};
-
 

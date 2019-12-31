@@ -22,7 +22,7 @@ Description
             <div class="preview-wrapper">
               <canvas id="preview-canvas"></canvas>
             </div>
-            <div class="tool-control row" >
+            <div class="tool-control row">
               <div
                 v-for="(pencilTool,index) in pencilToolArr"
                 :Key="index"
@@ -99,6 +99,7 @@ Description
             :format="['pdf']"
             :on-success="uploadSuccess"
             :data="{fbId:common.fbId.upload}"
+            :show-upload-list="false"
           >
             <i class="iconfont icon-upload"></i>
           </Upload>
@@ -120,8 +121,11 @@ Description
 
 <script>
 import { Upload } from 'view-design';
-import common from '@common/common';
-import Vue from 'vue';
+import common from '@common/common'
+import Vue from 'vue'
+import pdfjsLib from 'pdfjsLib'
+import { addCover } from '@common/tool/docCover'
+
 export default {
   props: {
     //简单模式，没有左边的工具
@@ -129,7 +133,7 @@ export default {
       type: Boolean,
       default: true
     },
-    enable:{
+    enable: {
       type: Boolean,
       default: true
     }
@@ -145,21 +149,21 @@ export default {
       //笔
       pencilColorArr: ['#000', '#f00', 'yellow', '#0f0', '#00f'],
       widthArr: [{
-        width:0.4,
-        lineWidth:4,
-      },{
-        width:0.6,
-        lineWidth:6
-      },{
-        width:1,
-        lineWidth:10
-      },{
-        width:1.2,
-        lineWidth:12
+        width: 0.4,
+        lineWidth: 4,
+      }, {
+        width: 0.6,
+        lineWidth: 6
+      }, {
+        width: 1,
+        lineWidth: 10
+      }, {
+        width: 1.2,
+        lineWidth: 12
       },
       {
-        width:1.6,
-        lineWidth:16
+        width: 1.6,
+        lineWidth: 16
       }],
       pencilToolArr: [
         {
@@ -197,18 +201,25 @@ export default {
 
     };
   },
-  mounted(){
+  mounted() {
+    // 模拟测试
+    this.uploadSuccess({
+      data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+      ret: { retCode: 0 }
+    })
     document.body.addEventListener('click',()=>{
       this.boxName='';
     });
   },
   methods: {
-    uploadSuccess({ data, ret }) {
+    async uploadSuccess({ data, ret }) {
       if (0 == ret.retCode) {
-        let filePath = data.filePath;
+        let filePath = common.fileService + data.filePath
+        let pdf = await pdfjsLib.getDocument(filePath).promise
+        addCover(pdf, this.$parent)
       }
     },
-    changePencilTool(name){
+     changePencilTool(name){
       const stage=this.$globalConf.board;
       const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
       if(name!=this.activeTool){
@@ -251,6 +262,7 @@ export default {
     setBoxName(boxName){
       this.boxName=boxName;
     }
+
   }
 };
 </script>
