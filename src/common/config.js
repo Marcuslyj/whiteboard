@@ -11,7 +11,7 @@ export default Vue.observable({
     //组件管理，用于撤退还原
     graphics:[],
     pencil:{
-        activePencilTool:'markPencil',
+        activePencilTool:'pen',
         color:'#000',
         lineWidth:6,
     },

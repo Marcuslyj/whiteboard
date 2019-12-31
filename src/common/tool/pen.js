@@ -1,46 +1,56 @@
-import konva from "konva";
+import Konva from "Konva";
+import Vue from 'vue';
+import { generateUID } from '@common/utils';
 
-//后面可能用全新的方案，所以单独一个文件
 function create(params) {
-	const {stage, layer, toolConfig}=params
-	let line
-	let isPainting
-	stage.on("mousedown touchstart", function() {
-		isPainting=true
-		const poi=stage.getPointerPosition()
+	const { stage, layer } = params;
+	let line;
+	// 标记正在画线
+	let isDrawing = false
+	stage.on("mousedown touchstart", function () {
+		isDrawing = true;
+		const poi = stage.getPointerPosition();
+		const toolConfig = Vue.prototype.$globalConf.pencil;
 		const lineConfig = {
-		stroke: toolConfig.color,
-		strokeWidth: toolConfig.lineWidth,
-		lineJoin: "round",
-		lineCap: "round",
-		globalCompositeOperation: "source-over",
-		points: [poi.x, poi.y],
-		bezier:true
+			id: generateUID(),
+			stroke: toolConfig.color,
+			strokeWidth: toolConfig.lineWidth/2,
+			opacity:1,
+			lineJoin: "round",
+			lineCap: "round",
+			globalCompositeOperation: "source-over",
+			points: [poi.x, poi.y],
+			bezier: true
 		};
-		line = new konva.Line(lineConfig)
+		line = new Konva.Line(lineConfig);
 		layer.add(line);
+		layer.batchDraw();
 	});
-
-	stage.on("mousemove touchmove", function() {
-		if(!isPainting){
+	stage.on("mousemove touchmove", function () {
+		if (!isDrawing) {
 			return
 		}
-		const poi=stage.getPointerPosition()
-		line.points(line.points().concat(poi.x, poi.y))
-		layer.draw()
-	})
-
+		const poi = stage.getPointerPosition();
+		line.points(line.points().concat(poi.x, poi.y));
+		layer.batchDraw();
+	});
 	//清除事件
-	stage.on("mouseup touchend", function() {
-		isPainting=false
+	stage.on("mouseup touchend", function () {
+		if (isDrawing) {
+			isDrawing = false;
+			// 性能优化
+			line.cache();
+			line = null;
+		}
 	});
 }
 
-function destroy(stage){
-	stage.off('mousedown touchstart')
+function destroy(params) {
+	const { stage } = params;
+	stage.off('mousedown touchstart mousemove touchmove mouseup touchend');
 }
 
 export default {
-  create,
-  destroy
+	create,
+	destroy
 };
