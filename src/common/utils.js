@@ -1,5 +1,3 @@
-import {getNegativePatternsAsPositive} from "_fast-glob@2.2.7@fast-glob/out/managers/tasks";
-
 // 深冻结
 export function deepFreeze(obj) {
     obj = isObject(obj) ? obj : {};
