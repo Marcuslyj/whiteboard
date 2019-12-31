@@ -6,24 +6,19 @@ Description
 -->
 <template>
   <div class="toolbar">
-    <div
-      class="mask"
-      v-show="!enable"
-    ></div>
-    <div
-      class="left part"
-      v-if="isHome"
-    >
+    <!-- 工具条能否起作用的遮罩 -->
+    <div class="mask" v-show="!enable"></div>
+    <div class="left part" v-if="isHome">
       <span><i class="iconfont icon-add"></i></span>
       <span><i class="iconfont icon-boards"></i></span>
     </div>
     <div class="center">
       <ul class="group draw-tool">
-        <li>
+        <li ref="select-tool" @click.stop="clickSelectTool">
           <i class="iconfont icon-select"></i>
         </li>
-        <li><i class="iconfont icon-pen"></i>
-          <div class="menu pencil">
+        <li ref="pencil-tool" @click.stop="clickPencilTool"><i class="iconfont icon-pen"></i>
+          <div class="menu pencil" v-if="boxName==='pencil'">
             <div class="preview-wrapper">
               <canvas id="preview-canvas"></canvas>
             </div>
@@ -31,7 +26,7 @@ Description
               <div
                 v-for="(pencilTool,index) in pencilToolArr"
                 :Key="index"
-                :class="{'item-wrapper':true,'active-item':activePencilTool===pencilTool.name}"
+                :class="{'item-wrapper':true,'active-item':$globalConf.pencil.activePencilTool===pencilTool.name}"
                 @click="changePencilTool(pencilTool.name)"
               >
                 <span><i :class="['iconfont',pencilTool.icon]"></i></span>
@@ -41,7 +36,7 @@ Description
               <div
                 v-for="(color,index) in pencilColorArr"
                 :key="index"
-                :class="{'item-wrapper':true,'active-item':activePencilColor===color}"
+                :class="{'item-wrapper':true,'active-item':$globalConf.pencil.color===color}"
                 @click="changePencilColor(color)"
               >
                 <span
@@ -52,24 +47,24 @@ Description
 
             </div>
             <div class="width-control row">
-              <div class="width-level">{{activePencilWidth}}</div>
+              <div class="width-level">{{$globalConf.pencil.lineWidth}}</div>
               <div
                 v-for="(item,index) in widthArr"
                 :key="index"
-                :class="{'item-wrapper':true,'active-item':activePencilWidth===item.lineWidth}"
-                @click="changePencilWidth(width)"
+                :class="{'item-wrapper':true,'active-item':$globalConf.pencil.lineWidth===item.lineWidth}"
+                @click="changePencilWidth(item.lineWidth)"
               >
                 <span
                   class="cirlce"
-                  :style="{width:`${item.width}vw`,height:`${item.width}vw`,'border-radius':`${item.width/2}vw`,backgroundColor:`${activePencilColor}`}"
+                  :style="{width:`${item.width}vw`,height:`${item.width}vw`,'border-radius':`${item.width/2}vw`,backgroundColor:`${$globalConf.pencil.color}`}"
                 ></span>
               </div>
             </div>
           </div>
         </li>
-        <li>
+        <li ref="eraser-tool" @click="clickEraserTool">
           <i class="iconfont icon-eraser"></i>
-          <div class="menu eraser">
+          <div class="menu eraser" v-if="boxName==='eraser'">
             <div class="row">
               <div
                 v-for="(eraserTool,index) in eraserToolArr"
@@ -80,7 +75,7 @@ Description
               </div>
             </div>
             <div class="row width-control">
-              <div class="width-level">{{activePencilWidth}}</div>
+              <div class="width-level">{{$globalConf.pencil.lineWidth}}</div>
               <div
                 v-for="(item,index) in widthArr"
                 :key="index"
@@ -94,7 +89,7 @@ Description
             </div>
           </div>
         </li>
-        <li><i class="iconfont icon-text"></i></li>
+        <li ref="text-tool" @click="clickTextTool"><i class="iconfont icon-text"></i></li>
       </ul>
       <ul class="group bussiness-tool">
         <li>
@@ -109,7 +104,7 @@ Description
             <i class="iconfont icon-upload"></i>
           </Upload>
         </li>
-        <li><i class="iconfont icon-download"></i></li>
+        <li class="data-li"><i class="iconfont icon-download"></i></li>
         <li><i class="iconfont icon-file"></i></li>
         <li><i class="iconfont icon-clip"></i></li>
       </ul>
@@ -147,7 +142,8 @@ export default {
   data() {
     return {
       common,
-      activeTool: 'select',
+      //激活的工具
+      activeTool: 'markPencil',
       //笔
       pencilColorArr: ['#000', '#f00', 'yellow', '#0f0', '#00f'],
       widthArr: [{
@@ -177,13 +173,10 @@ export default {
           icon: 'icon-makebi',
         },
         {
-          name: 'icon-arrow',
+          name: 'arrow',
           icon: 'icon-arrow',
         }
       ],
-      activePencilTool: 'markPencil',
-      activePencilColor: '#000',
-      activePencilWidth: 10,
 
       //eraserToolArr
       eraserToolArr: [
@@ -202,7 +195,9 @@ export default {
       ],
       activeEraserWidth: 1,
       activeEraserTool: 'icon-eraser',
-    }
+      boxName:'',
+
+    };
   },
   mounted() {
     // 模拟测试
@@ -210,33 +205,60 @@ export default {
       data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
       ret: { retCode: 0 }
     })
+    document.body.addEventListener('click',()=>{
+      this.boxName='';
+    });
   },
   methods: {
     uploadSuccess(res) {
       this.$emit('uploadSuccess', res)
     },
-    changePencilTool(name) {
-      this.activePencilTool = name
-      const stage = this.$globalConf.board
-      const layer = this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']]
-      const toolConfig = {
-        lineWidth: this.activePencilWidth,
-        color: this.activePencilColor
+     changePencilTool(name){
+      const stage=this.$globalConf.board;
+      const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
+      if(name!=this.activeTool){
+        Vue.eventBus.$emit('deactive-tool',{toolName:this.activeTool,stage});
       }
-      Vue.eventBus.$emit('active-tool', { toolName: 'markPencil', stage, layer, toolConfig })
+      this.activeTool=this.$globalConf.pencil.activePencilTool=name;
+      Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
     },
-    changePencilColor(color) {
-      this.activePencilColor = color
+    changePencilColor(color){
+      this.$globalConf.pencil.color=color;
     },
-    changePencilWidth(width) {
-      this.activePencilWidth = width
+    changePencilWidth(lineWidth){
+      this.$globalConf.pencil.lineWidth=lineWidth;
     },
-    active() {
-      this.changePencilTool(this.activePencilTool)
+    active(){
+      this.clickPencilTool()
+      this.setBoxName('');
+    },
+    clickSelectTool(){
+      this.setLiStyle('select-tool');
+      this.setBoxName('');
+    },
+    clickPencilTool(){
+      this.setLiStyle('pencil-tool');
+      this.setBoxName('pencil');
+      this.changePencilTool(this.activeTool);
+    },
+    clickEraserTool(){
+      this.setLiStyle('eraser-tool');
+       this.setBoxName('eraser');
+    },
+    clickTextTool(){
+      this.setLiStyle('text-tool');
+    },
+    setLiStyle(ref){
+      const el=document.querySelector('.center .activeTool');
+      el&&el.classList.remove('activeTool');
+      this.$refs[ref].classList.add('activeTool');
+    },
+    setBoxName(boxName){
+      this.boxName=boxName;
     }
 
   }
-}
+};
 </script>
 
 <style lang="scss" src="./ToolBar.scss" scoped></style>  

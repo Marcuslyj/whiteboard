@@ -16,7 +16,7 @@
     display:flex;
     margin:auto;
     max-width:100%;
-    background:#fff;
+    background:#f0f0f0;
     border-radius:8px;
     box-shadow: 0 0 6px #919191;
     .group {
@@ -27,7 +27,7 @@
       li {
         box-sizing: border-box;
         position: relative;
-        overflow:hidden;
+        // overflow:hidden;
         height:3vw;
         padding:0 0.5vw;
         .iconfont{
@@ -35,8 +35,12 @@
         }
         &:hover {
           overflow: visible;
+          background:#D6D6D6
         }
         cursor: pointer;
+        &.activeTool{
+          background:#D6D6D6;
+        }
       }
       .menu {
         position: absolute;
@@ -74,8 +78,8 @@
             &.active-item,
             &:hover {
               border: 0.2vw solid #f48924;
-			  border-radius: 0.3vw;
-			  background-color:#fff;
+              border-radius: 0.3vw;
+              background-color:#fff;
             }
           }
         }
@@ -89,10 +93,10 @@
         }
         .tool-control {
           .item-wrapper {
-			flex-grow: 0;
-			&:not(:first-child){
-				margin-left:0.5vw;
-			}
+            flex-grow: 0;
+            &:not(:first-child){
+              margin-left:0.5vw;
+            }
           }
           .iconfont {
             font-size: 2vw;
@@ -117,6 +121,7 @@
             flex: 1;
             background-color: #fff;
             border-radius: 8px;
+            text-align: center;
           }
         }
       }
@@ -131,6 +136,7 @@
             flex: 1;
             background-color: #fff;
             border-radius: 8px;
+            text-align: center;
           }
         }
         .circle {
@@ -145,6 +151,10 @@
            .iconfont{
             font-size:3vw;
           }
+          &:hover {
+            overflow: visible;
+            background:#D6D6D6
+          }
         }
         .menu {
           bottom:8vw;
@@ -158,7 +168,7 @@
       display:inline-block;
       box-sizing: border-box;
       cursor: pointer;
-      background:#f3f4f7;
+      background:#f0f0f0;;
       height:3vw;
       padding:0 0.5vw;
       border-radius:0.5vw;
@@ -169,6 +179,9 @@
       .iconfont {
         vertical-align: middle;
         font-size: 2vw;
+      }
+      &:hover {
+        background:#D6D6D6
       }
     }
   }
@@ -184,6 +197,9 @@
       line-height:6vw;
       .iconfont{
         font-size:3vw;
+      }
+      &:hover {
+        background:#D6D6D6
       }
     }
   }

@@ -122,9 +122,15 @@ export default {
     margin: 10px 10px 0;
     border: 1px solid #eee;
     overflow: hidden;
+    #board-container{ 
+      background-color:#fff;
+      flex:1;
+      // margin:10px 10px 0;
+      border:1px solid #eee;
+    }
   }
-  .tool-wrapper {
-    margin: 10px;
+  .tool-wrapper{
+    margin:10px;
   }
   .convertCanvas {
     position: absolute;

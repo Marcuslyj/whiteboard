@@ -1,4 +1,4 @@
-import { deepFreeze } from './utils'
+import { deepFreeze } from './utils';
 
 export const baseUrl = process.env.VUE_APP_baseUrl
 export const webService = process.env.VUE_APP_webService
@@ -10,7 +10,7 @@ export const api = {
 }
 export const fbId = {
     upload: 'F1912100'
-}
+};
 
 const socketUrl = process.env.VUE_APP_socketUrl
 
@@ -20,6 +20,7 @@ export default deepFreeze({
     webService,
     fileService,
     api,
-    fbId
-})
+    fbId,
+    
+});
 

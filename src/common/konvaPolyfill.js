@@ -1,7 +1,7 @@
-import konva from "konva";
+import Konva from "konva";
 
 //覆盖了bezier 的实现方式,提高了马克笔的柔顺度
-konva.Line.prototype._sceneFunc = function (context) {
+Konva.Line.prototype._sceneFunc = function (context) {
   var points = this.points(),
     length = points.length,
     tension = this.tension(),
@@ -58,7 +58,7 @@ konva.Line.prototype._sceneFunc = function (context) {
       _points.push({
         x: points[i],
         y: points[i + 1]
-      })
+      });
     }
     if (_points.length > 3) {
       let end;

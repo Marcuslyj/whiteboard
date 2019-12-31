@@ -14,7 +14,7 @@ module.exports = {
     },
     externals: {
       pdfjsLib: 'pdfjsLib',
-      // konva:'konva'
+      Konva:'Konva'
     },
     devtool: process.env.NODE_ENV === 'production' ? 'none' : 'eval-source-map',
     plugins: getPlugins(),

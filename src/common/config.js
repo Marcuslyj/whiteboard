@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue from 'vue';
 
 export default Vue.observable({
     board: null,
@@ -9,5 +9,11 @@ export default Vue.observable({
     },
     layerManager: {},
     //组件管理，用于撤退还原
-    components: []
-})
+    graphics:[],
+    pencil:{
+        activePencilTool:'markPencil',
+        color:'#000',
+        lineWidth:6,
+    },
+    
+});

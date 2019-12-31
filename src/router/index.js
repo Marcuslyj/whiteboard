@@ -1,9 +1,9 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-Vue.use(Router)
+import Vue from 'vue';
+import Router from 'vue-router';
+Vue.use(Router);
 
-const  whiteBoard= () => import('../views/whiteBoard/WhiteBoard')
-const  Welcome= () => import('../views/welcome/Welcome')
+const  whiteBoard= () => import('../views/whiteBoard/WhiteBoard');
+const  Welcome= () => import('../views/welcome/Welcome');
 export default new Router({
     routes: [
         {
@@ -20,4 +20,4 @@ export default new Router({
         }
     ]
     
-})
+});
