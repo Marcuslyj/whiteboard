@@ -1,5 +1,8 @@
 import Konva from "konva";
 
+let lines = {}
+let timer = null
+
 //覆盖了bezier 的实现方式,提高了马克笔的柔顺度
 Konva.Line.prototype._sceneFunc = function (context) {
   var points = this.points(),
@@ -48,12 +51,20 @@ Konva.Line.prototype._sceneFunc = function (context) {
       );
     }
   } else if (bezier) {
+    let index = 0;
+    if (lines['' + this._id]) {
+      index = lines[this._id];
+    } else {
+      lines = {}
+    }
     let _points = [];
     for (let i = 0; i < points.length; i += 2) {
       // 去掉太紧密的点，但不能去掉最始最末的点，否则不跟手
-      if (i < points.length - 6 && i > 6) {
+      if (i >= index - 2 && i < points.length - 6 && i > 6) {
         let dis = Math.sqrt(Math.pow(points[i] - points[i + 2], 2) + Math.pow(points[i + 1] - points[i + 3], 2));
         if (dis < 6) points.splice(i + 2, 2);
+
+        lines[this._id] = i;
       }
       _points.push({
         x: points[i],
@@ -73,6 +84,12 @@ Konva.Line.prototype._sceneFunc = function (context) {
         context.quadraticCurveTo(c.x, c.y, end.x, end.y);
       }
     }
+
+    // 清缓存，防止影响下一次
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      lines = {}
+    }, 500)
   } else {
     // no tension
     for (n = 2; n < length; n += 2) {
