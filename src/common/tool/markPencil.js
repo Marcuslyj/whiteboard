@@ -19,6 +19,7 @@ function create(params) {
 			lineCap: "round",
 			globalCompositeOperation: "source-over",
 			points: [poi.x, poi.y],
+			opacity:0.5,
 			bezier: true
 		};
 		line = new Konva.Line(lineConfig);
@@ -41,13 +42,12 @@ function create(params) {
 			line.cache();
 			line = null;
 		}
-		// stage.off("mousemove touchmove")
 	});
 }
 
 function destroy(params) {
 	const { stage } = params;
-	stage.off('mousedown touchstart');
+	stage.off('mousedown touchstart mousemove touchmove mouseup touchend');
 }
 
 export default {
