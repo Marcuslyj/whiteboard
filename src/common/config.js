@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue from 'vue'
 
 export default Vue.observable({
   board: null,
@@ -21,4 +21,4 @@ export default Vue.observable({
     lineWidth: 14,
     color: '#fff',
   },
-});
+})

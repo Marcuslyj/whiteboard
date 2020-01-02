@@ -1,12 +1,12 @@
 // 组件删除
-import Konva from 'konva'
+import Konva from 'Konva'
 
 function create(params) {
   const { stage, layer } = params
   let label; let tr
   stage.on('click', (evt) => {
     if (evt.target === stage) {
-      return 
+      return
     }
     stage.find('Transformer').destroy()
 

@@ -27,10 +27,11 @@ Description
 </template>
 
 <script>
-import Konva from 'konva';
-import { initTool } from '@common/tool';
-import { addCover, loadPdf } from '@common/tool/document';
-import ToolBar from '@/components/toolBar/ToolBar';
+import { Message } from 'view-design'
+import Konva from 'Konva'
+import { initTool } from '@common/tool'
+import { addCover, loadPdf } from '@common/tool/document'
+import ToolBar from '@/components/toolBar/ToolBar'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
 
@@ -43,72 +44,81 @@ export default {
       stage: null,
       shouldConvert: false,
       convertCanvas: null,
-    };
+    }
   },
   mounted() {
-    const el = document.querySelector('#board-container');
+    const el = document.querySelector('#board-container')
     this.$globalConf.board = this.stage = new Konva.Stage({
       container: 'board-container',
       width: el.clientWidth,
       height: el.clientHeight,
-    });
+    })
     Object.keys(this.$globalConf.layerIds).map((layerId) => {
       const layer = new Konva.Layer({
         id: layerId,
-      });
-      this.$globalConf.layerManager[layerId] = layer;
-      this.$globalConf.layerManager.BG_LAYER.listening(false);
-      this.stage.add(layer);
-    });
-    initTool();
-    this.$refs['tool-bar'].active();
+      })
+      this.$globalConf.layerManager[layerId] = layer
+      this.$globalConf.layerManager.BG_LAYER.listening(false)
+      this.stage.add(layer)
+    })
+    initTool()
+    this.$refs['tool-bar'].active()
 
 
     this.$root.$on('resize', () => {
-      // 主屏应该重绘，并同步画布尺寸
-      const width = this.$refs['board-container'].clientWidth;
-      const height = this.$refs['board-container'].clientHeight;
 
-      this.stage.size({
-        width,
-        height,
-      });
-    });
+      // 主屏应该重绘，并同步画布尺寸
+      if (this.$refs['board-container']) {
+        const width = this.$refs['board-container'].clientWidth
+        const height = this.$refs['board-container'].clientHeight
+
+        this.stage.size({
+          width,
+          height,
+        })
+      }
+    })
   },
   methods: {
     // 初始化转换画板
     initConvertCanvas() {
       if (this.convertCanvas) {
-        return;
+        return
       }
       this.convertCanvas = new Konva.Stage({
         container: this.$refs.convertCanvas,
-      });
-      this.convertCanvas.layer = new Konva.Layer();
-      this.convertCanvas.add(this.convertCanvas.layer);
+      })
+      this.convertCanvas.layer = new Konva.Layer()
+      this.convertCanvas.add(this.convertCanvas.layer)
     },
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
       if (ret.retCode == 0) {
+        this.Msgloading = this.Msgloading || []
+        this.Msgloading.push(Message.loading({
+          content: '读取中...',
+          duration: 0,
+        }))
         // let filePath = common.fileService + data.filePath
         // let pdf = await pdfjsLib.getDocument(filePath).promise
-        const pdf = await loadPdf({ url: data.filePath });
+        const pdf = await loadPdf({ url: data.filePath })
 
-        this.shouldConvert = true;
+        this.shouldConvert = true
 
         this.$nextTick(() => {
-          this.initConvertCanvas();
+          this.initConvertCanvas()
+          if (this.Msgloading.length) this.Msgloading.pop()()
 
           addCover(pdf, {
             stage: this.stage,
             layer: this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER],
             convertCanvas: this.convertCanvas,
-          });
-        });
+          })
+        })
       }
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>

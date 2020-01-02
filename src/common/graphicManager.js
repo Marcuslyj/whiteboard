@@ -1,9 +1,9 @@
-import config from './config';
+import config from './config'
 
 export function addGraphic(graphic) {
-  config.cacheGraphics.push(graphic);
+  config.cacheGraphics.push(graphic)
 }
 
 export function clearCache() {
-  config.cacheGraphics = [];
+  config.cacheGraphics = []
 }

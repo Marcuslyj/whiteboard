@@ -24,7 +24,7 @@ export const initTool = () => {
   })
 
   Vue.eventBus.$on('deactive-tool', ({ toolName, ...params }) => {
-    toolCollection[toolName].destroy && (toolCollection[toolName].destroy(params))
+    toolCollection[toolName].destroy && toolCollection[toolName].destroy(params)
     console.log(`destroyTool:${toolName}`)
   })
 }

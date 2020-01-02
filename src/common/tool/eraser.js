@@ -9,7 +9,7 @@ function create(params) {
   stage.on('mousedown touchstart', () => {
     isDrawing = true
     const poi = stage.getPointerPosition()
-    const toolConfig = Vue.prototype.$globalConf.eraser 
+    const toolConfig = Vue.prototype.$globalConf.eraser
     const eraserConfig = {
       id: generateUID(),
       stroke: toolConfig.color,

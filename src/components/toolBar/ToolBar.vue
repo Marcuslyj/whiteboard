@@ -7,8 +7,14 @@ Description
 <template>
   <div class="toolbar">
     <!-- 工具条能否起作用的遮罩 -->
-    <div class="mask" v-show="!enable"></div>
-    <div class="left part" v-if="isHome">
+    <div
+      class="mask"
+      v-show="!enable"
+    ></div>
+    <div
+      class="left part"
+      v-if="isHome"
+    >
       <span><i class="iconfont icon-add"></i></span>
       <span><i class="iconfont icon-boards"></i></span>
     </div>
@@ -127,6 +133,7 @@ Description
             :action="common.api.upload"
             accept="application/pdf"
             :format="['pdf']"
+            :before-upload="beforeUpload"
             :on-success="uploadSuccess"
             :data="{ fbId: common.fbId.upload }"
             :show-upload-list="false"
@@ -150,9 +157,10 @@ Description
 </template>
 
 <script>
-import { Upload } from 'view-design'
+import { Upload, Message } from 'view-design'
 import common from '@common/common'
 import Vue from 'vue'
+
 
 export default {
   props: {
@@ -227,23 +235,30 @@ export default {
         },
       ],
       boxName: '',
+      // MsgUploading: []
     }
   },
   mounted() {
-    // 模拟测试
-    this.uploadSuccess({
-      data: {
-        filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf',
-      },
-      ret: { retCode: 0 },
-    })
+    // // 模拟测试
+    // this.uploadSuccess({
+    //   data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+    //   ret: { retCode: 0 }
+    // })
     document.body.addEventListener('click', () => {
-      console.log('click')
       this.boxName = ''
     })
   },
   methods: {
+    beforeUpload() {
+      this.MsgUploading = this.MsgUploading || []
+      this.MsgUploading.push(Message.loading({
+        content: '上传中...',
+        duration: 0,
+      }))
+      return true
+    },
     uploadSuccess(res) {
+      if (this.MsgUploading.length) this.MsgUploading.pop()()
       this.$emit('uploadSuccess', res)
     },
     changePencilTool(name, isFirst = false) {
@@ -279,7 +294,6 @@ export default {
       this.$globalConf.pencil.lineWidth = lineWidth
       this.resetCanvas()
     },
-
     // eraser
     changeEraserTool(name) {
       if (this.$globalConf.activeTool === name) return
@@ -318,7 +332,7 @@ export default {
     },
     active() {
       this.setLiStyle('pencil-tool')
-      this.changePencilTool(this.$globalConf.activeTool, true) 
+      this.changePencilTool(this.$globalConf.activeTool, true)
     },
     clickPanTool() {
       this.setLiStyle('pan-tool')
@@ -372,50 +386,50 @@ export default {
       let dy
       let radians; let length; let width
       switch (this.$globalConf.activeTool) {
-        case 'markPencil':
-          ctx.beginPath()
-          ctx.globalAlpha = 0.5
-          ctx.moveTo(start[0], start[1])
-          ctx.bezierCurveTo(start[0], start[1], mid[0], mid[1], end[0], end[1])
-          ctx.stroke()
-          break;
-        case 'pen':
-          ctx.beginPath()
-          ctx.globalAlpha = 1
-          ctx.lineWidth = this.$globalConf.pencil.lineWidth / 2
-          ctx.moveTo(start[0], start[1])
-          ctx.bezierCurveTo(start[0], start[1], mid[0], mid[1], end[0], end[1])
-          ctx.stroke()
-          break;
-        case 'arrow':
-          ctx.globalAlpha = 1
-          ctx.beginPath()
-          ctx.lineCap = 'butt'
-          ctx.lineJoin = 'bevel'
-          end = [el.width - 30, el.height / 2]
-          ctx.moveTo(start[0], start[1])
-          ctx.lineTo(end[0], end[1])
-          ctx.stroke()
-          ctx.save()
-          PI2 = Math.PI * 2
-          dx = end[0] - start[0]
-          dy = end[1] - start[1]
-          radians = (Math.atan2(dy, dx) + PI2) % PI2
-          length = this.$globalConf.pencil.lineWidth + 30
-          width = this.$globalConf.pencil.lineWidth + 30
-          ctx.beginPath()
-          ctx.fillStyle = this.$globalConf.pencil.color
-          ctx.translate(end[0] + 15, end[1])
-          ctx.rotate(radians)
-          ctx.moveTo(0, 0)
-          ctx.lineTo(-length, width / 2)
-          ctx.lineTo(-length, -width / 2)
-          ctx.fill()
-          ctx.closePath()
-          ctx.restore()
-          break;
-        default:
-          break
+      case 'markPencil':
+        ctx.beginPath()
+        ctx.globalAlpha = 0.5
+        ctx.moveTo(start[0], start[1])
+        ctx.bezierCurveTo(start[0], start[1], mid[0], mid[1], end[0], end[1])
+        ctx.stroke()
+        break
+      case 'pen':
+        ctx.beginPath()
+        ctx.globalAlpha = 1
+        ctx.lineWidth = this.$globalConf.pencil.lineWidth / 2
+        ctx.moveTo(start[0], start[1])
+        ctx.bezierCurveTo(start[0], start[1], mid[0], mid[1], end[0], end[1])
+        ctx.stroke()
+        break
+      case 'arrow':
+        ctx.globalAlpha = 1
+        ctx.beginPath()
+        ctx.lineCap = 'butt'
+        ctx.lineJoin = 'bevel'
+        end = [el.width - 30, el.height / 2]
+        ctx.moveTo(start[0], start[1])
+        ctx.lineTo(end[0], end[1])
+        ctx.stroke()
+        ctx.save()
+        PI2 = Math.PI * 2
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        radians = (Math.atan2(dy, dx) + PI2) % PI2
+        length = this.$globalConf.pencil.lineWidth + 30
+        width = this.$globalConf.pencil.lineWidth + 30
+        ctx.beginPath()
+        ctx.fillStyle = this.$globalConf.pencil.color
+        ctx.translate(end[0] + 15, end[1])
+        ctx.rotate(radians)
+        ctx.moveTo(0, 0)
+        ctx.lineTo(-length, width / 2)
+        ctx.lineTo(-length, -width / 2)
+        ctx.fill()
+        ctx.closePath()
+        ctx.restore()
+        break
+      default:
+        break
       }
     },
   },
