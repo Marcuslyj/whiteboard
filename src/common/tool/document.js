@@ -7,6 +7,9 @@ import pdfjsLib from 'pdfjsLib'
 // 正在查阅的pdf
 let docOpened
 let stageDoc
+let pageSigned = {}
+let rendering = false
+let showCount = 1
 
 // 加载pdf
 export async function loadPdf({ url, docID }) {
@@ -95,8 +98,6 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
     }
     // 渲染
     render(page, renderContext)
-
-    // width = stage.width()
 }
 
 // 打开文档
@@ -108,6 +109,7 @@ export async function open(docID, { stage, layer, convertCanvas }) {
     Object.values(config.layerIds).map(v => {
         config.layerManager[v].removeChildren()
     })
+    stage.draw()
     // 记录文档stage
     stageDoc = stage
 
@@ -119,7 +121,9 @@ export async function open(docID, { stage, layer, convertCanvas }) {
 
     docOpened = {
         pdf,
-        viewport
+        viewport,
+        layer,
+        convertCanvas
     }
     enableScroll()
 
@@ -130,7 +134,10 @@ export async function open(docID, { stage, layer, convertCanvas }) {
     })
 
     // 加载文档
-    loopRender(pdf, { viewport, layer, convertCanvas })
+    pageSigned = {}
+    showCount = (stageDoc.height() / viewport.height) + 1
+    // stage.setAttrs({ y: -2000 })
+    renderPages(pdf, { viewport, layer, convertCanvas })
     // 火狐内存泄露问题严重
     pdf = viewport = null
 }
@@ -143,7 +150,8 @@ export function enableScroll(enable = true) {
 
     if (enable) {
         let maxScrollY = 0;
-        let minScrollY = -1 * pdf.numPages * viewport.height;
+        // 考虑每一页的大小一致情况
+        let minScrollY = -1 * (pdf.numPages * viewport.height - stage.height());
         stage.setAttrs({
             // select tool fired，stage set draggable true
             // draggable: this.toolConfig.currentTool === 'select',
@@ -164,13 +172,17 @@ export function enableScroll(enable = true) {
 
             let y = stage.getAttr('y') + deltaY;
             if (y > maxScrollY) {
-                return;
+                y = maxScrollY
             } else if (y < minScrollY) {
-                return;
+                y = minScrollY
             }
             stage.setAttrs({ y })
             // 绘制
             stage.draw();
+
+            // 加载页面
+            let { layer, convertCanvas } = docOpened
+            renderPages(pdf, { viewport, layer, convertCanvas })
         })
     } else {
         stage.off('wheel')
@@ -212,55 +224,72 @@ async function getViewport(pdf, { stage }) {
     return viewport
 }
 
+// 按需添加页面
+function renderPages(pdf, { viewport, layer, convertCanvas }) {
+    if (rendering) return
+    rendering = true
+    let stage = stageDoc
+    let y = Math.abs(stage.getAttr('y'))
+    let from = Math.floor(y / viewport.height) + 1
+    let to = Math.min(Math.ceil(from + showCount), pdf.numPages)
+    loopRender(pdf, { viewport, layer, convertCanvas, from, to })
+}
+
 // 加载所有页面
-function loopRender(pdf, { viewport, layer, convertCanvas }) {
-    // console.log(convertCanvas)
+function loopRender(pdf, { viewport, layer, convertCanvas, from, to }) {
     let context = convertCanvas.layer.getContext()
     let renderContext = {
         canvasContext: context,
         viewport: viewport
     }
-    // 标记已加载
-    let c = 0
-    // 位置
-    let y = 0
-    renderOne(pdf, { viewport, layer, renderContext, convertCanvas, c, y })
+
+    renderPage(pdf, { viewport, layer, renderContext, convertCanvas, from, to })
     pdf = renderContext = viewport = null
 }
 // 加载一页
-async function renderOne(pdf, { viewport, layer, renderContext, convertCanvas, c, y }) {
-    let page = await pdf.getPage(c + 1)
-    await page.render(renderContext).promise
-    page = null
-    c++
+async function renderPage(pdf, { viewport, layer, renderContext, convertCanvas, from, to }) {
+    if (from > to) {
+        rendering = false
+        return
+    }
+    if (pageSigned[from]) {
+        from++
+        renderPage(pdf, { viewport, layer, renderContext, convertCanvas, from, to })
+    } else {
+        let y = (from - 1) * viewport.height
+        let page = await pdf.getPage(from)
+        await page.render(renderContext).promise
+        page = null
 
-    let imgUrl = convertCanvas.layer.canvas['_canvas'].toDataURL()
-    let img = new Image()
-    img.src = imgUrl
-    img.onload = () => {
-        let imgK = new Konva.Image({
-            x: 0,
-            y,
-            image: img,
-            width: viewport.width,
-            height: viewport.height,
-            // 白底,防止透明背景
-            fill: '#fff',
-            stroke: '#ccc'
-        })
-        layer.add(imgK)
 
-        if (c < pdf.numPages) {
-            y += viewport.height
-            renderOne(pdf, { viewport, layer, renderContext, convertCanvas, c, y })
-            if ((c < 6 && c % 2 === 0) || c % 20 === 0) {
+        let imgUrl = convertCanvas.layer.canvas['_canvas'].toDataURL()
+        let img = new Image()
+        img.src = imgUrl
+        img.onload = () => {
+            let imgK = new Konva.Image({
+                x: 0,
+                y,
+                image: img,
+                width: viewport.width,
+                height: viewport.height,
+                // 白底,防止透明背景
+                fill: '#fff',
+                stroke: '#ccc'
+            })
+            layer.add(imgK)
+            pageSigned[from] = true
+
+            if (from === to) {
                 layer.batchDraw()
             }
-        } else {
-            layer.batchDraw()
+
+            from++
+            renderPage(pdf, { viewport, layer, renderContext, convertCanvas, from, to })
+
+            imgUrl = img = pdf = viewport = renderContext = null
         }
-        imgUrl = img = pdf = viewport = renderContext = null
     }
+
 }
 
 
