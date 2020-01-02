@@ -1,11 +1,11 @@
 function create(params) {
-  const { layers } = params;
+  const { layers } = params
   layers.forEach((layer) => {
-    layer.destroyChildren();
-    layer.batchDraw();
-  });
+    layer.destroyChildren()
+    layer.batchDraw()
+  })
 }
 
 export default {
   create,
-};
+}
