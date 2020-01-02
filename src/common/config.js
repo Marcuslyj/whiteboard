@@ -10,14 +10,15 @@ export default Vue.observable({
     layerManager: {},
     //组件管理，用于撤退还原
     graphics:[],
+    activeTool:'pen',
     pencil:{
         activePencilTool:'pen',
         color:'#000',
-        lineWidth:6,
+        lineWidth:14,
     },
     eraser:{
         activeEraserTool:'eraser',
-        lineWidth:6,
+        lineWidth:14,
         color:'#fff'
     }
     
