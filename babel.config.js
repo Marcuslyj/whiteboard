@@ -1,14 +1,14 @@
 module.exports = {
   presets: [
-    '@vue/cli-plugin-babel/preset'
+    '@vue/cli-plugin-babel/preset',
   ],
-  "plugins": [
+  plugins: [
     [
-      "import",
+      'import',
       {
-        "libraryName": "view-design",
-        "libraryDirectory": "src/components"
-      }
-    ]
-  ]
-}
+        libraryName: 'view-design',
+        libraryDirectory: 'src/components',
+      },
+    ],
+  ],
+};

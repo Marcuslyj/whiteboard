@@ -1,18 +1,18 @@
-import Konva from "konva";
+import Konva from 'konva';
 
-let lines = {}
-let timer = null
+let lines = {};
+let timer = null;
 
-//覆盖了bezier 的实现方式,提高了马克笔的柔顺度
+// 覆盖了bezier 的实现方式,提高了马克笔的柔顺度
 Konva.Line.prototype._sceneFunc = function (context) {
-  var points = this.points(),
-    length = points.length,
-    tension = this.tension(),
-    closed = this.closed(),
-    bezier = this.bezier(),
-    tp,
-    len,
-    n;
+  const points = this.points();
+  const { length } = points;
+  const tension = this.tension();
+  const closed = this.closed();
+  const bezier = this.bezier();
+  let tp;
+  let len;
+  let n;
 
   if (!length) {
     return;
@@ -38,7 +38,7 @@ Konva.Line.prototype._sceneFunc = function (context) {
         tp[n++],
         tp[n++],
         tp[n++],
-        tp[n++]
+        tp[n++],
       );
     }
 
@@ -47,28 +47,28 @@ Konva.Line.prototype._sceneFunc = function (context) {
         tp[len - 2],
         tp[len - 1],
         points[length - 2],
-        points[length - 1]
+        points[length - 1],
       );
     }
   } else if (bezier) {
     let index = 0;
-    if (lines['' + this._id]) {
+    if (lines[`${this._id}`]) {
       index = lines[this._id];
     } else {
-      lines = {}
+      lines = {};
     }
-    let _points = [];
+    const _points = [];
     for (let i = 0; i < points.length; i += 2) {
       // 去掉太紧密的点，但不能去掉最始最末的点，否则不跟手
       if (i >= index - 2 && i < points.length - 6 && i > 6) {
-        let dis = Math.sqrt(Math.pow(points[i] - points[i + 2], 2) + Math.pow(points[i + 1] - points[i + 3], 2));
+        const dis = Math.sqrt(Math.pow(points[i] - points[i + 2], 2) + Math.pow(points[i + 1] - points[i + 3], 2));
         if (dis < 6) points.splice(i + 2, 2);
 
         lines[this._id] = i;
       }
       _points.push({
         x: points[i],
-        y: points[i + 1]
+        y: points[i + 1],
       });
     }
     if (_points.length > 3) {
@@ -78,7 +78,7 @@ Konva.Line.prototype._sceneFunc = function (context) {
         end ? context.moveTo(end.x, end.y) : context.moveTo(points[0].x, points[0].y);
         end = {
           x: (_points[i].x + _points[i + 1].x) / 2,
-          y: (_points[i].y + _points[i + 1].y) / 2
+          y: (_points[i].y + _points[i + 1].y) / 2,
         };
         const c = _points[i];
         context.quadraticCurveTo(c.x, c.y, end.x, end.y);
@@ -88,8 +88,8 @@ Konva.Line.prototype._sceneFunc = function (context) {
     // 清缓存，防止影响下一次
     clearTimeout(timer);
     timer = setTimeout(() => {
-      lines = {}
-    }, 500)
+      lines = {};
+    }, 500);
   } else {
     // no tension
     for (n = 2; n < length; n += 2) {
