@@ -21,5 +21,4 @@ export default Vue.observable({
         lineWidth:14,
         color:'#fff'
     }
-    
 });

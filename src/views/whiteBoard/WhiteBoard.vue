@@ -30,9 +30,9 @@ Description
 import ToolBar from '@/components/toolBar/ToolBar'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
-import { addCover } from '@common/tool/docCover'
-import pdfjsLib from 'pdfjsLib'
-import common from '@common/common'
+import { addCover, loadPdf } from '@common/tool/document'
+// import pdfjsLib from 'pdfjsLib'
+// import common from '@common/common'
 
 export default {
   components: {
@@ -90,8 +90,9 @@ export default {
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
       if (0 == ret.retCode) {
-        let filePath = common.fileService + data.filePath
-        let pdf = await pdfjsLib.getDocument(filePath).promise
+        // let filePath = common.fileService + data.filePath
+        // let pdf = await pdfjsLib.getDocument(filePath).promise
+        let pdf = await loadPdf({ url: data.filePath })
 
         this.shouldConvert = true
 
@@ -139,6 +140,9 @@ export default {
     margin: 10px;
   }
   .convertCanvas {
+    width: 10px;
+    height: 10px;
+    overflow: hidden;
     position: absolute;
     z-index: -10;
     top: 0;
