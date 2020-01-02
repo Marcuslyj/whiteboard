@@ -5,16 +5,16 @@
 </template>
 
 <script>
-import { throttle } from "throttle-debounce"
+import { throttle } from 'throttle-debounce';
 
 export default {
   name: 'app',
   mounted() {
     window.onresize = throttle(300, () => {
-      this.$root.$emit('resize')
-    })
-  }
-}
+      this.$root.$emit('resize');
+    });
+  },
+};
 </script>
 
 <style lang="scss" scoped>

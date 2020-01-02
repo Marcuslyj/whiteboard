@@ -1,7 +1,7 @@
-import io from "socket.io-client";
-import {socketUrl} from './common'
+import io from 'socket.io-client';
+import { socketUrl } from './common';
 
-// let socket 
+// let socket
 
 // socket = io(`${socketUrl}`, {
 //   reconnectionDelay: 100, //Make the xhr connections as fast as possible
