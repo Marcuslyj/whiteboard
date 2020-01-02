@@ -4,17 +4,18 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   publicPath: './',
+  lintOnSave: process.env.NODE_ENV !== 'production',
   configureWebpack: {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
         '@assets': path.resolve(__dirname, './src/assets'),
-        '@common': path.resolve(__dirname, './src/common')
-      }
+        '@common': path.resolve(__dirname, './src/common'),
+      },
     },
     externals: {
       pdfjsLib: 'pdfjsLib',
-      Konva:'Konva'
+      Konva: 'Konva',
     },
     devtool: process.env.NODE_ENV === 'production' ? 'none' : 'eval-source-map',
     plugins: getPlugins(),
@@ -24,34 +25,34 @@ module.exports = {
           target: 'https://dev-file.tvflnet.com',
           changeOrigin: true,
           pathRewrite: {
-            '^/file': '/'
-          }
-        }
-      }
-    } : {}
-  }
-}
+            '^/file': '/',
+          },
+        },
+      },
+    } : {},
+  },
+};
 
 // 获取plugin参数
 function getPlugins() {
   // 生产
-  let prod = [
+  const prod = [
     // gzip
     new CompressionPlugin({
       minRatio: 0.8,
-    })
+    }),
   ];
   // 开发
-  let dev = [];
+  const dev = [];
   // common
-  let common = [
+  const common = [
     // 复制静态资源
     new CopyWebpackPlugin([
       {
-        from: __dirname + '/assets',
-        to: __dirname + '/dist/assets'
-      }
-    ])
+        from: `${__dirname}/assets`,
+        to: `${__dirname}/dist/assets`,
+      },
+    ]),
   ];
-  return (process.env.NODE_ENV === 'production' ? prod : dev).concat(common)
+  return (process.env.NODE_ENV === 'production' ? prod : dev).concat(common);
 }

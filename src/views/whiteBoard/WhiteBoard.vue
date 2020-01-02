@@ -27,17 +27,17 @@ Description
 </template>
 
 <script>
-import { Message } from 'view-design';
-import ToolBar from '@/components/toolBar/ToolBar'
-import Konva from 'konva'
+import { Message } from 'view-design'
+import Konva from 'Konva'
 import { initTool } from '@common/tool'
 import { addCover, loadPdf } from '@common/tool/document'
+import ToolBar from '@/components/toolBar/ToolBar'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
 
 export default {
   components: {
-    ToolBar
+    ToolBar,
   },
   data() {
     return {
@@ -51,14 +51,14 @@ export default {
     this.$globalConf.board = this.stage = new Konva.Stage({
       container: 'board-container',
       width: el.clientWidth,
-      height: el.clientHeight
+      height: el.clientHeight,
     })
-    Object.keys(this.$globalConf.layerIds).map(layerId => {
+    Object.keys(this.$globalConf.layerIds).map((layerId) => {
       const layer = new Konva.Layer({
-        id: layerId
+        id: layerId,
       })
       this.$globalConf.layerManager[layerId] = layer
-      this.$globalConf.layerManager['BG_LAYER'].listening(false)
+      this.$globalConf.layerManager.BG_LAYER.listening(false)
       this.stage.add(layer)
     })
     initTool()
@@ -69,12 +69,12 @@ export default {
 
       // 主屏应该重绘，并同步画布尺寸
       if (this.$refs['board-container']) {
-        let width = this.$refs['board-container'].clientWidth
-        let height = this.$refs['board-container'].clientHeight
+        const width = this.$refs['board-container'].clientWidth
+        const height = this.$refs['board-container'].clientHeight
 
         this.stage.size({
           width,
-          height
+          height,
         })
       }
     })
@@ -86,22 +86,22 @@ export default {
         return
       }
       this.convertCanvas = new Konva.Stage({
-        container: this.$refs['convertCanvas'],
+        container: this.$refs.convertCanvas,
       })
       this.convertCanvas.layer = new Konva.Layer()
-      this.convertCanvas.add(this.convertCanvas.layer);
+      this.convertCanvas.add(this.convertCanvas.layer)
     },
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
-      if (0 == ret.retCode) {
+      if (ret.retCode == 0) {
         this.Msgloading = this.Msgloading || []
         this.Msgloading.push(Message.loading({
           content: '读取中...',
-          duration: 0
+          duration: 0,
         }))
         // let filePath = common.fileService + data.filePath
         // let pdf = await pdfjsLib.getDocument(filePath).promise
-        let pdf = await loadPdf({ url: data.filePath })
+        const pdf = await loadPdf({ url: data.filePath })
 
         this.shouldConvert = true
 
@@ -111,13 +111,13 @@ export default {
 
           addCover(pdf, {
             stage: this.stage,
-            layer: this.$globalConf.layerManager[this.$globalConf.layerIds['BG_LAYER']],
-            convertCanvas: this.convertCanvas
+            layer: this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER],
+            convertCanvas: this.convertCanvas,
           })
         })
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
