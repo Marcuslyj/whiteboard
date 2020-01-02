@@ -126,6 +126,11 @@
         }
       }
       .eraser {
+        .item-wrapper{
+          &:not(:first-child){
+            margin-left:0.5vw;
+          }
+        }
         .width-control {
           .width-level {
             width: 3vw;

@@ -20,10 +20,10 @@ Description
     </div>
     <div class="center">
       <ul class="group draw-tool">
-        <li
-          ref="select-tool"
-          @click.stop="clickSelectTool"
-        >
+        <li ref="pan-tool" @click.stop="clickPanTool">
+          <i class="iconfont icon-shou"></i>
+        </li>
+        <li ref="select-tool" @click.stop="clickSelectTool">
           <i class="iconfont icon-select"></i>
         </li>
         <li
@@ -77,10 +77,7 @@ Description
             </div>
           </div>
         </li>
-        <li
-          ref="eraser-tool"
-          @click="clickEraserTool"
-        >
+        <li ref="eraser-tool" @click.stop="clickEraserTool">
           <i class="iconfont icon-eraser"></i>
           <div
             class="menu eraser"
@@ -90,17 +87,19 @@ Description
               <div
                 v-for="(eraserTool,index) in eraserToolArr"
                 :Key="index"
-                :class="{'item-wrapper':true,'active-item':activeEraserTool===eraserTool.name}"
+                :class="{'item-wrapper':true,'active-item':$globalConf.eraser.activeEraserTool===eraserTool.name}"
+                @click.stop="changeEraserTool(eraserTool.name)"
               >
                 <span><i :class="['iconfont',eraserTool.icon]"></i></span>
               </div>
             </div>
             <div class="row width-control">
-              <div class="width-level">{{$globalConf.pencil.lineWidth}}</div>
+              <div class="width-level">{{$globalConf.eraser.lineWidth}}</div>
               <div
                 v-for="(item,index) in widthArr"
                 :key="index"
-                :class="{'item-wrapper':true,'active-item':activeEraserWidth===item.lineWidth}"
+                :class="{'item-wrapper':true,'active-item':$globalConf.eraser.lineWidth===item.lineWidth}"
+                @click.stop="changeEraserWidth(item.lineWidth)"
               >
                 <span
                   class="circle"
@@ -168,26 +167,24 @@ export default {
   data() {
     return {
       common,
-      //激活的工具
-      activeTool: 'pen',
       //笔
-      pencilColorArr: ['#000', '#f00', 'yellow', '#0f0', '#00f'],
+      pencilColorArr: ['#000', '#f00', 'yellow', '#00f','#0f0'],
       widthArr: [{
         width: 0.4,
         lineWidth: 4,
       }, {
         width: 0.6,
-        lineWidth: 6
+        lineWidth: 8
       }, {
         width: 1,
-        lineWidth: 10
+        lineWidth: 14
       }, {
         width: 1.2,
-        lineWidth: 12
+        lineWidth: 18
       },
       {
         width: 1.6,
-        lineWidth: 16
+        lineWidth: 26
       }],
       pencilToolArr: [
         {
@@ -207,20 +204,18 @@ export default {
       //eraserToolArr
       eraserToolArr: [
         {
-          name: 'icon-eraser',
+          name: 'eraser',
           icon: 'icon-eraser',
         },
         {
-          name: 'icon-qingkong',
+          name: 'deleteGraphic',
           icon: 'icon-qingkong',
         },
         {
-          name: 'icon-clear',
+          name: 'clearBoard',
           icon: 'icon-clear',
         }
       ],
-      activeEraserWidth: 1,
-      activeEraserTool: 'icon-eraser',
       boxName: '',
       // MsgUploading: []
     };
@@ -248,16 +243,16 @@ export default {
       if (this.MsgUploading.length) this.MsgUploading.pop()()
       this.$emit('uploadSuccess', res)
     },
-    changePencilTool(name, isFirst = false) {
-      const stage = this.$globalConf.board;
-      const layer = this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
-      if (name != this.activeTool && !isFirst) {
-        Vue.eventBus.$emit('deactive-tool', { toolName: this.activeTool, stage });
-        this.activeTool = this.$globalConf.pencil.activePencilTool = name;
-        Vue.eventBus.$emit('active-tool', { toolName: this.activeTool, stage, layer });
+    changePencilTool(name,isFirst=false){
+      const stage=this.$globalConf.board;
+      const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
+      if(name!=this.$globalConf.activeTool&&!isFirst){
+        Vue.eventBus.$emit('deactive-tool',{toolName:this.$globalConf.activeTool,stage});
+        this.$globalConf.activeTool=this.$globalConf.pencil.activePencilTool=name;
+        Vue.eventBus.$emit('active-tool',{toolName:this.$globalConf.activeTool,stage,layer});
       }
-      else if (isFirst) {
-        Vue.eventBus.$emit('active-tool', { toolName: this.activeTool, stage, layer });
+      else if(isFirst){
+        Vue.eventBus.$emit('active-tool',{toolName:this.$globalConf.activeTool,stage,layer});
       }
       this.resetCanvas()
     },
@@ -269,9 +264,37 @@ export default {
       this.$globalConf.pencil.lineWidth = lineWidth
       this.resetCanvas()
     },
-    active() {
+
+    //eraser
+    changeEraserTool(name){
+      if(this.$globalConf.activeTool===name) return
+      const stage=this.$globalConf.board;
+      const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
+      Vue.eventBus.$emit('deactive-tool',{toolName:this.$globalConf.activeTool,stage});
+      this.$globalConf.activeTool=this.$globalConf.eraser.activeEraserTool=name
+      if(name==='eraser'||name==='deleteGraphic'){
+        Vue.eventBus.$emit('active-tool',{toolName:this.$globalConf.activeTool,stage,layer});
+      }
+      else{
+        this.$confirm('确定清除所有批注，不可撤销!',()=>{
+          const layers=[layer,this.$globalConf.layerManager[this.$globalConf.layerIds['TEXT_LAYER']]]
+          Vue.eventBus.$emit('active-tool',{toolName:this.$globalConf.activeTool,layers});
+        });
+      }
+    },
+    changeEraserWidth(lineWidth){
+      this.$globalConf.eraser.lineWidth=lineWidth
+      if(this.$globalConf.eraser.activeEraserTool!=='eraser'){
+        return
+      }
+    },
+    active(){
       this.setLiStyle('pencil-tool');
-      this.changePencilTool(this.activeTool, true);
+      this.changePencilTool(this.$globalConf.activeTool,true);
+    },
+    clickPanTool(){
+      this.setLiStyle('pan-tool');
+      this.setBoxName('');
     },
     clickSelectTool() {
       this.setLiStyle('select-tool');
@@ -280,11 +303,16 @@ export default {
     clickPencilTool() {
       this.setLiStyle('pencil-tool');
       this.setBoxName('pencil');
-      this.changePencilTool(this.activeTool);
+      this.changePencilTool(this.$globalConf.pencil.activePencilTool);
     },
     clickEraserTool() {
       this.setLiStyle('eraser-tool');
       this.setBoxName('eraser');
+      // 清屏不能点击就促发
+      if(this.$globalConf.eraser.activeEraserTool==='clearBoard'){
+        this.$globalConf.eraser.activeEraserTool='eraser'
+      }
+      this.changeEraserTool(this.$globalConf.eraser.activeEraserTool);
     },
     clickTextTool() {
       this.setLiStyle('text-tool');
@@ -294,8 +322,9 @@ export default {
       el && el.classList.remove('activeTool');
       this.$refs[ref].classList.add('activeTool');
     },
-    setBoxName(boxName) {
-      this.boxName = boxName
+    setBoxName(boxName){
+      this.boxName=boxName
+      console.log(this.boxName)
     },
     //预览图
     resetCanvas() {
@@ -311,7 +340,7 @@ export default {
       ctx.lineCap = 'round'
       ctx.clearRect(0, 0, el.width, el.height)
       let PI2
-      switch (this.activeTool) {
+      switch(this.$globalConf.activeTool){
         case 'markPencil':
           ctx.beginPath()
           ctx.globalAlpha = 0.5
@@ -342,8 +371,8 @@ export default {
           dx = end[0] - start[0];
           dy = end[1] - start[1];
           var radians = (Math.atan2(dy, dx) + PI2) % PI2;
-          var length = this.$globalConf.pencil.lineWidth + 15;
-          var width = this.$globalConf.pencil.lineWidth + 15;
+          var length = this.$globalConf.pencil.lineWidth+30;
+          var width = this.$globalConf.pencil.lineWidth+30;
           ctx.beginPath();
           ctx.fillStyle = this.$globalConf.pencil.color
           ctx.translate(end[0] + 15, end[1]);
