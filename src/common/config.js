@@ -9,11 +9,11 @@ export default Vue.observable({
     },
     layerManager: {},
     //组件管理，用于撤退还原
-    graphics:[],
-    pencil:{
-        activePencilTool:'pen',
-        color:'#000',
-        lineWidth:6,
+    graphics: [],
+    pencil: {
+        activePencilTool: 'pen',
+        color: '#000',
+        lineWidth: 12,
     },
-    
+
 });
