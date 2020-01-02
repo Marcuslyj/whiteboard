@@ -1,8 +1,12 @@
 import config from '@common/config'
-import { generateUID } from '@common/utils'
+import { generateUID, isFirefox } from '@common/utils'
 import Konva from 'konva'
 import common from '@common/common'
 import pdfjsLib from 'pdfjsLib'
+
+// 正在查阅的pdf
+let docOpened
+let stageDoc
 
 // 加载pdf
 export async function loadPdf({ url, docID }) {
@@ -104,12 +108,21 @@ export async function open(docID, { stage, layer, convertCanvas }) {
     Object.values(config.layerIds).map(v => {
         config.layerManager[v].removeChildren()
     })
+    // 记录文档stage
+    stageDoc = stage
 
     // 本机测试
     let pdf = await loadPdf({
         url: docID['_transport']['_params']['url'].substring(docID['_transport']['_params']['url'].indexOf('/file'))
     })
     let viewport = await getViewport(pdf, { stage })
+
+    docOpened = {
+        pdf,
+        viewport
+    }
+    enableScroll()
+
     // 按图片大小设置
     convertCanvas.size({
         width: viewport.width,
@@ -120,6 +133,50 @@ export async function open(docID, { stage, layer, convertCanvas }) {
     loopRender(pdf, { viewport, layer, convertCanvas })
     // 火狐内存泄露问题严重
     pdf = viewport = null
+}
+
+// 文档可滚动
+export function enableScroll(enable = true) {
+    let { pdf, viewport } = docOpened
+    let stage = stageDoc
+    let firefox = isFirefox()
+
+    if (enable) {
+        let maxScrollY = 0;
+        let minScrollY = -1 * pdf.numPages * viewport.height;
+        stage.setAttrs({
+            // select tool fired，stage set draggable true
+            // draggable: this.toolConfig.currentTool === 'select',
+            draggable: true,
+            dragBoundFunc: function (pos) {
+                return {
+                    x: this.absolutePosition().x,
+                    y: pos.y > 0 ? 0 : (pos.y < minScrollY ? minScrollY : pos.y)
+                };
+            }
+        })
+
+        // 滚轮滚动
+        stage.on('wheel', (ev) => {
+            let { deltaY } = ev.evt;
+            // 火狐浏览器兼容
+            deltaY *= firefox ? -30 : -1;
+
+            let y = stage.getAttr('y') + deltaY;
+            if (y > maxScrollY) {
+                return;
+            } else if (y < minScrollY) {
+                return;
+            }
+            stage.setAttrs({ y })
+            // 绘制
+            stage.draw();
+        })
+    } else {
+        stage.off('wheel')
+    }
+
+
 }
 
 // 获取文档封面viewport
@@ -201,7 +258,6 @@ async function renderOne(pdf, { viewport, layer, renderContext, convertCanvas, c
             }
         } else {
             layer.batchDraw()
-            console.log('done')
         }
         imgUrl = img = pdf = viewport = renderContext = null
     }
@@ -209,5 +265,7 @@ async function renderOne(pdf, { viewport, layer, renderContext, convertCanvas, c
 
 
 export default {
-    addCover
+    addCover,
+    loadPdf,
+    open
 }

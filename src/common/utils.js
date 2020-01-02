@@ -28,3 +28,7 @@ export const generateUID = function (prefix, suffix) {
     return uid
 };
 
+// isFirefox
+export const isFirefox = () => {
+    return /Firefox/i.test(navigator.userAgent)
+}

@@ -7,18 +7,33 @@ Description
 <template>
   <div class="toolbar">
     <!-- 工具条能否起作用的遮罩 -->
-    <div class="mask" v-show="!enable"></div>
-    <div class="left part" v-if="isHome">
+    <div
+      class="mask"
+      v-show="!enable"
+    ></div>
+    <div
+      class="left part"
+      v-if="isHome"
+    >
       <span><i class="iconfont icon-add"></i></span>
       <span><i class="iconfont icon-boards"></i></span>
     </div>
     <div class="center">
       <ul class="group draw-tool">
-        <li ref="select-tool" @click.stop="clickSelectTool">
+        <li
+          ref="select-tool"
+          @click.stop="clickSelectTool"
+        >
           <i class="iconfont icon-select"></i>
         </li>
-        <li ref="pencil-tool" @click.stop="clickPencilTool"><i class="iconfont icon-pen"></i>
-          <div class="menu pencil" v-show="boxName==='pencil'">
+        <li
+          ref="pencil-tool"
+          @click.stop="clickPencilTool"
+        ><i class="iconfont icon-pen"></i>
+          <div
+            class="menu pencil"
+            v-show="boxName==='pencil'"
+          >
             <div class="preview-wrapper">
               <canvas id="preview-canvas"></canvas>
             </div>
@@ -62,9 +77,15 @@ Description
             </div>
           </div>
         </li>
-        <li ref="eraser-tool" @click="clickEraserTool">
+        <li
+          ref="eraser-tool"
+          @click="clickEraserTool"
+        >
           <i class="iconfont icon-eraser"></i>
-          <div class="menu eraser" v-if="boxName==='eraser'">
+          <div
+            class="menu eraser"
+            v-if="boxName==='eraser'"
+          >
             <div class="row">
               <div
                 v-for="(eraserTool,index) in eraserToolArr"
@@ -89,7 +110,10 @@ Description
             </div>
           </div>
         </li>
-        <li ref="text-tool" @click="clickTextTool"><i class="iconfont icon-text"></i></li>
+        <li
+          ref="text-tool"
+          @click="clickTextTool"
+        ><i class="iconfont icon-text"></i></li>
       </ul>
       <ul class="group bussiness-tool">
         <li>
@@ -97,6 +121,7 @@ Description
             :action="common.api.upload"
             accept="application/pdf"
             :format="['pdf']"
+            :before-upload="beforeUpload"
             :on-success="uploadSuccess"
             :data="{fbId:common.fbId.upload}"
             :show-upload-list="false"
@@ -120,9 +145,10 @@ Description
 </template>
 
 <script>
-import { Upload } from 'view-design';
+import { Upload, Message } from 'view-design';
 import common from '@common/common'
 import Vue from 'vue'
+
 
 export default {
   props: {
@@ -195,110 +221,120 @@ export default {
       ],
       activeEraserWidth: 1,
       activeEraserTool: 'icon-eraser',
-      boxName:'',
+      boxName: '',
+      // MsgUploading: []
     };
   },
   mounted() {
-    // 模拟测试
-    this.uploadSuccess({
-      data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
-      ret: { retCode: 0 }
-    })
-    document.body.addEventListener('click',()=>{
-      this.boxName='';
+    // // 模拟测试
+    // this.uploadSuccess({
+    //   data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+    //   ret: { retCode: 0 }
+    // })
+    document.body.addEventListener('click', () => {
+      this.boxName = '';
     });
   },
   methods: {
+    beforeUpload() {
+      this.MsgUploading = this.MsgUploading || []
+      this.MsgUploading.push(Message.loading({
+        content: '上传中...',
+        duration: 0
+      }))
+      return true
+    },
     uploadSuccess(res) {
+      if (this.MsgUploading.length) this.MsgUploading.pop()()
       this.$emit('uploadSuccess', res)
     },
-    changePencilTool(name,isFirst=false){
-      const stage=this.$globalConf.board;
-      const layer=this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
-      if(name!=this.activeTool&&!isFirst){
-        Vue.eventBus.$emit('deactive-tool',{toolName:this.activeTool,stage});
-        this.activeTool=this.$globalConf.pencil.activePencilTool=name;
-        Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
+    changePencilTool(name, isFirst = false) {
+      const stage = this.$globalConf.board;
+      const layer = this.$globalConf.layerManager[this.$globalConf.layerIds['REMARK_LAYER']];
+      if (name != this.activeTool && !isFirst) {
+        Vue.eventBus.$emit('deactive-tool', { toolName: this.activeTool, stage });
+        this.activeTool = this.$globalConf.pencil.activePencilTool = name;
+        Vue.eventBus.$emit('active-tool', { toolName: this.activeTool, stage, layer });
       }
-      else if(isFirst){
-        Vue.eventBus.$emit('active-tool',{toolName:this.activeTool,stage,layer});
+      else if (isFirst) {
+        Vue.eventBus.$emit('active-tool', { toolName: this.activeTool, stage, layer });
       }
-       this.resetCanvas()
-    },
-    changePencilColor(color){
-      this.$globalConf.pencil.color=color;
       this.resetCanvas()
     },
-    changePencilWidth(lineWidth){
-      this.$globalConf.pencil.lineWidth=lineWidth
+    changePencilColor(color) {
+      this.$globalConf.pencil.color = color;
       this.resetCanvas()
     },
-    active(){
+    changePencilWidth(lineWidth) {
+      this.$globalConf.pencil.lineWidth = lineWidth
+      this.resetCanvas()
+    },
+    active() {
       this.setLiStyle('pencil-tool');
-      this.changePencilTool(this.activeTool,true);
+      this.changePencilTool(this.activeTool, true);
     },
-    clickSelectTool(){
+    clickSelectTool() {
       this.setLiStyle('select-tool');
       this.setBoxName('');
     },
-    clickPencilTool(){
+    clickPencilTool() {
       this.setLiStyle('pencil-tool');
       this.setBoxName('pencil');
       this.changePencilTool(this.activeTool);
     },
-    clickEraserTool(){
+    clickEraserTool() {
       this.setLiStyle('eraser-tool');
-       this.setBoxName('eraser');
+      this.setBoxName('eraser');
     },
-    clickTextTool(){
+    clickTextTool() {
       this.setLiStyle('text-tool');
     },
-    setLiStyle(ref){
-      const el=document.querySelector('.center .activeTool');
-      el&&el.classList.remove('activeTool');
+    setLiStyle(ref) {
+      const el = document.querySelector('.center .activeTool');
+      el && el.classList.remove('activeTool');
       this.$refs[ref].classList.add('activeTool');
     },
-    setBoxName(boxName){
-      this.boxName=boxName
+    setBoxName(boxName) {
+      this.boxName = boxName
     },
     //预览图
-    resetCanvas(){
-      const el=document.querySelector('#preview-canvas')
-      const ctx=el.getContext('2d')
+    resetCanvas() {
+      const el = document.querySelector('#preview-canvas')
+      const ctx = el.getContext('2d')
       //获取3个点
-      const start=[15,el.height/2]
-      const mid=[(el.width-30)/2,el.height/2]
-      let end=[el.width-15,el.height/2]
-      ctx.strokeStyle=this.$globalConf.pencil.color
-      ctx.lineWidth=this.$globalConf.pencil.lineWidth
-      ctx.lineJoin='round'
-      ctx.lineCap='round'
-      ctx.clearRect(0,0,el.width,el.height)
+      const start = [15, el.height / 2]
+      const mid = [(el.width - 30) / 2, el.height / 2]
+      let end = [el.width - 15, el.height / 2]
+      ctx.strokeStyle = this.$globalConf.pencil.color
+      ctx.lineWidth = this.$globalConf.pencil.lineWidth
+      ctx.lineJoin = 'round'
+      ctx.lineCap = 'round'
+      ctx.clearRect(0, 0, el.width, el.height)
       let PI2
-      switch(this.activeTool){
+      switch (this.activeTool) {
         case 'markPencil':
           ctx.beginPath()
-          ctx.globalAlpha=0.5
-          ctx.moveTo(start[0],start[1])
-          ctx.bezierCurveTo(start[0],start[1],mid[0], mid[1],end[0],end[1]);
+          ctx.globalAlpha = 0.5
+          ctx.moveTo(start[0], start[1])
+          ctx.bezierCurveTo(start[0], start[1], mid[0], mid[1], end[0], end[1]);
           ctx.stroke()
           break
         case 'pen':
           ctx.beginPath()
-          ctx.globalAlpha=1
-          ctx.lineWidth=this.$globalConf.pencil.lineWidth/2
-          ctx.moveTo(start[0],start[1])
-          ctx.bezierCurveTo(start[0],start[1],mid[0], mid[1],end[0],end[1]);
+          ctx.globalAlpha = 1
+          ctx.lineWidth = this.$globalConf.pencil.lineWidth / 2
+          ctx.moveTo(start[0], start[1])
+          ctx.bezierCurveTo(start[0], start[1], mid[0], mid[1], end[0], end[1]);
           ctx.stroke()
-        break
+          break
         case 'arrow':
-          ctx.globalAlpha=1
+          ctx.globalAlpha = 1
           ctx.beginPath()
-          ctx.lineCap='butt'
-          ctx.lineJoin='bevel'
-          end=[el.width-30,el.height/2]
-          ctx.moveTo(start[0],start[1])
-          ctx.lineTo(end[0],end[1])
+          ctx.lineCap = 'butt'
+          ctx.lineJoin = 'bevel'
+          end = [el.width - 30, el.height / 2]
+          ctx.moveTo(start[0], start[1])
+          ctx.lineTo(end[0], end[1])
           ctx.stroke()
           ctx.save();
           PI2 = Math.PI * 2
@@ -306,11 +342,11 @@ export default {
           dx = end[0] - start[0];
           dy = end[1] - start[1];
           var radians = (Math.atan2(dy, dx) + PI2) % PI2;
-          var length = this.$globalConf.pencil.lineWidth+15;
-          var width = this.$globalConf.pencil.lineWidth+15;
+          var length = this.$globalConf.pencil.lineWidth + 15;
+          var width = this.$globalConf.pencil.lineWidth + 15;
           ctx.beginPath();
-          ctx.fillStyle=this.$globalConf.pencil.color
-          ctx.translate(end[0]+15,end[1]);
+          ctx.fillStyle = this.$globalConf.pencil.color
+          ctx.translate(end[0] + 15, end[1]);
           ctx.rotate(radians);
           ctx.moveTo(0, 0);
           ctx.lineTo(-length, width / 2);
