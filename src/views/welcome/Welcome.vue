@@ -19,14 +19,22 @@ Description
                   <h4 class="title">开启一个会议</h4>
                   <input placeholder="请输入名称" />
               </div>
-              <router-link to="/whiteBoard"><button class="btn">开始</button></router-link>
+             <button class="btn" @click="joinMeet">开始</button>
           </div>
       </div>
   </div>
 </template>
 
 <script>
-export default {};
+import socketUtil from '@common/socketUtil'
+
+export default {
+  methods: {
+    joinMeet() {
+      socketUtil.joinMeet('')
+    },
+  },
+}
 </script>
 
 <style lang="scss" scoped>

@@ -1,16 +1,16 @@
-import Konva from 'Konva';
-import Vue from 'vue';
-import { generateUID } from '@common/utils';
+import Konva from 'Konva'
+import Vue from 'vue'
+import { generateUID } from '@common/utils'
 
 function create(params) {
-  const { stage, layer } = params;
-  let line;
+  const { stage, layer } = params
+  let line
   // 标记正在画线
-  let isDrawing = false;
+  let isDrawing = false
   stage.on('mousedown touchstart', () => {
-    isDrawing = true;
-    const poi = stage.getPointerPosition();
-    const toolConfig = Vue.prototype.$globalConf.pencil;
+    isDrawing = true
+    const poi = stage.getPointerPosition()
+    const toolConfig = Vue.prototype.$globalConf.pencil
     const lineConfig = {
       id: generateUID(),
       stroke: toolConfig.color,
@@ -21,36 +21,36 @@ function create(params) {
       points: [poi.x, poi.y],
       opacity: 0.5,
       bezier: true,
-    };
-    line = new Konva.Line(lineConfig);
-    layer.add(line);
-    layer.batchDraw();
-  });
+    }
+    line = new Konva.Line(lineConfig)
+    layer.add(line)
+    layer.batchDraw()
+  })
   stage.on('mousemove touchmove', () => {
     if (!isDrawing) {
-      return;
+      return
     }
-    const poi = stage.getPointerPosition();
-    line.points(line.points().concat(poi.x, poi.y));
-    layer.batchDraw();
-  });
+    const poi = stage.getPointerPosition()
+    line.points(line.points().concat(poi.x, poi.y))
+    layer.batchDraw()
+  })
   // 清除事件
   stage.on('mouseup touchend', () => {
     if (isDrawing) {
-      isDrawing = false;
+      isDrawing = false
       // 性能优化
-      line.cache();
-      line = null;
+      line.cache()
+      line = null
     }
-  });
+  })
 }
 
 function destroy(params) {
-  const { stage } = params;
-  stage.off('mousedown touchstart mousemove touchmove mouseup touchend');
+  const { stage } = params
+  stage.off('mousedown touchstart mousemove touchmove mouseup touchend')
 }
 
 export default {
   create,
   destroy,
-};
+}

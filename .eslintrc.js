@@ -22,7 +22,12 @@ module.exports = {
     "indent": ["error", 2],
     "linebreak-style": [0,"error", "windows"],
     'no-underscore-dangle':0,
-    'func-names':0
+    'func-names':0,
+    'no-unused-expressions':0,
+    'no-restricted-properties':0,
+    'max-len':0,
+    'no-param-reassign':0,
+    'prefer-const':0
   },
   parserOptions: {
     parser: 'babel-eslint',
