@@ -27,6 +27,7 @@ Description
 </template>
 
 <script>
+import { Message } from 'view-design';
 import ToolBar from '@/components/toolBar/ToolBar'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
@@ -65,14 +66,17 @@ export default {
 
 
     this.$root.$on('resize', () => {
-      // 主屏应该重绘，并同步画布尺寸
-      let width = this.$refs['board-container'].clientWidth
-      let height = this.$refs['board-container'].clientHeight
 
-      this.stage.size({
-        width,
-        height
-      })
+      // 主屏应该重绘，并同步画布尺寸
+      if (this.$refs['board-container']) {
+        let width = this.$refs['board-container'].clientWidth
+        let height = this.$refs['board-container'].clientHeight
+
+        this.stage.size({
+          width,
+          height
+        })
+      }
     })
   },
   methods: {
@@ -90,6 +94,11 @@ export default {
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
       if (0 == ret.retCode) {
+        this.Msgloading = this.Msgloading || []
+        this.Msgloading.push(Message.loading({
+          content: '读取中...',
+          duration: 0
+        }))
         // let filePath = common.fileService + data.filePath
         // let pdf = await pdfjsLib.getDocument(filePath).promise
         let pdf = await loadPdf({ url: data.filePath })
@@ -98,6 +107,7 @@ export default {
 
         this.$nextTick(() => {
           this.initConvertCanvas()
+          if (this.Msgloading.length) this.Msgloading.pop()()
 
           addCover(pdf, {
             stage: this.stage,
