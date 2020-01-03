@@ -1,6 +1,7 @@
 import Konva from 'konva'
 import Vue from 'vue'
-import { generateUID } from '@common/utils'
+import { generateUID, getPoiWithOffset } from '@common/utils'
+import graphicManager from '@common/graphicManager'
 
 function create(params) {
   const { stage, layer } = params
@@ -9,7 +10,7 @@ function create(params) {
   let isDrawing = false
   stage.on('mousedown touchstart', () => {
     isDrawing = true
-    const poi = stage.getPointerPosition()
+    const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     const toolConfig = Vue.prototype.$globalConf.pencil
     const lineConfig = {
       id: generateUID(),
@@ -30,7 +31,7 @@ function create(params) {
     if (!isDrawing) {
       return
     }
-    const poi = stage.getPointerPosition()
+    const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     line.points(line.points().concat(poi.x, poi.y))
     layer.batchDraw()
   })
@@ -40,6 +41,7 @@ function create(params) {
       isDrawing = false
       // 性能优化
       line.cache()
+      graphicManager.addGraphic(line)
       line = null
     }
   })

@@ -1,6 +1,6 @@
 import Konva from 'konva'
 import Vue from 'vue'
-import { generateUID } from '@common/utils'
+import { generateUID, getPoiWithOffset } from '@common/utils'
 
 function create(params) {
   const { stage, layer } = params
@@ -9,11 +9,11 @@ function create(params) {
   let firstPoi
   stage.on('mousedown touchstart', () => {
     isDrawing = true
-    firstPoi = stage.getPointerPosition()
+    firstPoi = getPoiWithOffset(stage.getPointerPosition(), stage)
   })
   stage.on('mousemove touchmove', () => {
     if (!isDrawing) return
-    const poi = stage.getPointerPosition()
+    const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     if (!arrow) {
       const toolConfig = Vue.prototype.$globalConf.pencil
       const arrowConfig = {
