@@ -3,13 +3,68 @@ import { generateUID, isFirefox } from '@common/utils'
 import Konva from 'konva'
 import { fileService } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
+import bus from '@common/eventBus'
+import { debounce } from 'throttle-debounce'
+
+// 考虑文档页面大小尺寸一致
 
 // 正在查阅的pdf
+// pdf,
+// stage,
+// viewport,
+// layer,
+// convertCanvas,
 let docOpened
-let stageDoc
-let pageSigned = {}
+let pageSigned
 let rendering = false
 let showCount = 1
+// 防抖
+let resizeDebounce = debounce(300, function () {
+  onResize()
+})
+
+// 初始化文档
+export function init(docID, { stage, layer, convertCanvas }) {
+  // 初始化前清掉相关数据
+  destroy()
+  // 缓存数据
+  docOpened = {
+    docID, stage, layer, convertCanvas,
+  }
+  // 清屏
+  clearBoard()
+
+  // 载入文档
+  open()
+
+  // 画布大小改变
+  bus.$on('resize', resizeDebounce)
+}
+
+// 清屏
+export function clearBoard() {
+  Object.values(config.layerIds).map((v) => {
+    config.layerManager[v].removeChildren()
+  })
+  // 触发画板重绘
+  if (docOpened.stage) docOpened.stage.draw()
+}
+
+// 销毁相关事件
+export function destroy() {
+  if (docOpened) {
+    let { stage } = docOpened
+    docOpened = pageSigned = null
+    rendering = false
+    showCount = 1
+
+    stage.off('wheel dragmove')
+    stage.setAttrs({
+      y: 0,
+    })
+    bus.$off('resize', resizeDebounce)
+  }
+}
 
 // 加载pdf
 export async function loadPdf({ url, docID }) {
@@ -90,7 +145,7 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
       imgK.on('click tap', () => {
         // 传文档id
         // open(docID, { stage, layer, convertCanvas })
-        open(pdf, { stage, layer, convertCanvas })
+        init(pdf, { stage, layer, convertCanvas })
       })
 
       _page = _renderContext = img = null
@@ -101,28 +156,20 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
 }
 
 // 打开文档
-export async function open(docID, { stage, layer, convertCanvas }) {
+export async function open() {
+  let {
+    docID, stage, convertCanvas,
+  } = docOpened
+
   // 参数暂时是文档地址
-
-  // 清屏
-  // stage.clear()
-  Object.values(config.layerIds).map((v) => config.layerManager[v].removeChildren())
-  stage.draw()
-  // 记录文档stage
-  stageDoc = stage
-
   // 本机测试
   let pdf = await loadPdf({
     url: docID._transport._params.url.substring(docID._transport._params.url.indexOf('/file')),
   })
-  let viewport = await getViewport(pdf, { stage })
+  docOpened.pdf = pdf
+  let viewport = await getViewport()
+  docOpened.viewport = viewport
 
-  docOpened = {
-    pdf,
-    viewport,
-    layer,
-    convertCanvas,
-  }
   enableScroll()
 
   // 按图片大小设置
@@ -133,17 +180,15 @@ export async function open(docID, { stage, layer, convertCanvas }) {
 
   // 加载文档
   pageSigned = {}
-  showCount = (stageDoc.height() / viewport.height) + 1
-  // stage.setAttrs({ y: -2000 })
-  renderPages(pdf, { viewport, layer, convertCanvas })
-  // 火狐内存泄露问题严重
-  pdf = viewport = null
+  // 可视区能展示几页
+  showCount = Math.ceil(stage.height() / viewport.height)
+  // 渲染页面
+  renderPages()
 }
 
 // 文档可滚动
 export function enableScroll(enable = true) {
-  const { pdf, viewport } = docOpened
-  const stage = stageDoc
+  const { stage, pdf, viewport } = docOpened
   const firefox = isFirefox()
 
   if (enable) {
@@ -163,21 +208,23 @@ export function enableScroll(enable = true) {
     })
 
     // 滚轮滚动
-    stage.on('wheel', (ev) => {
-      let { deltaY } = ev.evt
-      // 火狐浏览器兼容
-      deltaY *= firefox ? -30 : -1
+    stage.on('wheel dragmove', (ev) => {
+      let { type } = ev
+      if (type === 'wheel') {
+        let { deltaY } = ev.evt
+        // 火狐浏览器兼容
+        deltaY *= firefox ? -30 : -1
 
-      let y = stage.getAttr('y') + deltaY
-      if (y > maxScrollY) {
-        y = maxScrollY
-      } else if (y < minScrollY) {
-        y = minScrollY
+        let y = stage.getAttr('y') + deltaY
+        if (y > maxScrollY) {
+          y = maxScrollY
+        } else if (y < minScrollY) {
+          y = minScrollY
+        }
+        stage.setAttrs({ y })
+        // 绘制
+        stage.draw()
       }
-      stage.setAttrs({ y })
-      // 绘制
-      stage.draw()
-
       // 加载页面
       const { layer, convertCanvas } = docOpened
       renderPages(pdf, { viewport, layer, convertCanvas })
@@ -205,7 +252,8 @@ function getCoverViewport(page) {
 }
 
 // 获取与stage尺寸一致的viewport
-async function getViewport(pdf, { stage }) {
+async function getViewport() {
+  let { pdf, stage } = docOpened
   // 获取第一页
   const page1 = await pdf.getPage(1)
   let scale = 1
@@ -221,36 +269,38 @@ async function getViewport(pdf, { stage }) {
 }
 
 // 按需添加页面
-function renderPages(pdf, { viewport, layer, convertCanvas }) {
+function renderPages() {
   if (rendering) return
   rendering = true
-  const stage = stageDoc
+
+  let {
+    pdf, stage, viewport,
+  } = docOpened
+
   const y = Math.abs(stage.getAttr('y'))
   const from = Math.floor(y / viewport.height) + 1
   const to = Math.min(Math.ceil(from + showCount), pdf.numPages)
-  loopRender(pdf, {
-    viewport, layer, convertCanvas, from, to,
-  })
+  loopRender({ from, to })
 }
 
 // 加载所有页面
-function loopRender(pdf, {
-  viewport, layer, convertCanvas, from, to,
-}) {
+function loopRender({ from, to }) {
+  let {
+    viewport, convertCanvas,
+  } = docOpened
+
   const context = convertCanvas.layer.getContext()
   let renderContext = {
     canvasContext: context,
     viewport,
   }
 
-  renderPage(pdf, {
-    viewport, layer, renderContext, convertCanvas, from, to,
-  })
-  pdf = renderContext = viewport = null
+  renderPage({ renderContext, from, to })
+  renderContext = viewport = null
 }
 // 加载一页
-async function renderPage(pdf, {
-  viewport, layer, renderContext, convertCanvas, from, to,
+async function renderPage({
+  renderContext, from, to,
 }) {
   if (from > to) {
     rendering = false
@@ -258,10 +308,13 @@ async function renderPage(pdf, {
   }
   if (pageSigned[from]) {
     from++
-    renderPage(pdf, {
-      viewport, layer, renderContext, convertCanvas, from, to,
+    renderPage({
+      renderContext, from, to,
     })
   } else {
+    let {
+      pdf, viewport, convertCanvas, layer,
+    } = docOpened
     const y = (from - 1) * viewport.height
     let page = await pdf.getPage(from)
     await page.render(renderContext).promise
@@ -290,15 +343,19 @@ async function renderPage(pdf, {
       }
 
       from++
-      renderPage(pdf, {
-        viewport, layer, renderContext, convertCanvas, from, to,
-      })
+      renderPage({ renderContext, from, to })
 
       imgUrl = img = pdf = viewport = renderContext = null
     }
   }
 }
-
+// resize
+function onResize() {
+  let {
+    docID, stage, layer, convertCanvas,
+  } = docOpened
+  init(docID, { stage, layer, convertCanvas })
+}
 
 export default {
   addCover,
