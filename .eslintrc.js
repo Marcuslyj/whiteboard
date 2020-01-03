@@ -28,7 +28,9 @@ module.exports = {
     'max-len': 0,
     'no-param-reassign': 0,
     'prefer-const': 0,
-    'no-nested-ternary': 0
+    'no-nested-ternary': 0,
+    'array-callback-return': 0,
+    'prefer-arrow-callback': 0
   },
   parserOptions: {
     parser: 'babel-eslint',
