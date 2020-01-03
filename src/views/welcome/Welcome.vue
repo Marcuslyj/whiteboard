@@ -26,12 +26,13 @@ Description
 </template>
 
 <script>
-import socketUtil from '@common/socketUtil'
+import { joinMeet } from '@common/socketUtil'
 
 export default {
   methods: {
     joinMeet() {
-      socketUtil.joinMeet('')
+      joinMeet('')
+      this.$router.push('/whiteBoard')
     },
   },
 }

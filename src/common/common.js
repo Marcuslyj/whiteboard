@@ -13,10 +13,11 @@ export const fbId = {
   upload: 'F1912100',
 }
 
-const socketUrl = process.env.VUE_APP_socketUrl
+export const socketUrl = process.env.VUE_APP_socketUrl
 
-export const sockeEvent = {
+export const socketEvent = {
   joinMeet: 'join-meet',
+  updateComponent: 'update-component',
 }
 
 // 非响应式数据
@@ -27,5 +28,5 @@ export default deepFreeze({
   api,
   fbId,
   socketUrl,
-  sockeEvent,
+  socketEvent,
 })
