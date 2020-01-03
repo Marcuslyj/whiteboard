@@ -3,7 +3,8 @@ import Konva from 'Konva'
 
 function create(params) {
   const { stage, layer } = params
-  let label; let tr
+  let label
+  let tr
   stage.on('click', (evt) => {
     if (evt.target === stage) {
       return

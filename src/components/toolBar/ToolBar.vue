@@ -329,8 +329,6 @@ export default {
     },
     changeEraserWidth(lineWidth) {
       this.$globalConf.eraser.lineWidth = lineWidth
-      if (this.$globalConf.eraser.activeEraserTool !== 'eraser') {
-      }
     },
     active() {
       this.setLiStyle('pencil-tool')

@@ -66,7 +66,6 @@ export default {
 
 
     this.$root.$on('resize', () => {
-
       // 主屏应该重绘，并同步画布尺寸
       if (this.$refs['board-container']) {
         const width = this.$refs['board-container'].clientWidth

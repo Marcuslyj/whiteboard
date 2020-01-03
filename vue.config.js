@@ -1,6 +1,6 @@
-const path = require('path');
-const CompressionPlugin = require('compression-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const path = require('path')
+const CompressionPlugin = require('compression-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
   publicPath: './',
@@ -31,7 +31,7 @@ module.exports = {
       },
     } : {},
   },
-};
+}
 
 // 获取plugin参数
 function getPlugins() {
@@ -41,9 +41,9 @@ function getPlugins() {
     new CompressionPlugin({
       minRatio: 0.8,
     }),
-  ];
+  ]
   // 开发
-  const dev = [];
+  const dev = []
   // common
   const common = [
     // 复制静态资源
@@ -53,6 +53,6 @@ function getPlugins() {
         to: `${__dirname}/dist/assets`,
       },
     ]),
-  ];
-  return (process.env.NODE_ENV === 'production' ? prod : dev).concat(common);
+  ]
+  return (process.env.NODE_ENV === 'production' ? prod : dev).concat(common)
 }
