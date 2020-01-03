@@ -1,4 +1,4 @@
-import Konva from 'Konva'
+import Konva from 'konva'
 import Vue from 'vue'
 import { generateUID } from '@common/utils'
 

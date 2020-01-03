@@ -28,7 +28,7 @@ Description
 
 <script>
 import { Message } from 'view-design'
-import Konva from 'Konva'
+import Konva from 'konva'
 import { initTool } from '@common/tool'
 import { addCover, loadPdf } from '@common/tool/document'
 import ToolBar from '@/components/toolBar/ToolBar'

@@ -6,7 +6,7 @@ import pen from './pen'
 import eraser from './eraser'
 import clearBoard from './clearBoard'
 import deleteGraphic from './deleteGraphic'
-
+import pan from './pan'
 
 const toolCollection = {
   markPencil,
@@ -15,6 +15,7 @@ const toolCollection = {
   eraser,
   clearBoard,
   deleteGraphic,
+  pan,
 }
 
 export const initTool = () => {
