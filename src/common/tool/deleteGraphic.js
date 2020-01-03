@@ -2,16 +2,17 @@
 import Konva from 'konva'
 import graphicManager from '../graphicManager'
 
+let tr
+let label
+let isRunning = false
 function create(params) {
   const { stage, layer } = params
-  let label
-  let tr
-  stage.on('click', (evt) => {
-    if (evt.target === stage) {
-      return
-    }
-    stage.find('Transformer').destroy()
+  // 移动端遇到问题：不能使用click 触发
+  stage.on('mousedown touchstart', (evt) => {
+    if (isRunning || evt.target === stage) { return }
+    isRunning = true
 
+    stage.find('Transformer').destroy()
     tr = new Konva.Transformer({
       node: evt.target,
       centeredScaling: true,
@@ -39,13 +40,13 @@ function create(params) {
       shadowOpacity: 0.2,
       lineJoin: 'round',
       pointerDirection: 'none',
-      pointerWidth: 20,
-      pointerHeight: 20,
-      cornerRadius: 2,
+      pointerWidth: 30,
+      pointerHeight: 30,
+      cornerRadius: 3,
     }))
 
     const text = new Konva.Text({
-      fontSize: 30,
+      fontSize: 25,
       text: 'x',
       fill: '#333',
     })
@@ -60,22 +61,31 @@ function create(params) {
       layer.draw()
     })
     label.on('mouseout touchend', () => {
-      label.getTag().stroke('#78c8f8')
+      label.getTag().fill('#fff')
+      label.getText().fill('#000')
       layer.draw()
     })
-    label.on('click', () => {
+    label.on('click', (event) => {
+      event.cancelBubble = true
       evt.target.visible(false)
       label.destroy()
       tr.destroy()
       layer.draw()
+      isRunning = false
     })
   })
 }
 
 function destroy(params) {
-  const { stage } = params
-  stage.off('click')
+  const { stage, layer } = params
+  stage.off('mousedown touchstart')
   stage.find('Transformer').destroy()
+  // 执行一半的销毁
+  if (isRunning) {
+    label && label.destroy()
+    layer.draw()
+    isRunning = false
+  }
 }
 
 export default {

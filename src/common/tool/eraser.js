@@ -1,6 +1,6 @@
 import Konva from 'konva'
 import Vue from 'vue'
-import { generateUID } from '@common/utils'
+import { generateUID, getPoiWithOffset } from '@common/utils'
 
 function create(params) {
   const { stage, layer } = params
@@ -8,7 +8,7 @@ function create(params) {
   let line
   stage.on('mousedown touchstart', () => {
     isDrawing = true
-    const poi = stage.getPointerPosition()
+    const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     const toolConfig = Vue.prototype.$globalConf.eraser
     const eraserConfig = {
       id: generateUID(),
@@ -25,7 +25,7 @@ function create(params) {
   })
   stage.on('mousemove touchmove', () => {
     if (!isDrawing) return
-    const poi = stage.getPointerPosition()
+    const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     line.points(line.points().concat(poi.x, poi.y))
     layer.draw()
   })

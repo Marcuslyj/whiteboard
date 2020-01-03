@@ -17,7 +17,10 @@ export const socketUrl = process.env.VUE_APP_socketUrl
 
 export const socketEvent = {
   joinMeet: 'join-meet',
+  addComponent: 'add-component',
   updateComponent: 'update-component',
+  deletecomponents: 'delete-components',
+  updateComponentState: 'update-component-state',
 }
 
 // 非响应式数据

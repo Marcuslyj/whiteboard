@@ -1,8 +1,10 @@
 import config from './config'
+import socketUtil from './socketUtil'
 
 let positionIndex = -1
 
-export function addGraphic(graphic) {
+function addGraphic(graphic) {
+  socketUtil.addComponent(graphic.toJSON())
   // 有游标在中间，执行过还原操作，丢弃游标后面的数据
   if (positionIndex !== -1) {
     config.cacheGraphics.slice(0, positionIndex + 1)
@@ -11,16 +13,16 @@ export function addGraphic(graphic) {
   config.cacheGraphics.push(graphic)
 }
 
-export function clearCache() {
+function clearCache() {
   config.cacheGraphics = []
   positionIndex = -1
 }
 
-export function goAhead() {
+function goAhead() {
   // const positionIndex = config.cacheGraphics.length
 }
 
-export function back() {
+function back() {
   // const positionIndex = cacheGraphics.length - 1
   // const layer = config.layerManager[config.layerIds.REMARK_LAYER]
   // getGrphicById(cacheGraphics.id).visible(false)

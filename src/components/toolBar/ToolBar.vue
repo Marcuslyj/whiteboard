@@ -272,6 +272,7 @@ export default {
         Vue.eventBus.$emit('deactive-tool', {
           toolName: this.$globalConf.activeTool,
           stage,
+          layer,
         })
         this.$globalConf.activeTool = this.$globalConf.pencil.activePencilTool = name
         Vue.eventBus.$emit('active-tool', {
@@ -306,6 +307,7 @@ export default {
       Vue.eventBus.$emit('deactive-tool', {
         toolName: this.$globalConf.activeTool,
         stage,
+        layer,
       })
       this.$globalConf.activeTool = this.$globalConf.eraser.activeEraserTool = name
       if (name === 'eraser' || name === 'deleteGraphic') {
@@ -346,6 +348,7 @@ export default {
         Vue.eventBus.$emit('deactive-tool', {
           toolName: this.$globalConf.activeTool,
           stage,
+          layer,
         })
         this.$globalConf.activeTool = 'pan'
         Vue.eventBus.$emit('active-tool', {

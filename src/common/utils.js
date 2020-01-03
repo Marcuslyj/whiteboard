@@ -28,3 +28,13 @@ export const generateUID = function (prefix, suffix) {
 
 // isFirefox
 export const isFirefox = () => /Firefox/i.test(navigator.userAgent)
+
+// 将pointerPoint 转成带offset的数据
+export const getPoiWithOffset = (poi, stage) => {
+  if (!stage || !poi) { return null }
+  const aPoi = stage.absolutePosition()
+  return {
+    x: poi.x - aPoi.x,
+    y: poi.y - aPoi.y,
+  }
+}
