@@ -15,7 +15,7 @@ module.exports = {
     'no-var': 1,
     'no-multi-assign': 0,
     'import/prefer-default-export': 0,
-    'import/no-unresolved': [2, { 'ignore': ['Konva'] }],
+    'import/no-extraneous-dependencies': 0,
     'import/extensions': 0,
     'no-plusplus': 0,
     "no-mixed-spaces-and-tabs": 2,
