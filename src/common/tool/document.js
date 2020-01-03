@@ -29,8 +29,6 @@ export async function loadPdf({ url, docID }) {
 
 // 文档cover添加到首页
 export async function addCover(pdf, { stage, layer, convertCanvas }) {
-  console.log(layer = config.layerManager.REMARK_LAYER)
-
   // 接口获取文档id
   const docID = generateUID()
 
@@ -62,7 +60,6 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
     let img = new Image()
     img.src = imgUrl
     img.onload = () => {
-      console.log(1)
       const imgK = new Konva.Image({
         id: docID,
         x,
