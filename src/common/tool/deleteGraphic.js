@@ -1,5 +1,6 @@
 // 组件删除
-import Konva from 'Konva'
+import Konva from 'konva'
+import graphicManager from '../graphicManager'
 
 function create(params) {
   const { stage, layer } = params
@@ -63,6 +64,7 @@ function create(params) {
       layer.draw()
     })
     label.on('click', () => {
+      evt.target.visible(false)
       label.destroy()
       tr.destroy()
       layer.draw()

@@ -337,6 +337,23 @@ export default {
     clickPanTool() {
       this.setLiStyle('pan-tool')
       this.setBoxName('')
+      // 开启画板移动功能
+      if (this.isHome) {
+        const stage = this.$globalConf.board
+        const layer = this.$globalConf.layerManager[
+          this.$globalConf.layerIds.REMARK_LAYER
+        ]
+        Vue.eventBus.$emit('deactive-tool', {
+          toolName: this.$globalConf.activeTool,
+          stage,
+        })
+        this.$globalConf.activeTool = 'pan'
+        Vue.eventBus.$emit('active-tool', {
+          toolName: this.$globalConf.activeTool,
+          stage,
+          layer,
+        })
+      }
     },
     clickSelectTool() {
       this.setLiStyle('select-tool')

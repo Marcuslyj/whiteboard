@@ -1,4 +1,4 @@
-import Konva from 'Konva'
+import Konva from 'konva'
 
 let lines = {}
 let timer = null
