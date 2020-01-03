@@ -29,7 +29,7 @@ module.exports = {
     'no-param-reassign': 0,
     'prefer-const': 0,
     'no-nested-ternary': 0,
-    'import/no-unresolved': [2, { 'ignore': ['konva']}]
+    'import/no-unresolved': [2, { 'ignore': ['konva']}],
     'array-callback-return': 0,
     'prefer-arrow-callback': 0
   },
