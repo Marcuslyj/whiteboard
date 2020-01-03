@@ -28,9 +28,10 @@ Description
 
 <script>
 import { Message } from 'view-design'
-import Konva from 'Konva'
+import Konva from 'konva'
 import { initTool } from '@common/tool'
 import { addCover, loadPdf } from '@common/tool/document'
+import bus from '@common/eventBus'
 import ToolBar from '@/components/toolBar/ToolBar'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
@@ -65,7 +66,7 @@ export default {
     this.$refs['tool-bar'].active()
 
 
-    this.$root.$on('resize', () => {
+    bus.$on('resize', () => {
       // 主屏应该重绘，并同步画布尺寸
       if (this.$refs['board-container']) {
         const width = this.$refs['board-container'].clientWidth
@@ -92,7 +93,7 @@ export default {
     },
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
-      if (ret.retCode == 0) {
+      if (Number(ret.retCode) === 0) {
         this.Msgloading = this.Msgloading || []
         this.Msgloading.push(Message.loading({
           content: '读取中...',

@@ -5,16 +5,17 @@
 </template>
 
 <script>
-import { throttle } from 'throttle-debounce';
+import { throttle } from 'throttle-debounce'
+import bus from '@common/eventBus.js'
 
 export default {
   name: 'app',
   mounted() {
     window.onresize = throttle(300, () => {
-      this.$root.$emit('resize');
-    });
+      bus.$emit('resize')
+    })
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>
