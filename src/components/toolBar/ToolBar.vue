@@ -240,8 +240,10 @@ export default {
   },
   mounted() {
     // // 模拟测试
+    // this.MsgUploading=[function(){}]
     // this.uploadSuccess({
-    //   data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+    //   // data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+    //   data: { filePath: '/F19/12/100/83d88c00-bede-4dd8-9428-59a75da12f37.pdf' },
     //   ret: { retCode: 0 }
     // })
     document.body.addEventListener('click', () => {
