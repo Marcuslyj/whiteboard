@@ -1,11 +1,12 @@
+let currentStage
 function create(params) {
   const { stage } = params
+  currentStage = stage
   stage.draggable(true)
 }
 
-function destroy(params) {
-  const { stage } = params
-  stage.draggable(false)
+function destroy() {
+  currentStage.draggable(false)
 }
 
 export default {

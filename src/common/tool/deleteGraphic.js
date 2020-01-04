@@ -5,10 +5,14 @@ import graphicManager from '../graphicManager'
 let tr
 let label
 let isRunning = false
+let currentLayer
+let currentStage
 function create(params) {
   const { stage, layer } = params
+  currentLayer = layer
+  currentStage = stage
   // 移动端遇到问题：不能使用click 触发
-  stage.on('mousedown touchstart', (evt) => {
+  stage.on('click tap', (evt) => {
     if (isRunning || evt.target === stage) { return }
     isRunning = true
 
@@ -16,10 +20,10 @@ function create(params) {
     tr = new Konva.Transformer({
       node: evt.target,
       centeredScaling: true,
-      rotationSnaps: [0, 90, 180, 270],
       resizeEnabled: false,
       rotateEnabled: false,
       padding: 40,
+      borderStrokeWidth: 2,
     })
 
     const selfRect = evt.target.getSelfRect()
@@ -65,7 +69,7 @@ function create(params) {
       label.getText().fill('#000')
       layer.draw()
     })
-    label.on('click', (event) => {
+    label.on('click tap', (event) => {
       event.cancelBubble = true
       evt.target.visible(false)
       label.destroy()
@@ -76,9 +80,10 @@ function create(params) {
   })
 }
 
-function destroy(params) {
-  const { stage, layer } = params
-  stage.off('mousedown touchstart')
+function destroy() {
+  const stage = currentStage
+  const layer = currentLayer
+  stage.off('click tap')
   stage.find('Transformer').destroy()
   // 执行一半的销毁
   if (isRunning) {
