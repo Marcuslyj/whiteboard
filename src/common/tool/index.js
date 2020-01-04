@@ -7,6 +7,7 @@ import eraser from './eraser'
 import clearBoard from './clearBoard'
 import deleteGraphic from './deleteGraphic'
 import pan from './pan'
+import select from './select'
 
 const toolCollection = {
   markPencil,
@@ -16,6 +17,7 @@ const toolCollection = {
   clearBoard,
   deleteGraphic,
   pan,
+  select,
 }
 
 export const initTool = () => {
@@ -24,8 +26,8 @@ export const initTool = () => {
     console.log(`initTool:${toolName}`)
   })
 
-  Vue.eventBus.$on('deactive-tool', ({ toolName, ...params }) => {
-    toolCollection[toolName].destroy && toolCollection[toolName].destroy(params)
+  Vue.eventBus.$on('deactive-tool', ({ toolName }) => {
+    toolCollection[toolName].destroy && toolCollection[toolName].destroy()
     console.log(`destroyTool:${toolName}`)
   })
 }

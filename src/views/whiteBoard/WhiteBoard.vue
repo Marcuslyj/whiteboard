@@ -6,10 +6,11 @@ Description
 -->
 <template>
   <div class="board-page">
-    <section
-      id="board-container"
-      ref="board-container"
-    ><i class="iconfont icon-jiami"></i>画板</section>
+    <section class="board-container-wrapper">
+    <div id="board-container"
+      ref="board-container">
+    </div>
+    </section>
     <div class="tool-wrapper">
       <tool-bar
         ref="tool-bar"
@@ -133,17 +134,17 @@ export default {
       transform: translateZ(0);
     }
   }
-  #board-container {
+  .board-container-wrapper {
     background-color: #fff;
     flex: 1;
     margin: 10px 10px 0;
     border: 1px solid #eee;
     overflow: hidden;
-    #board-container {
-      background-color: #fff;
-      flex: 1;
-      // margin:10px 10px 0;
-      border: 1px solid #eee;
+    #board-container{
+      position:relative;
+      z-index:10;
+      width:100%;
+      height:100%;
     }
   }
   .tool-wrapper {

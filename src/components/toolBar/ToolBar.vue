@@ -20,13 +20,13 @@ Description
     </div>
     <div class="center">
       <ul class="group draw-tool">
-        <li ref="pan-tool" @click.stop="clickPanTool">
+        <li ref="pan-tool" @click.stop.prevent="clickPanTool">
           <i class="iconfont icon-shou"></i>
         </li>
-        <li ref="select-tool" @click.stop="clickSelectTool">
+        <li ref="select-tool" @click.stop.prevent="clickSelectTool">
           <i class="iconfont icon-select"></i>
         </li>
-        <li ref="pencil-tool" @click.stop="clickPencilTool">
+        <li ref="pencil-tool" @click.stop.prevent="clickPencilTool">
           <i class="iconfont icon-pen"></i>
           <div class="menu pencil" v-show="boxName === 'pencil'">
             <div class="preview-wrapper">
@@ -41,7 +41,7 @@ Description
                   'active-item':
                     $globalConf.pencil.activePencilTool === pencilTool.name
                 }"
-                @click.stop="changePencilTool(pencilTool.name)"
+                @click.stop.prevent="changePencilTool(pencilTool.name)"
               >
                 <span><i :class="['iconfont', pencilTool.icon]"></i></span>
               </div>
@@ -54,7 +54,7 @@ Description
                   'item-wrapper': true,
                   'active-item': $globalConf.pencil.color === color
                 }"
-                @click.stop="changePencilColor(color)"
+                @click.stop.prevent="changePencilColor(color)"
               >
                 <span class="circle" :style="{ backgroundColor: color }"></span>
               </div>
@@ -68,7 +68,7 @@ Description
                   'item-wrapper': true,
                   'active-item': $globalConf.pencil.lineWidth === item.lineWidth
                 }"
-                @click.stop="changePencilWidth(item.lineWidth)"
+                @click.stop.prevent="changePencilWidth(item.lineWidth)"
               >
                 <span
                   class="cirlce"
@@ -83,7 +83,7 @@ Description
             </div>
           </div>
         </li>
-        <li ref="eraser-tool" @click.stop="clickEraserTool">
+        <li ref="eraser-tool" @click.stop.prevent="clickEraserTool">
           <i class="iconfont icon-eraser"></i>
           <div class="menu eraser" v-if="boxName === 'eraser'">
             <div class="row">
@@ -95,7 +95,7 @@ Description
                   'active-item':
                     $globalConf.eraser.activeEraserTool === eraserTool.name
                 }"
-                @click.stop="changeEraserTool(eraserTool.name)"
+                @click.stop.prevent="changeEraserTool(eraserTool.name)"
               >
                 <span><i :class="['iconfont', eraserTool.icon]"></i></span>
               </div>
@@ -109,7 +109,7 @@ Description
                   'item-wrapper': true,
                   'active-item': $globalConf.eraser.lineWidth === item.lineWidth
                 }"
-                @click.stop="changeEraserWidth(item.lineWidth)"
+                @click.stop.prevent="changeEraserWidth(item.lineWidth)"
               >
                 <span
                   class="circle"
@@ -269,11 +269,7 @@ export default {
         this.$globalConf.layerIds.REMARK_LAYER
       ]
       if (name !== this.$globalConf.activeTool && !isFirst) {
-        Vue.eventBus.$emit('deactive-tool', {
-          toolName: this.$globalConf.activeTool,
-          stage,
-          layer,
-        })
+        Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
         this.$globalConf.activeTool = this.$globalConf.pencil.activePencilTool = name
         Vue.eventBus.$emit('active-tool', {
           toolName: this.$globalConf.activeTool,
@@ -304,11 +300,7 @@ export default {
       const layer = this.$globalConf.layerManager[
         this.$globalConf.layerIds.REMARK_LAYER
       ]
-      Vue.eventBus.$emit('deactive-tool', {
-        toolName: this.$globalConf.activeTool,
-        stage,
-        layer,
-      })
+      Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
       this.$globalConf.activeTool = this.$globalConf.eraser.activeEraserTool = name
       if (name === 'eraser' || name === 'deleteGraphic') {
         Vue.eventBus.$emit('active-tool', {
@@ -345,11 +337,7 @@ export default {
         const layer = this.$globalConf.layerManager[
           this.$globalConf.layerIds.REMARK_LAYER
         ]
-        Vue.eventBus.$emit('deactive-tool', {
-          toolName: this.$globalConf.activeTool,
-          stage,
-          layer,
-        })
+        Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
         this.$globalConf.activeTool = 'pan'
         Vue.eventBus.$emit('active-tool', {
           toolName: this.$globalConf.activeTool,
@@ -361,6 +349,13 @@ export default {
     clickSelectTool() {
       this.setLiStyle('select-tool')
       this.setBoxName('')
+      const stage = this.$globalConf.board
+      Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+      this.$globalConf.activeTool = 'select'
+      Vue.eventBus.$emit('active-tool', {
+        toolName: this.$globalConf.activeTool,
+        stage,
+      })
     },
     clickPencilTool() {
       this.setLiStyle('pencil-tool')
