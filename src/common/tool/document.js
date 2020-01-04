@@ -6,24 +6,34 @@ import pdfjsLib from 'pdfjsLib'
 import bus from '@common/eventBus'
 import { debounce } from 'throttle-debounce'
 
-// 考虑文档页面大小尺寸一致
-
-// 正在查阅的pdf
-// pdf,
-// stage,
-// viewport,
-// layer,
-// convertCanvas,
+/**
+ * 正在查阅的pdf
+ * @key pdf
+ * @key stage
+ * @key viewport
+ * @key layer
+ * @key convertCanvas
+ */
 let docOpened
 let pageSigned
 let rendering = false
 let showCount = 1
-// 防抖
-let resizeDebounce = debounce(300, function () {
+
+/**
+ * 防抖
+ */
+let resizeDebounce = function () {
+  _resizeDebounce()
+}
+let _resizeDebounce = debounce(300, () => {
   onResize()
 })
 
-// 初始化文档
+/**
+ * 初始化文档
+ * @param {*} docID
+ * @param {*} param1
+ */
 export function init(docID, { stage, layer, convertCanvas }) {
   // 初始化前清掉相关数据
   destroy()
@@ -41,7 +51,9 @@ export function init(docID, { stage, layer, convertCanvas }) {
   bus.$on('resize', resizeDebounce)
 }
 
-// 清屏
+/**
+ * 清屏
+ */
 export function clearBoard() {
   Object.values(config.layerIds).map((v) => {
     config.layerManager[v].removeChildren()
@@ -50,11 +62,13 @@ export function clearBoard() {
   if (docOpened.stage) docOpened.stage.draw()
 }
 
-// 销毁相关事件
+/**
+ * 销毁相关事件
+ */
 export function destroy() {
   if (docOpened) {
     let { stage } = docOpened
-    docOpened = pageSigned = null
+    docOpened = pageSigned = elWrapper = null
     rendering = false
     showCount = 1
 
@@ -66,7 +80,10 @@ export function destroy() {
   }
 }
 
-// 加载pdf
+/**
+ * 加载pdf
+ * @param {*} param0
+ */
 export async function loadPdf({ url, docID }) {
   let pdf
 
@@ -82,7 +99,11 @@ export async function loadPdf({ url, docID }) {
   return pdf
 }
 
-// 文档cover添加到首页
+/**
+ * 文档cover添加到首页
+ * @param {*} pdf
+ * @param {*} param1
+ */
 export async function addCover(pdf, { stage, layer, convertCanvas }) {
   // 接口获取文档id
   const docID = generateUID()
@@ -111,7 +132,6 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
     const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
 
     // 上传图片
-
     let img = new Image()
     img.src = imgUrl
     img.onload = () => {
@@ -155,7 +175,9 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
   render(page, renderContext)
 }
 
-// 打开文档
+/**
+ * 打开文档
+ */
 export async function open() {
   let {
     docID, stage, convertCanvas,
@@ -186,9 +208,14 @@ export async function open() {
   renderPages()
 }
 
-// 文档可滚动
+/**
+ * 文档可滚动
+ * @param {boolean} enable
+ */
 export function enableScroll(enable = true) {
   const { stage, pdf, viewport } = docOpened
+  if (!stage || !pdf || !viewport) return
+
   const firefox = isFirefox()
 
   if (enable) {
@@ -234,7 +261,10 @@ export function enableScroll(enable = true) {
   }
 }
 
-// 获取文档封面viewport
+/**
+ * 获取文档封面viewport
+ * @param {*} page
+ */
 function getCoverViewport(page) {
   let viewport = page.getViewport({
     scale: 1,
@@ -320,7 +350,6 @@ async function renderPage({
     await page.render(renderContext).promise
     page = null
 
-
     let imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
     let img = new Image()
     img.src = imgUrl
@@ -336,11 +365,12 @@ async function renderPage({
         stroke: '#ccc',
       })
       layer.add(imgK)
+
+      // 防止已经destroy
+      if (!pageSigned) return
       pageSigned[from] = true
 
-      if (from === to) {
-        layer.batchDraw()
-      }
+      layer.draw()
 
       from++
       renderPage({ renderContext, from, to })
@@ -349,7 +379,9 @@ async function renderPage({
     }
   }
 }
-// resize
+/**
+ * resize
+ */
 function onResize() {
   let {
     docID, stage, layer, convertCanvas,
@@ -360,5 +392,5 @@ function onResize() {
 export default {
   addCover,
   loadPdf,
-  open,
+  init,
 }
