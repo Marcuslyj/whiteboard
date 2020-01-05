@@ -1,9 +1,16 @@
 import Konva from 'konva'
+import { getPoiWithOffset } from '@common/utils'
+
+/**
+ * 1. 了解 x,y stage.x  stage.y  特殊 shape.x()  shape.y() 相对于原本文档位置的偏移。类似relative,
+ *    常规shape 圆形，矩形等是相对于canvas左上角坐标， shape自己拖动会修改shape.x，shape.y  stage，layer 同理改变自己
+ * 2. 点击stage.pointerPosition() 是相对于canvas左上角（不考虑stage transform）
+ * 3. 理解getClientRect transform 包含了 (position, rotation, scale, offset, etc)
+*/
 
 let currentLayer
 let currentStage
 // 存储矩形一开始的左上角坐标
-let lefTopPoi
 let bgRect
 function create(params) {
   const { stage } = params
@@ -20,7 +27,7 @@ function create(params) {
     if (target === bgRect) {
       return
     }
-
+    console.log(target)
     currentLayer = target.getLayer()
     stage.find('Transformer').destroy()
     const tr = new Konva.Transformer({
@@ -30,41 +37,38 @@ function create(params) {
       // padding: 40,
       // enabledAnchors: ['bottom-right'],
     })
-    const selfRect = target.getClientRect()
+    let rect = target.getClientRect()
+    let newPoi = getPoiWithOffset({ x: rect.x, y: rect.y }, stage)
     bgRect = new Konva.Rect({
-      ...selfRect,
+      x: newPoi.x,
+      y: newPoi.y,
+      width: rect.width,
+      height: rect.height,
       fill: 'red',
       opacity: 0.5,
     })
-    lefTopPoi = bgRect.position()
+    console.log(rect)
     currentLayer.add(tr, bgRect)
-    tr.attachTo(bgRect)
-    currentLayer.draw()
+    tr.attachTo(target)
     bgRect.draggable(true)
-    // target.scaleX(1.5)
     currentLayer.draw()
-    // 拖动矩形重新处理组件
-    bgRect.on('transform', function ({ currentTarget }) {
-      let {
-        scaleX, scaleY, rotation = 0,
-      } = currentTarget.attrs
-      rotation *= (Math.PI / 180)
-      // console.log(currentTarget.attrs)
-      // 需要调整真正目标组件的位置，scale因子 会让起始点，结束点都发生变化。
-      let dx = currentTarget.x() * scaleX - tr.padding() - target.offsetX() * scaleX
-      let dy = currentTarget.y() * scaleY - tr.padding() - target.offsetX() * scaleY
-      target.setAttrs({
-        x: currentTarget.x() - (dx * Math.cos(rotation) + dy * Math.sin(-rotation)),
-        y: currentTarget.y() - (dy * Math.cos(rotation) + dx * Math.sin(rotation)),
-        scaleX,
-        scaleY,
-        rotation,
+    // 缩放监听处理
+    target.on('transform', function () {
+      // 获取线的rect 数据
+      rect = target.getClientRect()
+      console.log(rect)
+      console.log(target.getAttrs())
+      newPoi = getPoiWithOffset(rect)
+      const { width, height } = rect
+      bgRect.setAttrs({
+        ...newPoi,
+        width,
+        height,
       })
       currentLayer.draw()
     })
     bgRect.on('dragmove', function () {
-      target.x(bgRect.x() - lefTopPoi.x)
-      target.y(bgRect.y() - lefTopPoi.y)
+      // 如何确定线的偏移位置，尤其是线缩放了之后。x,y 中途就变化了
       currentLayer.draw()
     })
   })
