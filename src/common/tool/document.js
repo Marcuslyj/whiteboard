@@ -18,6 +18,8 @@ let docOpened
 let pageSigned
 let rendering = false
 let showCount = 1
+let wacherDrag
+let toolCanDrag = 'pan'
 
 /**
  * 防抖
@@ -49,6 +51,19 @@ export function init(docID, { stage, layer, convertCanvas }) {
 
   // 画布大小改变
   bus.$on('resize', resizeDebounce)
+  // 监听工具变化设置是否可拖动
+  bus.$watch(
+    function () {
+      return config.activeTool
+    },
+    function () {
+      if (stage) {
+        stage.setAttrs({
+          draggable: config.activeTool === toolCanDrag,
+        })
+      }
+    },
+  )
 }
 
 /**
@@ -68,7 +83,7 @@ export function clearBoard() {
 export function destroy() {
   if (docOpened) {
     let { stage } = docOpened
-    docOpened = pageSigned = elWrapper = null
+    docOpened = pageSigned = null
     rendering = false
     showCount = 1
 
@@ -77,6 +92,7 @@ export function destroy() {
       y: 0,
     })
     bus.$off('resize', resizeDebounce)
+    if (wacherDrag) wacherDrag()
   }
 }
 
@@ -225,7 +241,7 @@ export function enableScroll(enable = true) {
     stage.setAttrs({
       // select tool fired，stage set draggable true
       // draggable: this.toolConfig.currentTool === 'select',
-      draggable: true,
+      draggable: toolCanDrag === config.activeTool,
       dragBoundFunc(pos) {
         return {
           x: this.absolutePosition().x,
@@ -257,7 +273,7 @@ export function enableScroll(enable = true) {
       renderPages(pdf, { viewport, layer, convertCanvas })
     })
   } else {
-    stage.off('wheel')
+    stage.off('wheel dragmove')
   }
 }
 
