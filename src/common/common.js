@@ -7,6 +7,7 @@ export const fileService = process.env.VUE_APP_fileService
 export const api = {
   upload: `${webService}/upload/normal/file`,
   createMeet: '/meeting-manager/meeting',
+  createBoard: '/meeting-manager/meeting/{meetingId}/whiteboard',
 }
 
 export const fbId = {
@@ -16,6 +17,8 @@ export const fbId = {
 export const socketUrl = process.env.VUE_APP_socketUrl
 export const socketEvent = {
   joinMeet: 'join-meeting',
+  getMeet: 'get-meeting',
+  getComponent: 'get-component',
   addComponent: 'add-component',
   updateComponent: 'update-component',
   deletecomponents: 'delete-components',

@@ -38,3 +38,16 @@ export const getPoiWithOffset = (poi, stage) => {
     y: poi.y - aPoi.y,
   }
 }
+
+// 将变量植入字符串模板url 中,例如 /meeting-manager/meeting/{meetingId}/whiteboard' {meetingId:2}
+export const formateUrl = (url, props) => {
+  Object.keys(props).map((key) => {
+    url.replace(`{${key}}`, props[key])
+  })
+  return url
+}
+
+// 组件根据浏览器宽做坐标等比缩放，包括 x，y, width,height,offset
+export const getNewComponent = (component) => {
+  if (attrs) component.width
+}

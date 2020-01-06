@@ -2,7 +2,6 @@ import axios from 'axios'
 
 import { baseUrl } from './common'
 
-console.log(baseUrl)
 axios.defaults.withCredentials = true
 
 
