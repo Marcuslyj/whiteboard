@@ -20,16 +20,22 @@ let rendering = false
 let showCount = 1
 let wacherDrag
 let toolCanDrag = 'pan'
+let elWrapper
 
 /**
  * 防抖
  */
 let resizeDebounce = function () {
+  getElWrapper().classList.add('invisible')
   _resizeDebounce()
 }
 let _resizeDebounce = debounce(300, () => {
   onResize()
 })
+
+function getElWrapper() {
+  return elWrapper || document.querySelector('#board-container>.konvajs-content')
+}
 
 /**
  * 初始化文档
@@ -80,10 +86,10 @@ export function clearBoard() {
 /**
  * 销毁相关事件
  */
-export function destroy() {
+export function destroy({ all = false } = {}) {
   if (docOpened) {
     let { stage } = docOpened
-    docOpened = pageSigned = null
+    docOpened = pageSigned = elWrapper = null
     rendering = false
     showCount = 1
 
@@ -93,6 +99,9 @@ export function destroy() {
     })
     bus.$off('resize', resizeDebounce)
     if (wacherDrag) wacherDrag()
+    if (all) {
+      getElWrapper().classList.remove('invisible')
+    }
   }
 }
 
@@ -341,12 +350,14 @@ function loopRender({ from, to }) {
     viewport,
   }
 
-  renderPage({ renderContext, from, to })
+  renderPage({
+    renderContext, from, to, first: true,
+  })
   renderContext = viewport = null
 }
 // 加载一页
 async function renderPage({
-  renderContext, from, to,
+  renderContext, from, to, first,
 }) {
   if (from > to) {
     rendering = false
@@ -394,6 +405,8 @@ async function renderPage({
       imgUrl = img = pdf = viewport = renderContext = null
     }
   }
+  // 显示
+  if (first) getElWrapper().classList.remove('invisible')
 }
 /**
  * resize
