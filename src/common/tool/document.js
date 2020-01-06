@@ -86,7 +86,7 @@ export function clearBoard() {
 /**
  * 销毁相关事件
  */
-export function destroy() {
+export function destroy({ all = false } = {}) {
   if (docOpened) {
     let { stage } = docOpened
     docOpened = pageSigned = elWrapper = null
@@ -99,6 +99,9 @@ export function destroy() {
     })
     bus.$off('resize', resizeDebounce)
     if (wacherDrag) wacherDrag()
+    if (all) {
+      getElWrapper().classList.remove('invisible')
+    }
   }
 }
 
