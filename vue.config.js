@@ -28,6 +28,13 @@ module.exports = {
             '^/file': '/',
           },
         },
+        '/api': {
+          target: 'http://10.180.170.129:10047',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/api': '/',
+          },
+        },
       },
     } : {},
   },

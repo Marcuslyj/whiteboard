@@ -29,7 +29,7 @@ export const generateUID = function (prefix, suffix) {
 // isFirefox
 export const isFirefox = () => /Firefox/i.test(navigator.userAgent)
 
-// 将pointerPoint 转成带offset的数据
+// 将pointerPoint 的值过滤掉stage的transform 影响
 export const getPoiWithOffset = (poi, stage) => {
   if (!stage || !poi) { return null }
   const aPoi = stage.absolutePosition()

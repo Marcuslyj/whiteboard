@@ -1,6 +1,7 @@
 import Vue from 'vue'
 
 export default Vue.observable({
+  meetingId: '',
   board: null,
   layerIds: {
     BG_LAYER: 'BG_LAYER',
