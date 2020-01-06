@@ -35,9 +35,10 @@ import Konva from 'konva'
 import { initTool } from '@common/tool'
 import { addCover, loadPdf } from '@common/tool/document'
 import bus from '@common/eventBus'
-import { socket } from '@common/socketUtil'
-import { socketEvent } from '@common/common'
+import socketUtil, { socket } from '@common/socketUtil'
+import { socketEvent, api } from '@common/common'
 import Vue from 'vue'
+import { formateUrl } from '@common/utils'
 import ToolBar from '@/components/toolBar/ToolBar'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
@@ -52,35 +53,27 @@ export default {
       shouldConvert: false,
       convertCanvas: null,
       tbMask: false,
+      whiteboards: [],
     }
   },
   created() {
-    // const { socket } = socketUtil
     socket.on(socketEvent.joinMeet, (res) => {
-
+      this.$globalConf.isSpeaker = res.isSpeaker
+      // 获取会议数据
+      socketUtil.getMeet({
+        meetingId: this.$globalConf.meetingId,
+      })
     })
   },
   mounted() {
-    const el = document.querySelector('#board-container')
-    this.$globalConf.board = this.stage = new Konva.Stage({
-      container: 'board-container',
-      width: el.clientWidth,
-      height: el.clientHeight,
-    })
-    Object.keys(this.$globalConf.layerIds).map((layerId) => {
-      const layer = new Konva.Layer({
-        id: layerId,
-      })
-      this.$globalConf.layerManager[layerId] = layer
-      this.$globalConf.layerManager.BG_LAYER.listening(false)
-      this.stage.add(layer)
-    })
+    this.initStageInfo()
     initTool()
     this.$refs['tool-bar'].active()
     Vue.eventBus.$on('setTbMask', (visible) => {
       this.tbMask = visible
     })
 
+    this.getBoard()
 
     bus.$on('resize', () => {
       // 主屏应该重绘，并同步画布尺寸
@@ -96,6 +89,48 @@ export default {
     })
   },
   methods: {
+    // 初始化stage 宽高和 layer
+    initStageInfo() {
+      const wrapper = document.querySelector('.board-container-wrapper')
+      const el = document.querySelector('#board-container')
+      if (this.$globalConf.isSpeaker) {
+        this.$globalConf.board = this.stage = new Konva.Stage({
+          container: 'board-container',
+          width: el.clientWidth,
+          height: el.clientHeight,
+        })
+      }
+      // 副屏初始化宽高($)，主讲屏等比缩放宽高
+      else if (this.$globalConf.speakerWidth / this.$globalConf.speakerHeight > wrapper.clientWidth / wrapper.clientHeight) {
+      // 被宽度限制
+        const scale = this.$globalConf.speakerWidth / this.$globalConf.speakerHeight
+        el.style.width = `${wrapper.clientWidth}px`
+        el.style.height = `${wrapper.clientWidth / scale}px`
+        this.$globalConf.board = this.stage = new Konva.Stage({
+          container: 'board-container',
+          width: wrapper.clientWidth,
+          height: wrapper.clientWidth / (4 / 5),
+        })
+      } else {
+      // 被高度限制
+        const scale = this.$globalConf.speakerWidth / this.$globalConf.speakerHeight
+        el.style.height = `${wrapper.clientHeight}px`
+        el.style.width = `${wrapper.clientHeight * scale}px`
+        this.$globalConf.board = this.stage = new Konva.Stage({
+          container: 'board-container',
+          width: wrapper.clientHeight * scale,
+          height: wrapper.clientHeight,
+        })
+      }
+      Object.keys(this.$globalConf.layerIds).map((layerId) => {
+        const layer = new Konva.Layer({
+          id: layerId,
+        })
+        this.$globalConf.layerManager[layerId] = layer
+        this.$globalConf.layerManager.BG_LAYER.listening(false)
+        this.stage.add(layer)
+      })
+    },
     // 初始化转换画板
     initConvertCanvas() {
       if (this.convertCanvas) {
@@ -138,6 +173,56 @@ export default {
       this.$refs['tool-bar'].boxName = ''
       this.tbMask = false
     },
+    getBoard() {
+      socket.on(socketEvent.getMeet, (res) => {
+        this.whiteboards = res.whiteboards
+        if (this.whiteboards.length >= 0) {
+          // 默认获取首个白板首屏数据初始化组件
+          const params = {
+            meetingId: this.$$globalConf.meetingId,
+            whiteboardId: this.whiteboards[0].whiteboardId,
+            documentId: '',
+          }
+          socketUtil.getComponent(params)
+          socket.on(socketEvent.getComponent, ({ components }) => {
+            this.initComponents(components)
+          })
+        }
+        // 创建一个白板
+        else {
+          const url = formateUrl(api.createBoard, { meetingId: this.$globalConf.meetingId })
+          const name = 'board_1'
+          this.$api.post(url, { whiteboardName: name }, (ret) => {
+            if (ret.retCode === 0) {
+              this.$error('创建白板失败')
+            }
+          })
+        }
+      })
+    },
+    // 开始初始化组件到Canvas 中
+    initComponents(components) {
+      const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
+      const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
+      const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
+      components.map((component) => {
+        if (component.componentType === 0) {
+          // 文字,其他标注(普通)
+          if (component.attrs.className === 'Text') {
+            textLayer.add(new Konva.Text(component.attrs))
+          } else {
+            remarkLayer.add(new Konva[component.className](component.attrs))
+          }
+        } else {
+          // 封面
+          bgLayer.add(new Konva.Image(component.attrs))
+        }
+      })
+      // 到时测试这种绘制的渲染效果
+      bgLayer.batchDraw()
+      textLayer.batchDraw()
+      remarkLayer.batchDraw()
+    },
   },
 }
 </script>
@@ -161,6 +246,8 @@ export default {
     border: 1px solid #eee;
     overflow: hidden;
     position: relative;
+    justify-content: center;
+    align-items: center;
     #board-container{
       position:relative;
       z-index:10;

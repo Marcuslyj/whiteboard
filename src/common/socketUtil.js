@@ -8,22 +8,23 @@ export const socket = io(`${socketUrl}`, {
   reconnectionAttempts: 2, // 重连次数
   transports: ['websocket'],
 })
-startListen()
-
-function startListen() {
-  socket.on(socketEvent.joinMeet, (res) => {
-
-  })
-}
 
 socket.on('connect_error', (error) => {
   console.error(`连接错误${error}`)
 })
 
+// 加入会议房间
 function joinMeet(params) {
   socket.emit(socketEvent.joinMeet, params)
 }
-
+// 获取会议房间消息
+function getMeet(params) {
+  socket.emit(socketEvent.getMeet, params)
+}
+// 获取会议组件初始化
+function getComponent(params) {
+  socket.emit(socketEvent.getMeet, params)
+}
 function addComponent(params) {
   socket.emit(socketEvent.addComponent, params)
 }
@@ -44,6 +45,8 @@ function updateComponentState(params) {
 export default {
   socket,
   joinMeet,
+  getMeet,
+  getComponent,
   addComponent,
   updateComponent,
   deleteComponents,
