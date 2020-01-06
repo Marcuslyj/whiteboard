@@ -6,7 +6,7 @@ export const fileService = process.env.VUE_APP_fileService
 
 export const api = {
   upload: `${webService}/upload/normal/file`,
-  createMeet: '/meeting/meet',
+  createMeet: '/meeting-manager/meeting',
 }
 
 export const fbId = {
@@ -14,9 +14,8 @@ export const fbId = {
 }
 
 export const socketUrl = process.env.VUE_APP_socketUrl
-
 export const socketEvent = {
-  joinMeet: 'join-meet',
+  joinMeet: 'join-meeting',
   addComponent: 'add-component',
   updateComponent: 'update-component',
   deletecomponents: 'delete-components',
@@ -25,11 +24,11 @@ export const socketEvent = {
 
 // 非响应式数据
 export default deepFreeze({
+  socketUrl,
   baseUrl,
   webService,
   fileService,
   api,
   fbId,
-  socketUrl,
   socketEvent,
 })

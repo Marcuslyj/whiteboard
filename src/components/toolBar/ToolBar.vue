@@ -247,9 +247,9 @@ export default {
     //   // data: { filePath: '/F19/12/100/2d46f4f8-b2de-4401-83a4-ffd2040937a8.pdf' },
     //   ret: { retCode: 0 },
     // })
-    document.body.addEventListener('click', () => {
-      this.boxName = ''
-    })
+    // document.body.addEventListener('mousedown', () => {
+    //   this.boxName = ''
+    // })
   },
   methods: {
     beforeUpload() {
@@ -383,6 +383,7 @@ export default {
     setBoxName(boxName) {
       this.boxName = boxName
       console.log(this.boxName)
+      Vue.eventBus.$emit('setTbMask', this.boxName !== '')
     },
     // 预览图
     resetCanvas() {

@@ -10,6 +10,8 @@ Description
     <div id="board-container"
       ref="board-container">
     </div>
+    <!-- 用于工具条menu 关闭遮罩 -->
+    <div class="tool-box-mask" v-if="tbMask" @click="clickTbMask"></div>
     </section>
     <div class="tool-wrapper">
       <tool-bar
@@ -33,6 +35,9 @@ import Konva from 'konva'
 import { initTool } from '@common/tool'
 import { addCover, loadPdf } from '@common/tool/document'
 import bus from '@common/eventBus'
+import { socket } from '@common/socketUtil'
+import { socketEvent } from '@common/common'
+import Vue from 'vue'
 import ToolBar from '@/components/toolBar/ToolBar'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
@@ -46,7 +51,14 @@ export default {
       stage: null,
       shouldConvert: false,
       convertCanvas: null,
+      tbMask: false,
     }
+  },
+  created() {
+    // const { socket } = socketUtil
+    socket.on(socketEvent.joinMeet, (res) => {
+
+    })
   },
   mounted() {
     const el = document.querySelector('#board-container')
@@ -65,6 +77,9 @@ export default {
     })
     initTool()
     this.$refs['tool-bar'].active()
+    Vue.eventBus.$on('setTbMask', (visible) => {
+      this.tbMask = visible
+    })
 
 
     bus.$on('resize', () => {
@@ -118,6 +133,11 @@ export default {
         })
       }
     },
+    // 点击画板，弹窗消失
+    clickTbMask() {
+      console.log('clickTbMask')
+      this.$refs['tool-bar'].boxName = ''
+    },
   },
 }
 </script>
@@ -140,15 +160,26 @@ export default {
     margin: 10px 10px 0;
     border: 1px solid #eee;
     overflow: hidden;
+    position: relative;
     #board-container{
       position:relative;
       z-index:10;
       width:100%;
       height:100%;
     }
+    .tool-box-mask{
+      position: absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      z-index: 11;
+    }
   }
   .tool-wrapper {
+    position: relative;
     margin: 10px;
+    z-index:12;
   }
   .convertCanvas {
     width: 10px;

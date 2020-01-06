@@ -99,7 +99,7 @@ function destroy() {
   const stage = currentStage
   stage.find('Transformer').destroy()
   bgRect && bgRect.destroy()
-  currentLayer.draw()
+  currentLayer && currentLayer.draw()
   stage.off('click tap')
 }
 
