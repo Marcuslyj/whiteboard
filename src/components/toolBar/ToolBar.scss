@@ -4,6 +4,7 @@
   display:flex;
   justify-content: space-between;
   flex-wrap: nowrap;
+  z-index:10;
   .mask{
     position: absolute;
     left:0;

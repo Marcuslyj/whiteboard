@@ -3,8 +3,10 @@ import Vue from 'vue'
 import { generateUID, getPoiWithOffset } from '@common/utils'
 import graphicManager from '@common/graphicManager'
 
+let currentStage
 function create(params) {
   const { stage, layer } = params
+  currentStage = stage
   let line
   // 标记正在画线
   let isDrawing = false
@@ -47,9 +49,8 @@ function create(params) {
   })
 }
 
-function destroy(params) {
-  const { stage } = params
-  stage.off('mousedown touchstart mousemove touchmove mouseup touchend')
+function destroy() {
+  currentStage.off('mousedown touchstart mousemove touchmove mouseup touchend')
 }
 
 export default {
