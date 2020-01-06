@@ -139,11 +139,12 @@ export default {
     margin: 10px 10px 0;
     border: 1px solid #eee;
     overflow: hidden;
-    #board-container {
-      background-color: #fff;
-      flex: 1;
-      // margin:10px 10px 0;
-      border: 1px solid #eee;
+    /deep/ .konvajs-content{
+      transition: opacity 0.5s;
+      opacity: 1;
+      &.invisible{
+        opacity: 0;
+      }
     }
   }
   .tool-wrapper {
