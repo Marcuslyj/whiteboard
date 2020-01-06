@@ -135,8 +135,8 @@ export default {
     },
     // 点击画板，弹窗消失
     clickTbMask() {
-      console.log('clickTbMask')
       this.$refs['tool-bar'].boxName = ''
+      this.tbMask = false
     },
   },
 }
