@@ -11,7 +11,7 @@ export const socket = io(`${socketUrl}`, {
 startListen()
 
 function startListen() {
-  socket.on(socketEvent.addComponent, (res) => {
+  socket.on(socketEvent.joinMeet, (res) => {
 
   })
 }
