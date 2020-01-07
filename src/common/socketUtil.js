@@ -2,16 +2,24 @@
 import io from 'socket.io-client'
 import { socketUrl, socketEvent } from './common'
 
-export const socket = io(`${socketUrl}`, {
-  reconnectionDelay: 100, // Make the xhr connections as fast as possible
-  timeout: 1000 * 60 * 3, // Timeout after 20 minutes
-  reconnectionAttempts: 2, // 重连次数
-  transports: ['websocket'],
-})
+let socket
 
-socket.on('connect_error', (error) => {
-  console.error(`连接错误${error}`)
-})
+function initSocket() {
+  socket = io(`${socketUrl}`, {
+    reconnectionDelay: 100, // Make the xhr connections as fast as possible
+    timeout: 1000 * 60 * 3, // Timeout after 20 minutes
+    reconnectionAttempts: 2, // 重连次数
+    transports: ['websocket'],
+  })
+  socket.on('connect_error', (error) => {
+    console.error(`连接错误${error}`)
+  })
+}
+
+export function getSocket() {
+  return socket
+}
+
 
 // 加入会议房间
 function joinMeet(params) {
@@ -23,8 +31,9 @@ function getMeet(params) {
 }
 // 获取会议组件初始化
 function getComponent(params) {
-  socket.emit(socketEvent.getMeet, params)
+  socket.emit(socketEvent.getComponent, params)
 }
+
 function addComponent(params) {
   socket.emit(socketEvent.addComponent, params)
 }
@@ -43,7 +52,8 @@ function updateComponentState(params) {
 }
 
 export default {
-  socket,
+  getSocket,
+  initSocket,
   joinMeet,
   getMeet,
   getComponent,

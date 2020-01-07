@@ -25,6 +25,18 @@ export const socketEvent = {
   updateComponentState: 'update-component-state',
 }
 
+/**
+ * 特殊组件id
+ */
+export const sComponentId = {
+  // 主屏尺寸
+  speakerSize: 'speakerSize',
+  // 坐标基准宽度
+  baseWidth: 'baseWidth',
+  // stage.x，y 滚动情况
+  stageXY: 'stageXY',
+}
+
 // 非响应式数据
 export default deepFreeze({
   socketUrl,
@@ -34,4 +46,5 @@ export default deepFreeze({
   api,
   fbId,
   socketEvent,
+  sComponentId,
 })

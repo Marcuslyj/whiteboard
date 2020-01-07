@@ -19,6 +19,7 @@ Description
                   <h4 class="title">开启一个会议</h4>
                   <input placeholder="请输入名称" v-model="theme"/>
               </div>
+                <input placeholder="userId" v-model="userId"/>
              <button class="btn" @click="joinMeet">开始</button>
           </div>
       </div>
@@ -26,43 +27,18 @@ Description
 </template>
 
 <script>
-import socketUtil from '@common/socketUtil'
-import { api } from '@common/common'
 
 export default {
   data() {
     return {
       theme: '',
+      userId: '',
     }
   },
   methods: {
     joinMeet() {
-      // 下面只是为了测试
-      // 临时创建会议
-      const p = {
-        theme: this.theme,
-        type: 0,
-        startTime: '20200103 10:00:00',
-        endTime: '20200103 12:00:00',
-        adress: '南山A01大会议室',
-        docPermission: 0,
-        linkUrl: 'https://dev-meetingwhitboard.com/meeting/meet/meet.html',
-      }
-      this.$api.post(api.createMeet, p, (res) => {
-        if (res.code === 0) {
-          this.$globalConf.meetingId = res.meetingId
-          console.log(`meetingId:${res.meetingId}`)
-          // socket 连接,加入会议房间
-          const p1 = {
-            theme: 'xxx',
-            meetingId: 1,
-            userId: 1,
-            nickName: '张三',
-          }
-          socketUtil.joinMeet(p1)
-        }
-      })
-      this.$router.push('/whiteBoard')
+      const params = { theme: this.theme, userId: this.userId }
+      this.$router.push({ name: 'whiteboard', params })
     },
   },
 }

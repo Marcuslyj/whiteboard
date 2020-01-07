@@ -35,8 +35,8 @@ import Konva from 'konva'
 import { initTool } from '@common/tool'
 import { addCover, loadPdf } from '@common/tool/document'
 import bus from '@common/eventBus'
-import socketUtil, { socket } from '@common/socketUtil'
-import { socketEvent, api } from '@common/common'
+import socketUtil, { getSocket } from '@common/socketUtil'
+import { socketEvent, api, sComponentId } from '@common/common'
 import Vue from 'vue'
 import { formateUrl } from '@common/utils'
 import ToolBar from '@/components/toolBar/ToolBar'
@@ -56,25 +56,12 @@ export default {
       whiteboards: [],
     }
   },
-  created() {
-    socket.on(socketEvent.joinMeet, (res) => {
-      this.$globalConf.isSpeaker = res.isSpeaker
-      // 获取会议数据
-      socketUtil.getMeet({
-        meetingId: this.$globalConf.meetingId,
-      })
-    })
-  },
   mounted() {
-    this.initStageInfo()
+    this.fortest()
     initTool()
-    this.$refs['tool-bar'].active()
     Vue.eventBus.$on('setTbMask', (visible) => {
       this.tbMask = visible
     })
-
-    this.getBoard()
-
     bus.$on('resize', () => {
       // 主屏应该重绘，并同步画布尺寸
       if (this.$refs['board-container']) {
@@ -89,7 +76,7 @@ export default {
     })
   },
   methods: {
-    // 初始化stage 宽高和 layer
+    // 初始化stage
     initStageInfo() {
       const wrapper = document.querySelector('.board-container-wrapper')
       const el = document.querySelector('#board-container')
@@ -109,7 +96,7 @@ export default {
         this.$globalConf.board = this.stage = new Konva.Stage({
           container: 'board-container',
           width: wrapper.clientWidth,
-          height: wrapper.clientWidth / (4 / 5),
+          height: wrapper.clientWidth / scale,
         })
       } else {
       // 被高度限制
@@ -130,6 +117,7 @@ export default {
         this.$globalConf.layerManager.BG_LAYER.listening(false)
         this.stage.add(layer)
       })
+      this.$refs['tool-bar'].active()
     },
     // 初始化转换画板
     initConvertCanvas() {
@@ -173,8 +161,9 @@ export default {
       this.$refs['tool-bar'].boxName = ''
       this.tbMask = false
     },
-    getBoard() {
-      socket.on(socketEvent.getMeet, (res) => {
+    getBoards() {
+      getSocket().on(socketEvent.getMeet, (res) => {
+        console.log('getBoard')
         this.whiteboards = res.whiteboards
         if (this.whiteboards.length >= 0) {
           // 默认获取首个白板首屏数据初始化组件
@@ -184,16 +173,48 @@ export default {
             documentId: '',
           }
           socketUtil.getComponent(params)
-          socket.on(socketEvent.getComponent, ({ components }) => {
+          getSocket().on(socketEvent.getComponent, ({ components }) => {
             this.initComponents(components)
           })
         }
         // 创建一个白板
         else {
+          console.log('创建白板')
           const url = formateUrl(api.createBoard, { meetingId: this.$globalConf.meetingId })
           const name = 'board_1'
           this.$api.post(url, { whiteboardName: name }, (ret) => {
-            if (ret.retCode === 0) {
+            if (ret.retCode === '0') {
+              this.$globalConf.whiteboardId = ret.data.whiteboardId
+              // 记录主讲屏size,特殊组件
+              const el = document.querySelector('#board-container')
+              let params = {
+                meetingId: this.$globalConf.meetingId,
+                whiteboardId: ret.data.whiteboardId,
+                documentId: null,
+                componentType: 1,
+                componentId: sComponentId.size,
+                component: JSON.stringify({ attrs: { id: sComponentId.speakerSize, width: el.clientWidth, height: el.clientHeight } }),
+              }
+              socketUtil.addComponent(params)
+              params = {
+                meetingId: this.$globalConf.meetingId,
+                whiteboardId: ret.data.whiteboardId,
+                documentId: null,
+                componentType: 1,
+                componentId: sComponentId.stageXY,
+                component: JSON.stringify({ attrs: { id: sComponentId.stageXY, x: 0, y: 0 } }),
+              }
+              socketUtil.addComponent(params)
+              params = {
+                meetingId: this.$globalConf.meetingId,
+                whiteboardId: ret.data.whiteboardId,
+                documentId: null,
+                componentType: 1,
+                componentId: sComponentId.baseWdith,
+                component: JSON.stringify({ attrs: { id: sComponentId.baseWdith, baseWdith: el.clientWidth } }),
+              }
+              socketUtil.addComponent(params)
+            } else {
               this.$error('创建白板失败')
             }
           })
@@ -222,6 +243,46 @@ export default {
       bgLayer.batchDraw()
       textLayer.batchDraw()
       remarkLayer.batchDraw()
+    },
+    fortest() {
+    // 下面只是为了测试,后续需要调整
+    // 临时创建会议
+      const p = {
+        theme: this.$route.params.theme,
+        type: 0,
+        startTime: '2020-01-06 10:00:00',
+        endTime: '2020-01-06 12:00:00',
+        adress: '南山A01大会议室',
+        docPermission: 0,
+        linkUrl: 'https://dev-meetingwhitboard.com/meeting/meet/meet.html',
+      }
+      console.log(this.$route)
+      this.$api.post(api.createMeet, p, (res) => {
+        if (res.ret.retCode === '0') {
+          socketUtil.initSocket()
+          getSocket().on('connect', () => {
+            console.log(getSocket().connected) // true
+            this.$globalConf.meetingId = res.data.meetingId
+            console.log(`meetingId:${res.data.meetingId}`)
+            this.initStageInfo()
+            // socket 连接,加入会议房间
+            const p1 = {
+              theme: 'xxx',
+              meetingId: res.data.meetingId,
+              nickName: '张三',
+              userId: this.$route.params.userId,
+            }
+            socketUtil.joinMeet(p1)
+            // 获取会议
+            getSocket().on(socketEvent.joinMeet, () => {
+              socketUtil.getMeet({
+                meetingId: res.data.meetingId,
+              })
+              this.getBoards() // 开启等待
+            })
+          })
+        }
+      })
     },
   },
 }
