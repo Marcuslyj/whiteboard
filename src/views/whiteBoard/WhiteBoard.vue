@@ -67,8 +67,7 @@ export default {
       if (this.$refs['board-container']) {
         const width = this.$refs['board-container'].clientWidth
         const height = this.$refs['board-container'].clientHeight
-
-        this.stage.size({
+        this.stage && this.stage.size({
           width,
           height,
         })
@@ -165,7 +164,7 @@ export default {
       getSocket().on(socketEvent.getMeet, (res) => {
         console.log('getBoard')
         this.whiteboards = res.whiteboards
-        if (this.whiteboards.length >= 0) {
+        if (this.whiteboards) {
           // 默认获取首个白板首屏数据初始化组件
           const params = {
             meetingId: this.$$globalConf.meetingId,
