@@ -314,6 +314,13 @@ export default {
       z-index:10;
       width:100%;
       height:100%;
+      /deep/ .konvajs-content{
+        transition: opacity 0.5s;
+        opacity: 1;
+        &.invisible{
+          opacity: 0;
+        }
+      }
     }
     .tool-box-mask{
       position: absolute;
