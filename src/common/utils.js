@@ -1,4 +1,3 @@
-import { rule } from '_postcss@7.0.26@postcss'
 import config from './config'
 // 深冻结
 export function deepFreeze(obj) {
@@ -36,7 +35,6 @@ export const getPoiWithOffset = (poi, stage) => {
   if (!stage || !poi) { return null }
   const aPoi = stage.absolutePosition()
   let scale = isEmpty(config.scale) ? 1 : config.scale
-  console.log(scale)
   return {
     x: (poi.x - aPoi.x) / scale,
     y: (poi.y - aPoi.y) / scale,
@@ -51,4 +49,16 @@ export const formateUrl = (url, props) => {
   return url
 }
 
-export const isEmpty = (obj) => obj === null || obj === ''
+export const isEmpty = (obj) => obj == null || obj === ''
+
+
+/**
+ * 使用对象的方式批量设置样式
+ * @param {*} dom
+ * @param {*} styleObj
+ */
+export function setStyle(dom, styleObj) {
+  Object.keys(styleObj).map((prop) => {
+    dom.style[prop] = styleObj[prop]
+  })
+}
