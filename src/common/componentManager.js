@@ -2,9 +2,16 @@ import config from './config'
 import socketUtil from './socketUtil'
 
 let positionIndex = -1
-
-function addGraphic(graphic) {
-  socketUtil.addComponent(graphic.toJSON())
+/**
+ * 组件传递到后台的格式是  {"attrs":{"id":"1","x":98.5,"y":79,"fill":"green","width":100,"height":100},"className":"Rect",componentType:0,type:}  type:'pic' 'remark' 'text' 以及几种特殊组件
+ * @param {*} graphic
+ * @param {*} componentType
+ */
+function addComponent(graphic, componentType = 0) {
+  const params = graphic.toObject()
+  params.componentId = params.attrs.id
+  params.componentType = componentType
+  socketUtil.addComponent(JSON.stringify(params))
   // 有游标在中间，执行过还原操作，丢弃游标后面的数据
   if (positionIndex !== -1) {
     config.cacheGraphics.slice(0, positionIndex + 1)
@@ -29,7 +36,7 @@ function back() {
 }
 
 export default {
-  addGraphic,
+  addComponent,
   clearCache,
   goAhead,
   back,

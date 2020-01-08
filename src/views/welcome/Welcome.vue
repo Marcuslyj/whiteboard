@@ -20,6 +20,7 @@ Description
                   <input placeholder="请输入名称" v-model="theme"/>
               </div>
                 <input placeholder="userId" v-model="userId"/>
+                 <input placeholder="meetingId" v-model="meetingId"/>
              <button class="btn" @click="joinMeet">开始</button>
           </div>
       </div>
@@ -32,13 +33,15 @@ export default {
   data() {
     return {
       theme: '',
-      userId: '',
+      userId: '2',
+      meetingId: '71',
     }
   },
   methods: {
     joinMeet() {
-      const params = { theme: this.theme, userId: this.userId }
+      const params = { theme: this.theme, userId: this.userId, meetingId: this.meetingId }
       this.$router.push({ name: 'whiteboard', params })
+      console.log(`theme:${this.theme}`)
     },
   },
 }

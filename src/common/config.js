@@ -4,8 +4,10 @@ export default Vue.observable({
   meetingId: '',
   isSpeaker: true,
   // 主讲人宽度高度
-  speakerWidth: 0,
-  speakerHeight: 0,
+  speakerSize: {},
+  baseWidth: '',
+  stageXy: {},
+  scale: '',
   board: null,
   layerIds: {
     BG_LAYER: 'BG_LAYER',

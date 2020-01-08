@@ -1,6 +1,7 @@
 import Konva from 'konva'
 import Vue from 'vue'
 import { generateUID, getPoiWithOffset } from '@common/utils'
+import cManager from '../componentManager'
 
 let currentStage
 function create(params) {
@@ -38,6 +39,7 @@ function create(params) {
     if (isDrawing) {
       isDrawing = false
       // arrow.cache()
+      cManager.addComponent(arrow)
       arrow = null
     }
   })
