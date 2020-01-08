@@ -25,17 +25,25 @@ export function getSocket() {
 function joinMeet(params) {
   socket.emit(socketEvent.joinMeet, params)
 }
+
 // 获取会议房间消息
 function getMeet(params) {
   socket.emit(socketEvent.getMeet, params)
 }
+
 // 获取会议组件初始化
 function getComponent(params) {
   socket.emit(socketEvent.getComponent, params)
 }
 
+// 新增组件
 function addComponent(params) {
   socket.emit(socketEvent.addComponent, params)
+}
+
+// 通知后台当前操作的某个画板某个文档id
+function syncAction(params) {
+  socket.emit(socketEvent.syncAction, params)
 }
 
 function updateComponent(params) {
@@ -51,6 +59,7 @@ function updateComponentState(params) {
   socket.emit(socketEvent.updateComponentState, params)
 }
 
+
 export default {
   getSocket,
   initSocket,
@@ -58,6 +67,7 @@ export default {
   getMeet,
   getComponent,
   addComponent,
+  syncAction,
   updateComponent,
   deleteComponents,
   updateComponentState,

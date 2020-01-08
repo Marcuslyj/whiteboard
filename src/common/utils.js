@@ -1,3 +1,5 @@
+import { rule } from '_postcss@7.0.26@postcss'
+import config from './config'
 // 深冻结
 export function deepFreeze(obj) {
   obj = isObject(obj) ? obj : {}
@@ -33,21 +35,20 @@ export const isFirefox = () => /Firefox/i.test(navigator.userAgent)
 export const getPoiWithOffset = (poi, stage) => {
   if (!stage || !poi) { return null }
   const aPoi = stage.absolutePosition()
+  let scale = isEmpty(config.scale) ? 1 : config.scale
+  console.log(scale)
   return {
-    x: poi.x - aPoi.x,
-    y: poi.y - aPoi.y,
+    x: (poi.x - aPoi.x) / scale,
+    y: (poi.y - aPoi.y) / scale,
   }
 }
 
 // 将变量植入字符串模板url 中,例如 /meeting-manager/meeting/{meetingId}/whiteboard' {meetingId:2}
 export const formateUrl = (url, props) => {
   Object.keys(props).map((key) => {
-    url.replace(`{${key}}`, props[key])
+    url = url.replace(`{${key}}`, props[key])
   })
   return url
 }
 
-// 组件根据浏览器宽做坐标等比缩放，包括 x，y, width,height,offset
-export const getNewComponent = (component) => {
-  if (attrs) component.width
-}
+export const isEmpty = (obj) => obj === null || obj === ''

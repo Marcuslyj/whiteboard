@@ -1,6 +1,6 @@
 // 组件删除
 import Konva from 'konva'
-import graphicManager from '../graphicManager'
+import cManager from '../componentManager'
 
 let tr
 let label

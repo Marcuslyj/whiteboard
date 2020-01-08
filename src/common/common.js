@@ -20,6 +20,7 @@ export const socketEvent = {
   getMeet: 'get-meeting',
   getComponent: 'get-component',
   addComponent: 'add-component',
+  syncAction: 'sync-action',
   updateComponent: 'update-component',
   deletecomponents: 'delete-components',
   updateComponentState: 'update-component-state',
