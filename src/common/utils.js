@@ -1,4 +1,3 @@
-import { rule } from '_postcss@7.0.26@postcss'
 import config from './config'
 // 深冻结
 export function deepFreeze(obj) {
