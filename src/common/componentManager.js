@@ -3,15 +3,25 @@ import socketUtil from './socketUtil'
 
 let positionIndex = -1
 /**
- * 组件传递到后台的格式是  {"attrs":{"id":"1","x":98.5,"y":79,"fill":"green","width":100,"height":100},"className":"Rect",componentType:0,type:}  type:'pic' 'remark' 'text' 以及几种特殊组件
+ * 组件传递到后台的格式是
+ *  {
+ *    componentType,
+ *    component:{attrs,className,type},
+ *    componentId，
+ *    meetingId，
+ *    whiteboardId，
+ *    documentId
+ *  }
  * @param {*} graphic
- * @param {*} componentType
+ * @param {*} componentType   0 表示清屏需要删除（画笔数据）    1 清屏不需要删除（封面）
  */
-function addComponent(graphic, componentType = 0) {
-  const params = graphic.toObject()
-  params.componentId = params.attrs.id
-  params.componentType = componentType
-  socketUtil.addComponent(JSON.stringify(params))
+function addComponent(graphic, componentType = 0, type = 'remark') {
+  const params = {
+    componentType,
+    component: JSON.stringify(Object.assign(graphic.toObject(), { type })),
+    componentId: graphic.getAttr('id'),
+  }
+  socketUtil.addComponent(formateComponent(params))
   // 有游标在中间，执行过还原操作，丢弃游标后面的数据
   if (positionIndex !== -1) {
     config.cacheGraphics.slice(0, positionIndex + 1)
@@ -35,9 +45,27 @@ function back() {
   // getGrphicById(cacheGraphics.id).visible(false)
 }
 
+function formateComponent(obj) {
+  const { meetingId, whiteboardId, documentId } = config
+  Object.assign(obj, {
+    meetingId,
+    whiteboardId,
+    documentId,
+  })
+  return obj
+}
+
+function clearLayer(...layers) {
+  layers.forEach((layer) => {
+    layer.destroyChildren()
+    layer.draw()
+  })
+}
+
 export default {
   addComponent,
   clearCache,
   goAhead,
   back,
+  clearLayer,
 }

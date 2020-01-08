@@ -1,5 +1,4 @@
 import Konva from 'konva'
-import { getPoiWithOffset } from '@common/utils'
 
 /**
  * 1. 了解 x,y stage.x  stage.y  特殊 shape.x()  shape.y() 相对于原本文档位置的偏移。类似relative,

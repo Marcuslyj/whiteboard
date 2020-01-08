@@ -1,7 +1,9 @@
 import Vue from 'vue'
 
 export default Vue.observable({
-  meetingId: '',
+  meetingId: null,
+  whiteboardId: null,
+  documentId: null,
   isSpeaker: true,
   // 主讲人宽度高度
   speakerSize: {},
@@ -27,5 +29,9 @@ export default Vue.observable({
     activeEraserTool: 'eraser',
     lineWidth: 14,
     color: '#fff',
+  },
+  text: {
+    color: '#f00',
+    fontSize: 14,
   },
 })

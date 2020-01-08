@@ -179,6 +179,7 @@ export default {
   },
   data() {
     return {
+      isActive: false,
       common,
       // 笔
       pencilColorArr: ['#000', '#f00', 'yellow', '#00f', '#0f0'],
@@ -250,6 +251,10 @@ export default {
     // document.body.addEventListener('mousedown', () => {
     //   this.boxName = ''
     // })
+  },
+  // 关闭时销毁工具
+  beforeDestroy() {
+    Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
   },
   methods: {
     beforeUpload() {
@@ -326,6 +331,8 @@ export default {
       this.$globalConf.eraser.lineWidth = lineWidth
     },
     active() {
+      if (this.isActive) { return }
+      this.isActive = true
       this.setLiStyle('pencil-tool')
       this.changePencilTool(this.$globalConf.activeTool, true)
     },

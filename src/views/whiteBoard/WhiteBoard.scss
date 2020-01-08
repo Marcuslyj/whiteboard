@@ -1,0 +1,60 @@
+.board-page {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  /deep/ {
+    canvas {
+      transform: translateZ(0);
+    }
+  }
+  .board-container-wrapper {
+	display: flex;
+    flex: 1;
+    margin: 10px 10px 0;
+    border: 1px solid #eee;
+    overflow: hidden;
+    position: relative;
+    justify-content: center;
+	align-items: center;
+	background:#eee;
+    #board-container{
+      position:relative;
+      z-index:10;
+	  display: inline-block;
+	  width:100%;
+	  height:100%;
+	  background-color: #fff;
+      /deep/ .konvajs-content{
+        transition: opacity 0.5s;
+        opacity: 1;
+        &.invisible{
+          opacity: 0;
+        }
+      }
+    }
+    .tool-box-mask{
+      position: absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      z-index: 11;
+    }
+  }
+  .tool-wrapper {
+    position: relative;
+    margin: 10px;
+    z-index:12;
+  }
+  .convertCanvas {
+    width: 10px;
+    height: 10px;
+    overflow: hidden;
+    position: absolute;
+    z-index: -10;
+    top: 0;
+    left: 0;
+  }
+}
