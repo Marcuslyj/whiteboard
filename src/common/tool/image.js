@@ -4,7 +4,7 @@ import { generateUID } from '@common/utils'
 function create(layer, {
   id, x, y, image, width, height, fill = '#fff', stroke = '#ccc', draggable = true, ...rest
 } = {}) {
-  const imgK = new Konva.Image({
+  const konvaImage = new Konva.Image({
     //   必须参数
     id: id || generateUID(),
     x,
@@ -19,9 +19,14 @@ function create(layer, {
     // 自定义参数
     ...rest,
   })
-  layer.add(imgK)
+
+  if (rest.type === 'cover') {
+    konvaImage.cache()
+    konvaImage.filters([Konva.Filters.Contrast])
+  }
+  layer.add(konvaImage)
   layer.draw()
-  return imgK
+  return konvaImage
 }
 
 export default {

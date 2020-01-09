@@ -189,23 +189,8 @@ export default {
           }))
           const pdf = await loadPdf({ url: result.data.url })
           if (this.Msgloading.length) this.Msgloading.pop()()
-          addCover(pdf, { docPath: result.filePath, documentId: result.documentId })
+          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId })
         }
-
-
-        // // let filePath = common.fileService + data.filePath
-        // // let pdf = await pdfjsLib.getDocument(filePath).promise
-
-        // this.$nextTick(() => {
-        //
-
-        //   addCover(pdf)
-        //   // , {
-        //   //   stage: this.stage,
-        //   //   layer: this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER],
-        //   // }
-        //   // )
-        // })
       }
     },
     // 点击画板，弹窗消失

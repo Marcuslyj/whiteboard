@@ -4,6 +4,7 @@ export default Vue.observable({
   meetingId: null,
   whiteboardId: null,
   documentId: null,
+  documentPath: null,
   isSpeaker: true,
   // 主讲人宽度高度
   speakerSize: {},
