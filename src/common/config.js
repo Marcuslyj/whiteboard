@@ -34,4 +34,5 @@ export default Vue.observable({
     color: '#f00',
     fontSize: 14,
   },
+  convertCanvas: null,
 })

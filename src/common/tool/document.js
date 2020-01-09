@@ -1,10 +1,11 @@
 import config from '@common/config'
-import { generateUID, isFirefox } from '@common/utils'
+import { isFirefox } from '@common/utils'
 import Konva from 'konva'
 import { fileService } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
 import bus from '@common/eventBus'
 import { debounce } from 'throttle-debounce'
+import image from '@common/tool/image'
 
 /**
  * 正在查阅的pdf
@@ -21,6 +22,9 @@ let showCount = 1
 let wacherDrag
 let toolCanDrag = 'pan'
 let elWrapper
+const getStage = () => config.board
+const getConvertCanvas = () => config.convertCanvas
+const getLayer = () => config.layerManager[config.layerIds.BG_LAYER]
 
 /**
  * 防抖
@@ -37,17 +41,18 @@ function getElWrapper() {
   return elWrapper || document.querySelector('#board-container>.konvajs-content')
 }
 
+
 /**
  * 初始化文档
- * @param {*} docID
+ * @param {*} documentId
  * @param {*} param1
  */
-export function init(docID, { stage, layer, convertCanvas }) {
+export function init(documentId, { stage, layer }) {
   // 初始化前清掉相关数据
   destroy()
   // 缓存数据
   docOpened = {
-    docID, stage, layer, convertCanvas,
+    documentId, stage, layer,
   }
   // 清屏
   clearBoard()
@@ -109,15 +114,17 @@ export function destroy({ all = false } = {}) {
  * 加载pdf
  * @param {*} param0
  */
-export async function loadPdf({ url, docID }) {
+export async function loadPdf({ url, documentId }) {
   let pdf
 
   if (url) {
-    if (url.indexOf(fileService) !== 0) {
+    if (process.env.NODE_ENV === 'development' && url.indexOf(fileService) !== 0) {
+      url = `${fileService}${url}`
+    } else if (!/^((ht|f)tps?):\/\//.test(url)) {
       url = `${fileService}${url}`
     }
     pdf = await pdfjsLib.getDocument(url).promise
-  } else if (docID) {
+  } else if (documentId) {
     //
   }
 
@@ -129,14 +136,19 @@ export async function loadPdf({ url, docID }) {
  * @param {*} pdf
  * @param {*} param1
  */
-export async function addCover(pdf, { stage, layer, convertCanvas }) {
-  // 接口获取文档id
-  const docID = generateUID()
-
+export async function addCover(pdf, {
+  docPath, documentId,
+}) {
   const page = await pdf.getPage(1)
+  console.log(page)
   const viewport = getCoverViewport(page)
   const { width } = viewport
   const { height } = viewport
+  console.log(width, height)
+  const convertCanvas = getConvertCanvas()
+  const stage = getStage()
+  const layer = getLayer()
+
   // 设置转换画板尺寸
   convertCanvas.size({
     width,
@@ -155,44 +167,42 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
   const render = async (_page, _renderContext) => {
     await _page.render(_renderContext).promise
     const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
+    console.log(imgUrl)
 
     // 上传图片
     let img = new Image()
     img.src = imgUrl
     img.onload = () => {
-      const imgK = new Konva.Image({
-        id: docID,
+      let options = {
+        documentId,
+        docPath,
         x,
         y,
         image: img,
         width,
         height,
-        // 白底,防止透明背景
-        fill: '#fff',
-        stroke: '#ccc',
-        draggable: true,
-      })
-      imgK.cache()
-      imgK.filters([Konva.Filters.Contrast])
-
-      layer.add(imgK)
-      layer.draw()
-
+        componentType: '1',
+        type: 'cover',
+      }
+      let konvaImage = image.create(layer, options)
+      console.log(konvaImage)
       // 事件
-      imgK.on('mouseover', ({ target }) => {
+      konvaImage.cache()
+      konvaImage.filters([Konva.Filters.Contrast])
+
+      konvaImage.on('mouseover', ({ target }) => {
         target.contrast(20)
         layer.draw()
       })
-      imgK.on('mouseout', ({ target }) => {
+      konvaImage.on('mouseout', ({ target }) => {
         target.contrast(0)
         layer.draw()
       })
-      imgK.on('click tap', () => {
+      konvaImage.on('click tap', () => {
         // 传文档id
-        // open(docID, { stage, layer, convertCanvas })
-        init(pdf, { stage, layer, convertCanvas })
+        // open(documentId, { stage, layer, convertCanvas })
+        init(pdf, { stage, layer })
       })
-
       _page = _renderContext = img = null
     }
   }
@@ -205,13 +215,13 @@ export async function addCover(pdf, { stage, layer, convertCanvas }) {
  */
 export async function open() {
   let {
-    docID, stage, convertCanvas,
+    documentId, stage,
   } = docOpened
 
   // 参数暂时是文档地址
   // 本机测试
   let pdf = await loadPdf({
-    url: docID._transport._params.url.substring(docID._transport._params.url.indexOf('/file')),
+    url: documentId._transport._params.url.substring(documentId._transport._params.url.indexOf('/file')),
   })
   docOpened.pdf = pdf
   let viewport = await getViewport()
@@ -278,8 +288,8 @@ export function enableScroll(enable = true) {
         stage.draw()
       }
       // 加载页面
-      const { layer, convertCanvas } = docOpened
-      renderPages(pdf, { viewport, layer, convertCanvas })
+      const { layer } = docOpened
+      renderPages(pdf, { viewport, layer })
     })
   } else {
     stage.off('wheel dragmove')
@@ -294,15 +304,18 @@ function getCoverViewport(page) {
   let viewport = page.getViewport({
     scale: 1,
   })
-  const stage = config.board
+  const stage = getStage()
+  console.log(stage)
   // 封面宽度，屏宽1600对应160,即画布宽度十分之一
   const width = Math.floor(stage.width() / 10)
+  console.log(width)
   if (viewport.width !== width) {
     viewport = page.getViewport({
       // width * 1 / viewport.width
       scale: width / viewport.width,
     })
   }
+  console.log(viewport)
   return viewport
 }
 
@@ -341,7 +354,7 @@ function renderPages() {
 // 加载所有页面
 function loopRender({ from, to }) {
   let {
-    viewport, convertCanvas,
+    viewport,
   } = docOpened
 
   const context = convertCanvas.layer.getContext()
@@ -370,7 +383,7 @@ async function renderPage({
     })
   } else {
     let {
-      pdf, viewport, convertCanvas, layer,
+      pdf, viewport, layer,
     } = docOpened
     const y = (from - 1) * viewport.height
     let page = await pdf.getPage(from)
@@ -413,9 +426,9 @@ async function renderPage({
  */
 function onResize() {
   let {
-    docID, stage, layer, convertCanvas,
+    documentId, stage, layer,
   } = docOpened
-  init(docID, { stage, layer, convertCanvas })
+  init(documentId, { stage, layer })
 }
 
 export default {
