@@ -19,7 +19,7 @@ Description
                   <h4 class="title">开启一个会议</h4>
                   <input placeholder="meetingId，不要修改" v-model="meetingId"/>
               </div>
-                <input placeholder="userId 0 表示主讲人，其他非主讲人" v-on="userId"/>
+                <input placeholder="userId 0 表示主讲人，其他非主讲人" :value="userId"/>
                  <!-- <input placeholder="meetingId" v-model="meetingId"/> -->
              <button class="btn" @click="joinMeet">开始</button>
           </div>

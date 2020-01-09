@@ -33,7 +33,8 @@ module.exports = {
     'array-callback-return': 0,
     'prefer-arrow-callback': 0,
     'no-restricted-syntax':0,
-    'no-prototype-builtins':0
+    'no-prototype-builtins':0,
+    'no-bitwise':0
   },
   'parserOptions':{
     parser: 'babel-eslint',

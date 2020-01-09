@@ -1,12 +1,11 @@
 import { setStyle } from '@common/utils'
 import config from '@common/config'
+import Konva from 'konva'
 
 let editorDom
-// 是否有文字
-let hasText
 let currentStage
 function create(params) {
-  const { stage } = params
+  const { stage, layer } = params
   currentStage = stage
   if (!editorDom) {
     editorDom = document.createElement('textarea')
@@ -21,17 +20,11 @@ function create(params) {
       resize: 'none',
       outline: '0',
     })
-    editorDom.oninput = function () {
-      if (this.value !== '') {
-        hasText = true
-      } else {
-        hasText = false
-      }
-      console.log(hasText)
-    }
     const konvaContent = stage.content
     konvaContent.insertBefore(editorDom, konvaContent.firstElementChild)
     editorDom.focus()
+  } else {
+    editorDom.style.display = 'block'
   }
   stage.on('click tap', function ({ evt }) {
     // 右键不处理
@@ -39,8 +32,17 @@ function create(params) {
       return
     }
     // 有文字的话就不再弹框了
-    if (hasText) {
-      hasText = false
+    if (editorDom && editorDom.value !== '') {
+      // 绘制到layer上
+      const shape = new Konva.Text({
+        text: editorDom.value,
+        fontSize: config.text.lineWidth,
+        fill: config.color,
+        x: Number(editorDom.style.left.split('px')[0]),
+        y: Number(editorDom.style.top.split('px')[0]),
+      })
+      layer.add(shape)
+      layer.draw()
       return
     }
     editorDom.value = ''
@@ -61,6 +63,9 @@ function create(params) {
 
 function destroy() {
   currentStage.off('click tap')
+  if (editorDom.style.display === 'block') {
+    editorDom.style.display = 'none'
+  }
 }
 
 export default {
