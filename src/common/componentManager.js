@@ -1,5 +1,7 @@
 import config from './config'
 import socketUtil from './socketUtil'
+import { sComponentId } from './common'
+import { formateComponent } from './utils'
 
 let positionIndex = -1
 /**
@@ -16,7 +18,21 @@ let positionIndex = -1
  * @param {*} componentType   0 表示清屏需要删除（画笔数据）    1 清屏不需要删除（封面）
  */
 function addComponent(graphic, componentType = 0, type = 'remark') {
-  const params = {
+  let params
+  if (config.baseWidth === '') {
+    // 更新基准宽度
+    params = {
+      componentType: 0,
+      componentId: sComponentId.baseWidth,
+      component: JSON.stringify({
+        componentId: sComponentId.baseWidth,
+        baseWidth: config.board.getAttr('width'),
+        type: sComponentId.baseWdith,
+      }),
+    }
+    socketUtil.updateComponent(formateComponent(params))
+  }
+  params = {
     componentType,
     component: JSON.stringify(Object.assign(graphic.toObject(), { type })),
     componentId: graphic.getAttr('id'),
@@ -43,16 +59,6 @@ function back() {
   // const positionIndex = cacheGraphics.length - 1
   // const layer = config.layerManager[config.layerIds.REMARK_LAYER]
   // getGrphicById(cacheGraphics.id).visible(false)
-}
-
-function formateComponent(obj) {
-  const { meetingId, whiteboardId, documentId } = config
-  Object.assign(obj, {
-    meetingId,
-    whiteboardId,
-    documentId,
-  })
-  return obj
 }
 
 function clearLayer(...layers) {

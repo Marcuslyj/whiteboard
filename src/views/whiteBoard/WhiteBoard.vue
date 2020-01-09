@@ -11,13 +11,15 @@ Description
       ref="board-container">
     </div>
     <!-- 用于工具条menu 关闭遮罩 -->
-    <div class="tool-box-mask" v-if="tbMask" @click="clickTbMask" :enable="enable"></div>
+    <div class="tool-box-mask" v-if="tbMask" @click="clickTbMask"></div>
     </section>
     <div class="tool-wrapper">
       <tool-bar
         ref="tool-bar"
         class="tool"
         @uploadSuccess="uploadSuccess"
+        @clearBoard="clearBoard"
+        :enable="enable"
       ></tool-bar>
     </div>
     <!-- 用于转换图片 -->
@@ -41,6 +43,7 @@ import {
 import Vue from 'vue'
 import { formateUrl, isEmpty } from '@common/utils'
 import cManager from '@common/componentManager'
+import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
@@ -59,12 +62,13 @@ export default {
   },
   mounted() {
     // 创建stage
-    const el = document.querySelector('#board-container')
+    const el = document.querySelector('.board-container-wrapper')
     this.$globalConf.board = this.stage = new Konva.Stage({
       container: 'board-container',
       width: el.clientWidth,
       height: el.clientHeight,
     })
+
     Object.keys(this.$globalConf.layerIds).map((layerId) => {
       const layer = new Konva.Layer({
         id: layerId,
@@ -76,19 +80,21 @@ export default {
 
     bus.$on('resize', () => {
       const { meetingId, whiteboardId, documentId } = this.$globalConf
-      const params = {
-        meetingId,
-        whiteboardId,
-        documentId,
-      }
-      if (this.$globalConf.isSpeaker) {
-        this.$globalConf.speakerSize = {
-          width: el.clientWidth,
-          height: el.clientHeight,
-        }
-        // 通知副屏speakerSize 发生改变
-        socketUtil.getComponent(params)
-      }
+      // const params = {
+      //   meetingId,
+      //   whiteboardId,
+      //   documentId,
+      // }
+      // if (this.$globalConf.isSpeaker) {
+      //   this.$globalConf.speakerSize = {
+      //     width: el.clientWidth,
+      //     height: el.clientHeight,
+      //   }
+      //   // 通知副屏speakerSize 发生改变
+      //   socketUtil.getComponent(params)
+      // } else {
+
+      // }
     })
     initTool()
     Vue.eventBus.$on('setTbMask', (visible) => {
@@ -100,23 +106,27 @@ export default {
   methods: {
     // 更新stage
     updateStageInfo() {
+      const wrapper = document.querySelector('.board-container-wrapper')
       if (this.$globalConf.isSpeaker) {
         // 主讲屏
         this.enable = true
+        syncArea.updateSpeakerSize({
+          width: wrapper.clientWidth,
+          height: wrapper.clientHeight,
+        })
+
         this.stage.size(this.$globalConf.speakerSize)
-        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWdith
+        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+        this.$refs['tool-bar'].active()
       } else {
         // 非主讲屏
-        const wrapper = document.querySelector('.board-container-wrapper')
         const el = document.querySelector('#board-container')
-
         if (this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height > wrapper.clientWidth / wrapper.clientHeight) {
           // 副屏初始化宽高($)，主讲屏等比缩放宽高
           // 被宽度限制
           const scale = this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height
           el.style.width = `${wrapper.clientWidth}px`
           el.style.height = `${wrapper.clientWidth / scale}px`
-          console.log(`${el.style.width}`)
           this.stage.size({
             width: wrapper.clientWidth,
             height: wrapper.clientWidth / scale,
@@ -126,7 +136,6 @@ export default {
           const scale = this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height
           el.style.height = `${wrapper.clientHeight}px`
           el.style.width = `${wrapper.clientHeight * scale}px`
-          console.log(`${el.style.width}`)
           this.stage.size({
             width: wrapper.clientHeight * scale,
             height: wrapper.clientHeight,
@@ -134,19 +143,7 @@ export default {
         }
         this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.stage.getAttr('width') / this.$globalConf.baseWdith
       }
-      const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
-      const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
-
-      console.log(`layer 缩放${this.$globalConf.scale}`)
-      textLayer.scale({
-        x: this.$globalConf.scale,
-        y: this.$globalConf.scale,
-      })
-      remarkLayer.scale({
-        x: this.$globalConf.scale,
-        y: this.$globalConf.scale,
-      })
-      this.$refs['tool-bar'].active()
+      syncArea.setLayerScale()
     },
     // 初始化转换画板
     initConvertCanvas() {
@@ -207,13 +204,18 @@ export default {
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
       components.map((component) => {
         component = JSON.parse(component)
+        let shape
         // 特殊组件
         if (specialType.includes(component.type)) {
           this.$globalConf[component.type] = component[component.type]
         } else if (component.type === 'remark') {
-          remarkLayer.add(new Konva[component.className](component.attrs))
+          shape = new Konva[component.className](component.attrs)
+          remarkLayer.add(shape)
+          shape.cache()
         } else if (component.type === 'text') {
-          textLayer.add(new Konva.Text(component.attrs))
+          shape = new Konva[component.className](component.attrs)
+          textLayer.add(shape)
+          shape.cache()
         } else {
           bgLayer.add(new Konva.Image(component.attrs))
         }
@@ -262,6 +264,8 @@ export default {
         this.initComponents(components)
       })
       getSocket().on(socketEvent.getMeet, this.handleGetMeet)
+      getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
+      getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
     },
     handleGetMeet(res) {
       // console.log('getBoard')
@@ -297,58 +301,16 @@ export default {
         this.$api.post(url, { whiteboardName: name }, (ret) => {
           if (ret.ret.retCode === '0') {
             this.$globalConf.whiteboardId = ret.data.whiteboardId
+            this.$globalConf.documentId = null
             // 记录主讲屏size,特殊组件
             const el = document.querySelector('#board-container')
-            let params = {
-              meetingId: this.$globalConf.meetingId,
-              whiteboardId: ret.data.whiteboardId,
-              documentId: null,
-              componentType: 1,
-              componentId: sComponentId.speakerSize,
-              component: JSON.stringify({
-                componentId: sComponentId.speakerSize,
-                type: sComponentId.speakerSize,
-                speakerSize: { width: el.clientWidth, height: el.clientHeight },
-              }),
-            }
-            socketUtil.addComponent(params)
-            params = {
-              meetingId: this.$globalConf.meetingId,
-              whiteboardId: ret.data.whiteboardId,
-              documentId: null,
-              componentType: 1,
-              componentId: sComponentId.stageXY,
-              component: JSON.stringify({
-                componentId: sComponentId.stageXY,
-                type: sComponentId.stageXY,
-                stageXY: { x: 0, y: 0 },
-              }),
-            }
-            socketUtil.addComponent(params)
-            params = {
-              meetingId: this.$globalConf.meetingId,
-              whiteboardId: ret.data.whiteboardId,
-              documentId: null,
-              componentType: 0,
-              componentId: sComponentId.baseWidth,
-              component: JSON.stringify({
-                componentId: sComponentId.baseWidth,
-                baseWidth: '',
-                type: sComponentId.baseWdith,
-              }),
-            }
-            socketUtil.addComponent(params)
-            // 记录当前画板或文档的属性
-            this.$globalConf.speakerSize = {
-              width: el.clientWidth,
-              height: el.clientHeight,
-            }
-            this.$globalConf.screenScale = this.$globalConf.stageXY = {
-              x: 0,
-              y: 0,
-            }
+
+            syncArea.addSpeakerSize({ width: el.clientWidth, height: el.clientHeight })
+            syncArea.addStageXY()
+            syncArea.addBaseWidth()
+
             // 记录打开的画板id，文档id， 副屏打开时可以初始化
-            params = {
+            const params = {
               meetingId: this.$globalConf.meetingId,
               syncAction: JSON.stringify({
                 whiteboardId: ret.data.whiteboardId,
@@ -362,6 +324,35 @@ export default {
           }
         })
       }
+    },
+    handleUpdateComponent(res) {
+      const { component } = res
+      if (component.type === sComponentId.baseWidth) {
+        console.log('update baseWidth')
+        this.$globalConf.baseWidth = component[sComponentId.baseWidth]
+        this.$globalConf.scale = this.stage.getAttr('width') / component[sComponentId.baseWidth]
+        syncArea.setLayerScale()
+      }
+    },
+    handleClearBoard() {
+      const layers = [this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER], this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]]
+      layers.forEach((layer) => {
+        layer.destroyChildren()
+        layer.batchDraw()
+      })
+      if (this.$globalConf.isSpeaker) {
+        syncArea.updateBaseWidth('')
+      }
+    },
+    clearBoard() {
+      const { meetingId, whiteboardId, documentId } = this.$globalConf
+      const params = {
+        meetingId,
+        whiteboardId,
+        documentId,
+        componentType: 0,
+      }
+      socketUtil.clearBoard(params)
     },
   },
 }

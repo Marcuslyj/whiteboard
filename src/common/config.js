@@ -6,10 +6,13 @@ export default Vue.observable({
   documentId: null,
   documentPath: null,
   isSpeaker: true,
-  // 主讲人宽度高度
+  // 主讲屏大小
   speakerSize: {},
+  // 第一笔绘制时的基准宽度
   baseWidth: '',
+  // 画布拖动
   stageXy: {},
+  // 跟基准值的缩放比
   scale: '',
   board: null,
   layerIds: {

@@ -1,5 +1,6 @@
 //  eslint-disable-next-line
 import io from 'socket.io-client'
+import Vue from 'vue'
 import { socketUrl, socketEvent } from './common'
 
 let socket
@@ -14,12 +15,18 @@ function initSocket() {
   socket.on('connect_error', (error) => {
     console.error(`连接错误${error}`)
   })
+  socket.on('reconnect_failed', () => {
+    console.error('重连失败')
+  })
+}
+
+function destroySocket() {
+  socket.close()
 }
 
 export function getSocket() {
   return socket
 }
-
 
 // 加入会议房间
 function joinMeet(params) {
@@ -46,6 +53,7 @@ function syncAction(params) {
   socket.emit(socketEvent.syncAction, params)
 }
 
+// 更新组件
 function updateComponent(params) {
   socket.emit(socketEvent.updateComponent, params)
 }
@@ -59,10 +67,16 @@ function updateComponentState(params) {
   socket.emit(socketEvent.updateComponentState, params)
 }
 
+// 清屏
+function clearBoard(params) {
+  socket.emit(socketEvent.clearBoard, params)
+}
+
 
 export default {
   getSocket,
   initSocket,
+  destroySocket,
   joinMeet,
   getMeet,
   getComponent,
@@ -71,4 +85,5 @@ export default {
   updateComponent,
   deleteComponents,
   updateComponentState,
+  clearBoard,
 }
