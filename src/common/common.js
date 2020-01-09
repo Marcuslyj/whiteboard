@@ -24,6 +24,7 @@ export const socketEvent = {
   updateComponent: 'update-component',
   deletecomponents: 'delete-components',
   updateComponentState: 'update-component-state',
+  clearBoard: 'clear-board',
 }
 
 /**

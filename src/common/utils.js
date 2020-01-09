@@ -62,3 +62,36 @@ export function setStyle(dom, styleObj) {
     dom.style[prop] = styleObj[prop]
   })
 }
+
+
+export function formateComponent(obj) {
+  const { meetingId, whiteboardId, documentId } = config
+  Object.assign(obj, {
+    meetingId,
+    whiteboardId,
+    documentId,
+  })
+  return obj
+}
+
+// 全屏
+export function fullscreen() {
+  let el = document.documentElement
+  let rfs = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen
+  if (typeof rfs !== 'undefined' && rfs) {
+    rfs.call(el)
+  }
+}
+
+// 取消全屏
+export function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen()
+  } else if (document.mozCancelFullScreen) {
+    document.mozCancelFullScreen()
+  } else if (document.webkitCancelFullScreen) {
+    document.webkitCancelFullScreen()
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen()
+  }
+}

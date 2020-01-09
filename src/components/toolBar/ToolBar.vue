@@ -123,7 +123,7 @@ Description
             </div>
           </div>
         </li>
-        <li ref="text-tool" @click="clickTextTool">
+        <li ref="text-tool" @click.stop="clickTextTool">
           <i class="iconfont icon-text"></i>
         </li>
       </ul>
@@ -182,7 +182,7 @@ export default {
       isActive: false,
       common,
       // 笔
-      pencilColorArr: ['#000', '#f00', 'yellow', '#00f', '#0f0'],
+      pencilColorArr: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
       widthArr: [
         {
           width: 0.4,
@@ -240,14 +240,6 @@ export default {
     }
   },
   mounted() {
-    // // 模拟测试
-    // this.MsgUploading = [function () {}]
-    // this.uploadSuccess({
-    //   // data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
-    //   data: { filePath: '/F19/12/100/83d88c00-bede-4dd8-9428-59a75da12f37.pdf' },
-    //   // data: { filePath: '/F19/12/100/2d46f4f8-b2de-4401-83a4-ffd2040937a8.pdf' },
-    //   ret: { retCode: 0 },
-    // })
     // document.body.addEventListener('mousedown', () => {
     //   this.boxName = ''
     // })
@@ -316,14 +308,15 @@ export default {
         })
       } else {
         this.$confirm('确定清除所有批注?不可撤销!', () => {
-          const layers = [
-            layer,
-            this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER],
-          ]
-          Vue.eventBus.$emit('active-tool', {
-            toolName: this.$globalConf.activeTool,
-            layers,
-          })
+          // const layers = [
+          //   layer,
+          //   this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER],
+          // ]
+          // Vue.eventBus.$emit('active-tool', {
+          //   toolName: this.$globalConf.activeTool,
+          //   layers,
+          // })
+          this.$emit('clearBoard')
         })
       }
     },
@@ -381,6 +374,18 @@ export default {
     },
     clickTextTool() {
       this.setLiStyle('text-tool')
+      this.setBoxName('')
+      const stage = this.$globalConf.board
+      const layer = this.$globalConf.layerManager[
+        this.$globalConf.layerIds.TEXT_LAYER
+      ]
+      Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+      this.$globalConf.activeTool = 'text'
+      Vue.eventBus.$emit('active-tool', {
+        toolName: this.$globalConf.activeTool,
+        stage,
+        layer,
+      })
     },
     setLiStyle(ref) {
       const el = document.querySelector('.center .activeTool')
