@@ -143,18 +143,6 @@ export async function addCover(pdf, {
   documentPath, documentId,
 }) {
   let stage = getStage()
-  // { // 临时
-  //   const el = document.querySelector('.board-container-wrapper')
-  //   stage.size({
-  //     width: el.clientWidth,
-  //     height: el.clientHeight,
-  //   })
-  //   await (function () {
-  //     return new Promise((resolve) => {
-  //       setTimeout(() => { resolve(1) }, 50)
-  //     })
-  //   }()) }
-
   const page = await pdf.getPage(1)
   const viewport = getCoverViewport(page)
   const { width } = viewport
