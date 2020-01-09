@@ -24,7 +24,6 @@ Description
     </div>
     <!-- 用于转换图片 -->
     <div
-      v-if="shouldConvert"
       ref="convertCanvas"
       class="convertCanvas"
     ></div>
@@ -38,7 +37,9 @@ import { initTool } from '@common/tool'
 import { addCover, loadPdf } from '@common/tool/document'
 import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
-import { socketEvent, api, sComponentId } from '@common/common'
+import {
+  socketEvent, api, sComponentId,
+} from '@common/common'
 import Vue from 'vue'
 import { formateUrl, isEmpty } from '@common/utils'
 import cManager from '@common/componentManager'
@@ -54,8 +55,6 @@ export default {
   data() {
     return {
       stage: null,
-      shouldConvert: false,
-      convertCanvas: null,
       tbMask: false,
       whiteboards: [],
       enable: false,
@@ -102,6 +101,7 @@ export default {
       this.tbMask = visible
     })
     this.fortest()
+    this.initConvertCanvas()
   },
   methods: {
     // 更新stage
@@ -147,39 +147,47 @@ export default {
     },
     // 初始化转换画板
     initConvertCanvas() {
-      if (this.convertCanvas) {
+      if (this.$globalConf.convertCanvas) {
         return
       }
-      this.convertCanvas = new Konva.Stage({
+      this.$globalConf.convertCanvas = new Konva.Stage({
         container: this.$refs.convertCanvas,
       })
-      this.convertCanvas.layer = new Konva.Layer()
-      this.convertCanvas.add(this.convertCanvas.layer)
+      this.$globalConf.convertCanvas.layer = new Konva.Layer()
+      this.$globalConf.convertCanvas.add(this.$globalConf.convertCanvas.layer)
     },
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
       if (Number(ret.retCode) === 0) {
         this.Msgloading = this.Msgloading || []
         this.Msgloading.push(Message.loading({
-          content: '读取中...',
+          content: '转换中...',
           duration: 0,
         }))
-        // let filePath = common.fileService + data.filePath
-        // let pdf = await pdfjsLib.getDocument(filePath).promise
-        const pdf = await loadPdf({ url: data.filePath })
-
-        this.shouldConvert = true
-
-        this.$nextTick(() => {
-          this.initConvertCanvas()
-          if (this.Msgloading.length) this.Msgloading.pop()()
-
-          addCover(pdf, {
-            stage: this.stage,
-            layer: this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER],
-            convertCanvas: this.convertCanvas,
-          })
+        // 文档转pdf，获取文档路径和文档id
+        let result = await new Promise((resolve, reject) => {
+          this.$api.post(
+            formateUrl(api.docToPdf, {
+              meetingId: this.$globalConf.meetingId,
+              whiteboardId: this.$globalConf.whiteboardId,
+            }),
+            {
+              docPath: data.filePath,
+            },
+            (res) => resolve(res),
+            (err) => reject(err),
+          )
         })
+        if (this.Msgloading.length) this.Msgloading.pop()()
+        if (Number(result.ret.retCode) === 0) {
+          this.Msgloading.push(Message.loading({
+            content: '读取中...',
+            duration: 0,
+          }))
+          const pdf = await loadPdf({ url: result.data.url })
+          if (this.Msgloading.length) this.Msgloading.pop()()
+          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId })
+        }
       }
     },
     // 点击画板，弹窗消失
@@ -233,8 +241,8 @@ export default {
       socketUtil.initSocket()
       this.startListener()
       getSocket().on('connect', () => {
-        console.log(getSocket().connected) // true
-        console.log(`meetingId:${this.$globalConf.meetingId}`)
+        // console.log(getSocket().connected) // true
+        // console.log(`meetingId:${this.$globalConf.meetingId}`)
         // socket 连接,加入会议房间
         const p1 = {
           theme: 'xxx',
@@ -260,10 +268,10 @@ export default {
       getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
     },
     handleGetMeet(res) {
-      console.log('getBoard')
+      // console.log('getBoard')
       this.whiteboards = res.whiteboards
       if (this.whiteboards) {
-        // 取出指定的board(whiteboardId+docId)
+        // 取出指定的board(whiteboardId+documentId)
         if (!isEmpty(res.syncAction)) {
           const { whiteboardId, documentId } = JSON.parse(res.syncAction)
           this.$globalConf.whiteboardId = whiteboardId
@@ -287,7 +295,7 @@ export default {
         }
       } else {
         // 创建一个白板
-        console.log('创建白板')
+        // console.log('创建白板')
         const url = formateUrl(api.createBoard, { meetingId: this.$globalConf.meetingId })
         const name = 'board_1'
         this.$api.post(url, { whiteboardName: name }, (ret) => {

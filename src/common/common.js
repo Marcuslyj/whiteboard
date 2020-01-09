@@ -6,6 +6,7 @@ export const fileService = process.env.VUE_APP_fileService
 
 export const api = {
   upload: `${webService}/upload/normal/file`,
+  docToPdf: `${'https://dev-whiteboard.tvflnet.com/'}/meeting-manager/meeting/{meetingId}/whiteboard/{whiteboardId}/doc-to-pdf`,
   createMeet: '/meeting-manager/meeting',
   createBoard: '/meeting-manager/meeting/{meetingId}/whiteboard',
 }

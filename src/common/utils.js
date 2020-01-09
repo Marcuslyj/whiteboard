@@ -17,14 +17,12 @@ export function isObject(obj) {
   return typeof obj === 'object' && obj !== null
 }
 // uid
-export const generateUID = function (prefix, suffix) {
+export const generateUID = (prefix = '', suffix = '') => {
   let uid = Date.now().toString(36)
   Array.from({ length: 3 }).map(() => {
     uid += `_${Math.floor(Math.random() * 10000).toString(36)}`
   })
-  if (prefix) uid = prefix + uid
-  if (suffix) uid += suffix
-  return uid
+  return `${prefix}${uid}${suffix}`
 }
 
 // isFirefox

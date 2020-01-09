@@ -4,6 +4,7 @@ export default Vue.observable({
   meetingId: null,
   whiteboardId: null,
   documentId: null,
+  documentPath: null,
   isSpeaker: true,
   // 主讲屏大小
   speakerSize: {},
@@ -37,4 +38,5 @@ export default Vue.observable({
     color: '#f00',
     fontSize: 14,
   },
+  convertCanvas: null,
 })
