@@ -1,6 +1,7 @@
 import { setStyle } from '@common/utils'
 import config from '@common/config'
 import Konva from 'konva'
+import Vue from 'vue'
 
 let editorDom
 let currentStage
@@ -22,9 +23,6 @@ function create(params) {
     })
     const konvaContent = stage.content
     konvaContent.insertBefore(editorDom, konvaContent.firstElementChild)
-    editorDom.focus()
-  } else {
-    editorDom.style.display = 'block'
   }
   stage.on('click tap', function ({ evt }) {
     // 右键不处理
@@ -36,16 +34,25 @@ function create(params) {
       // 绘制到layer上
       const shape = new Konva.Text({
         text: editorDom.value,
-        fontSize: config.text.lineWidth,
-        fill: config.color,
+        fontSize: config.text.fontSize,
+        fill: config.text.color,
         x: Number(editorDom.style.left.split('px')[0]),
         y: Number(editorDom.style.top.split('px')[0]),
       })
+      editorDom.value = ''
       layer.add(shape)
+      shape.cache()
       layer.draw()
+      editorDom.style.display = 'none'
+      const style = {
+        display: 'none',
+      }
+      Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style })
       return
     }
     editorDom.value = ''
+    editorDom.style.display = 'block'
+    editorDom.focus()
     // 增加到当前面板
     const boundingClientRect = stage.content.getBoundingClientRect()
     const offsetX = evt.clientX - boundingClientRect.left
@@ -58,6 +65,14 @@ function create(params) {
       color: config.color,
       fontSize: `${config.fontSize}px`,
     })
+    // 启动miniMenu
+    const style = {
+      display: 'block',
+      position: 'absolute',
+      left: offsetX > 0 ? `${offsetX}px` : 0,
+      top: offsetY > 0 ? `${offsetY - 80}px` : 0,
+    }
+    Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style })
   })
 }
 

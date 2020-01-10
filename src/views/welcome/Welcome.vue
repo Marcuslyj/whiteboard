@@ -23,13 +23,19 @@ Description
                  <!-- <input placeholder="meetingId" v-model="meetingId"/> -->
              <button class="btn" @click="joinMeet">开始</button>
           </div>
+          <MiniMenu type="select"></MiniMenu>
       </div>
   </div>
 </template>
 
 <script>
 
+import MiniMenu from '@/components/miniMenu/MiniMenu'
+
 export default {
+  components: {
+    MiniMenu,
+  },
   data() {
     return {
       theme: '',

@@ -33,7 +33,10 @@
           opacity: 0;
         }
       }
-    }
+	}
+	.mini-menu{
+		z-index:20;
+	}
     .tool-box-mask{
       position: absolute;
       top:0;

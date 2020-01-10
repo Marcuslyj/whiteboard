@@ -5,7 +5,7 @@ Description
 @version 1.0.0
 -->
 <template>
-  <div class="toolbar">
+  <div class="toolbar"  @mousedown.stop="" @touchstar.stop="">
     <!-- 工具条能否起作用的遮罩 -->
     <div
       class="mask"
@@ -161,7 +161,6 @@ import { Upload, Message } from 'view-design'
 import common from '@common/common'
 import Vue from 'vue'
 
-
 export default {
   props: {
     // 简单模式，没有左边的工具
@@ -240,20 +239,22 @@ export default {
     }
   },
   mounted() {
-    // 模拟测试
-    this.MsgUploading = [function () {}]
-    this.uploadSuccess({
-      // data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
-      data: { filePath: '/F19/12/100/83d88c00-bede-4dd8-9428-59a75da12f37.pdf' },
-      // data: { filePath: '/F19/12/100/2d46f4f8-b2de-4401-83a4-ffd2040937a8.pdf' },
-      ret: { retCode: 0 },
-    })
-    // document.body.addEventListener('mousedown', () => {
-    //   this.boxName = ''
+    // // 模拟测试
+    // this.MsgUploading = [function () {}]
+    // this.uploadSuccess({
+    //   // data: { filePath: '/F19/12/100/dd71bf8f-3f54-486e-9048-9cf675961045.pdf' },
+    //   data: { filePath: '/F19/12/100/83d88c00-bede-4dd8-9428-59a75da12f37.pdf' },
+    //   // data: { filePath: '/F19/12/100/2d46f4f8-b2de-4401-83a4-ffd2040937a8.pdf' },
+    //   ret: { retCode: 0 },
     // })
+
+    document.body.addEventListener('mousedown', this.handleBodyClick)
+    document.body.addEventListener('touchstart', this.handleBodyClick)
   },
   // 关闭时销毁工具
   beforeDestroy() {
+    document.body.removeEventListener('mousedown', this.handleBodyClick)
+    document.body.removeEventListener('touchstart', this.handleBodyClick)
     Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
   },
   methods: {
@@ -403,7 +404,7 @@ export default {
     setBoxName(boxName) {
       this.boxName = boxName
       console.log(this.boxName)
-      Vue.eventBus.$emit('setTbMask', this.boxName !== '')
+      // Vue.eventBus.$emit('setTbMask', this.boxName !== '')
     },
     // 预览图
     resetCanvas() {
@@ -468,6 +469,9 @@ export default {
       default:
         break
       }
+    },
+    handleBodyClick() {
+      this.boxName = ''
     },
   },
 }
