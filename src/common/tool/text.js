@@ -2,6 +2,7 @@ import { setStyle } from '@common/utils'
 import config from '@common/config'
 import Konva from 'konva'
 import Vue from 'vue'
+import cManager from '@common/componentManager'
 
 let editorDom
 let currentStage
@@ -43,6 +44,7 @@ function create(params) {
       layer.add(shape)
       shape.cache()
       layer.draw()
+      cManager.addComponent(shape)
       editorDom.style.display = 'none'
       const style = {
         display: 'none',

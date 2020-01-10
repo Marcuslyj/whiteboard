@@ -106,8 +106,6 @@ export default {
       // }
     })
     initTool()
-    this.$refs['tool-bar'].active()
-    this.enable = true
     Vue.eventBus.$on('setTbMask', (visible) => {
       this.tbMask = visible
     })
@@ -127,13 +125,29 @@ export default {
       if (this.$globalConf.isSpeaker) {
         // 主讲屏
         this.enable = true
+        // 先记录
+        const lastSpeakerSize = this.$globalConf.speakerSize
+        const lastStageXY = this.$globalConf.stageXY
         syncArea.updateSpeakerSize({
           width: wrapper.clientWidth,
           height: wrapper.clientHeight,
         })
-
         this.stage.size(this.$globalConf.speakerSize)
-        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+        this.$globalConf.scale = (this.renderComponent.length === 0) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+        if (this.renderComponent.length === 0) {
+          this.$globalConf.scale = 1
+          this.$globalConf.stageXY = {
+            x: 0,
+            y: 0,
+          }
+        } else {
+          this.$globalConf.scale = this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+          this.$globalConf.stageXY = {
+            x: lastStageXY.x * (this.$globalConf.speakerSize.width / lastSpeakerSize.width),
+            y: lastStageXY.y * (this.$globalConf.speakerSize.height / lastSpeakerSize.height),
+          }
+        }
+        syncArea.updateStageXY(this.$globalConf.stageXY)
         this.$refs['tool-bar'].active()
       } else {
         // 非主讲屏
@@ -158,9 +172,22 @@ export default {
             height: wrapper.clientHeight,
           })
         }
-        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.stage.getAttr('width') / this.$globalConf.baseWidth
+        if (this.renderComponent.length === 0) {
+          this.$globalConf.scale = 1
+          this.$globalConf.stageXY = {
+            x: 0,
+            y: 0,
+          }
+        } else {
+          this.$globalConf.scale = this.stage.getAttr('width') / this.$globalConf.baseWidth
+          this.$globalConf.stageXY = {
+            x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
+            y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+          }
+        }
       }
       syncArea.setLayerScale()
+      syncArea.setStageXY()
     },
     // 初始化转换画板
     initConvertCanvas() {
@@ -221,18 +248,19 @@ export default {
       const renderComponent = []
 
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
+      this.renderComponent = []
+      let shape
       components.map((component) => {
         component = JSON.parse(component)
         // 特殊组件
         if (specialType.includes(component.type)) {
           this.$globalConf[component.type] = component[component.type]
         } else {
-          renderComponent.push(component)
+          this.renderComponent.push(component)
         }
       })
       this.updateStageInfo()
-      let shape
-      renderComponent.map((component) => {
+      this.renderComponent.forEach((component) => {
         if (component.type === 'remark') {
           shape = new Konva[component.className](component.attrs)
           remarkLayer.add(shape)
@@ -266,7 +294,7 @@ export default {
         this.$globalConf.isSpeaker = false
         console.log('副屏')
       }
-      this.$globalConf.meetingId = this.$route.params.meetingId || 74
+      this.$globalConf.meetingId = this.$route.params.meetingId || 78
       socketUtil.initSocket()
       this.startListener()
       getSocket().on('connect', () => {
@@ -296,9 +324,9 @@ export default {
       getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
       getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
       getSocket().on(socketEvent.addComponent, this.handleAddComponent)
+      getSocket().on(socketEvent.updateComponentState, this.handleUpdateComponentState)
     },
     handleGetMeet(res) {
-      // console.log('getBoard')
       this.whiteboards = res.whiteboards
       if (this.whiteboards) {
         // 取出指定的board(whiteboardId+documentId)
@@ -355,13 +383,22 @@ export default {
         })
       }
     },
+    // 收到更新信息
     handleUpdateComponent(res) {
-      const { component } = res
+      const component = JSON.parse(res.component)
       if (component.type === sComponentId.baseWidth) {
         console.log('update baseWidth')
         this.$globalConf.baseWidth = component[sComponentId.baseWidth]
         this.$globalConf.scale = this.stage.getAttr('width') / component[sComponentId.baseWidth]
         syncArea.setLayerScale()
+      } else if (component.type === sComponentId.speakerSize) {
+
+      } else if (component.type === sComponentId.stageXY) {
+        this.$globalConf.stageXY = {
+          x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
+          y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+        }
+        syncArea.setStageXY()
       }
     },
     // 接收到新增组件消息
@@ -387,6 +424,11 @@ export default {
         bgLayer.add(shape)
         bgLayer.batchDraw()
       }
+    },
+    // 收到更新组件状态信息
+    handleUpdateComponentState(res) {
+      const { componentId, state } = res
+      cManager.updateVisible(componentId, state)
     },
     // 接收到清屏命令消息
     handleClearBoard() {
