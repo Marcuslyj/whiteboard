@@ -33,6 +33,7 @@ const getDocumentPath = () => config.documentPath
  * 防抖
  */
 let resizeDebounce = function () {
+  if (config.mode !== 'document') return
   getElWrapper().classList.add('invisible')
   _resizeDebounce()
 }
@@ -53,6 +54,7 @@ function getElWrapper() {
 export function init(documentId, documentPath) {
   config.documentId = documentId
   config.documentPath = documentPath
+  config.mode = 'document'
 
 
   // 初始化前清掉相关数据
@@ -90,7 +92,7 @@ export function clearBoard() {
     config.layerManager[v].removeChildren()
   })
   // 触发画板重绘
-  if (config.stage) config.stage.draw()
+  if (config.board) config.board.draw()
 }
 
 /**
@@ -490,7 +492,7 @@ async function renderPage({
  * resize
  */
 function onResize() {
-  if (docOpened) init(config.documentId, config.documentPath)
+  init(config.documentId, config.documentPath)
 }
 
 export default {
