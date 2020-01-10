@@ -8,6 +8,7 @@ import clearBoard from './clearBoard'
 import deleteGraphic from './deleteGraphic'
 import pan from './pan'
 import select from './select'
+import text from './text'
 
 const toolCollection = {
   markPencil,
@@ -18,6 +19,7 @@ const toolCollection = {
   deleteGraphic,
   pan,
   select,
+  text,
 }
 
 export const initTool = () => {

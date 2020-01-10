@@ -1,7 +1,7 @@
 import Konva from 'konva'
 import Vue from 'vue'
 import { generateUID, getPoiWithOffset } from '@common/utils'
-import graphicManager from '@common/graphicManager'
+import cManager from '@common/componentManager'
 
 let currentStage
 function create(params) {
@@ -43,7 +43,7 @@ function create(params) {
       isDrawing = false
       // 性能优化
       line.cache()
-      graphicManager.addGraphic(line)
+      cManager.addGraphic(line)
       line = null
     }
   })

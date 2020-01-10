@@ -111,7 +111,7 @@ exports.install = function (Vue) {
    * @param time
    */
   Vue.prototype.$error = function (content, width, time) {
-    const vm = this; const title = vm.$unique()
+    const vm = this; const title = '提示'
     const error = 'fl-modal-error'
     width = width || 300
     vm.$onPopup(error, title)
@@ -131,6 +131,14 @@ exports.install = function (Vue) {
   Vue.prototype.$unique = function () {
     const vm = this
     return (vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random()).toLocaleUpperCase()
+  }
+
+  /**
+   * random.
+   * @returns {string}
+   */
+  Vue.prototype.$random = function () {
+    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
   }
   
   Vue.prototype.getCookie = function (cname) {

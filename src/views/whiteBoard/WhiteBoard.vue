@@ -11,18 +11,21 @@ Description
       ref="board-container">
     </div>
     <!-- 用于工具条menu 关闭遮罩 -->
-    <div class="tool-box-mask" v-if="tbMask" @click="clickTbMask"></div>
+    <div class="tool-box-mask" v-if="tbMask" @touchstart="clickTbMask" @mousedown="clickTbMask"></div>
+    <!-- 绘制时的工具栏 -->
+    <MiniMenu class="mini-menu" :type="miniMenuType" :miniStyle="miniMenuStyle"></MiniMenu>
     </section>
     <div class="tool-wrapper">
       <tool-bar
         ref="tool-bar"
         class="tool"
         @uploadSuccess="uploadSuccess"
+        @clearBoard="clearBoard"
+        :enable="enable"
       ></tool-bar>
     </div>
     <!-- 用于转换图片 -->
     <div
-      v-if="shouldConvert"
       ref="convertCanvas"
       class="convertCanvas"
     ></div>
@@ -33,127 +36,172 @@ Description
 import { Message } from 'view-design'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
-import { addCover, loadPdf } from '@common/tool/document'
+import { addCover, loadPdf, addCoverImage } from '@common/tool/document'
 import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
-import { socketEvent, api, sComponentId } from '@common/common'
+import {
+  socketEvent, api, sComponentId,
+} from '@common/common'
 import Vue from 'vue'
-import { formateUrl } from '@common/utils'
+import { formateUrl, isEmpty } from '@common/utils'
+import cManager from '@common/componentManager'
+import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
+import MiniMenu from '@/components/miniMenu/MiniMenu'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
 
 export default {
   components: {
     ToolBar,
+    MiniMenu,
   },
   data() {
     return {
       stage: null,
-      shouldConvert: false,
-      convertCanvas: null,
       tbMask: false,
       whiteboards: [],
+      enable: false,
+      miniMenuType: '',
+      miniMenuStyle: {},
     }
   },
   mounted() {
-    this.fortest()
+    // 创建stage
+    const el = document.querySelector('.board-container-wrapper')
+    this.$globalConf.board = this.stage = new Konva.Stage({
+      container: 'board-container',
+      width: el.clientWidth,
+      height: el.clientHeight,
+    })
+
+    Object.keys(this.$globalConf.layerIds).map((layerId) => {
+      const layer = new Konva.Layer({
+        id: layerId,
+      })
+      this.$globalConf.layerManager[layerId] = layer
+      this.$globalConf.layerManager.BG_LAYER.listening(false)
+      this.stage.add(layer)
+    })
+
+    bus.$on('resize', () => {
+      const { meetingId, whiteboardId, documentId } = this.$globalConf
+      // const params = {
+      //   meetingId,
+      //   whiteboardId,
+      //   documentId,
+      // }
+      // if (this.$globalConf.isSpeaker) {
+      //   this.$globalConf.speakerSize = {
+      //     width: el.clientWidth,
+      //     height: el.clientHeight,
+      //   }
+      //   // 通知副屏speakerSize 发生改变
+      //   socketUtil.getComponent(params)
+      // } else {
+
+      // }
+    })
     initTool()
+    this.$refs['tool-bar'].active()
+    this.enable = true
     Vue.eventBus.$on('setTbMask', (visible) => {
       this.tbMask = visible
     })
-    bus.$on('resize', () => {
-      // 主屏应该重绘，并同步画布尺寸
-      if (this.$refs['board-container']) {
-        const width = this.$refs['board-container'].clientWidth
-        const height = this.$refs['board-container'].clientHeight
-
-        this.stage.size({
-          width,
-          height,
-        })
-      }
+    Vue.eventBus.$on('setMiniMenu', (params) => {
+      const { miniMenuType = '', miniMenuStyle } = params
+      this.miniMenuType = miniMenuType
+      this.miniMenuStyle = miniMenuStyle
+      console.log(this.miniMenuStyle)
     })
+    this.fortest()
+    this.initConvertCanvas()
   },
   methods: {
-    // 初始化stage
-    initStageInfo() {
+    // 更新stage
+    updateStageInfo() {
       const wrapper = document.querySelector('.board-container-wrapper')
-      const el = document.querySelector('#board-container')
       if (this.$globalConf.isSpeaker) {
-        this.$globalConf.board = this.stage = new Konva.Stage({
-          container: 'board-container',
-          width: el.clientWidth,
-          height: el.clientHeight,
-        })
-      }
-      // 副屏初始化宽高($)，主讲屏等比缩放宽高
-      else if (this.$globalConf.speakerWidth / this.$globalConf.speakerHeight > wrapper.clientWidth / wrapper.clientHeight) {
-      // 被宽度限制
-        const scale = this.$globalConf.speakerWidth / this.$globalConf.speakerHeight
-        el.style.width = `${wrapper.clientWidth}px`
-        el.style.height = `${wrapper.clientWidth / scale}px`
-        this.$globalConf.board = this.stage = new Konva.Stage({
-          container: 'board-container',
+        // 主讲屏
+        this.enable = true
+        syncArea.updateSpeakerSize({
           width: wrapper.clientWidth,
-          height: wrapper.clientWidth / scale,
-        })
-      } else {
-      // 被高度限制
-        const scale = this.$globalConf.speakerWidth / this.$globalConf.speakerHeight
-        el.style.height = `${wrapper.clientHeight}px`
-        el.style.width = `${wrapper.clientHeight * scale}px`
-        this.$globalConf.board = this.stage = new Konva.Stage({
-          container: 'board-container',
-          width: wrapper.clientHeight * scale,
           height: wrapper.clientHeight,
         })
+
+        this.stage.size(this.$globalConf.speakerSize)
+        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+        this.$refs['tool-bar'].active()
+      } else {
+        // 非主讲屏
+        const el = document.querySelector('#board-container')
+        if (this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height > wrapper.clientWidth / wrapper.clientHeight) {
+          // 副屏初始化宽高($)，主讲屏等比缩放宽高
+          // 被宽度限制
+          const scale = this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height
+          el.style.width = `${wrapper.clientWidth}px`
+          el.style.height = `${wrapper.clientWidth / scale}px`
+          this.stage.size({
+            width: wrapper.clientWidth,
+            height: wrapper.clientWidth / scale,
+          })
+        } else {
+          // 被高度限制
+          const scale = this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height
+          el.style.height = `${wrapper.clientHeight}px`
+          el.style.width = `${wrapper.clientHeight * scale}px`
+          this.stage.size({
+            width: wrapper.clientHeight * scale,
+            height: wrapper.clientHeight,
+          })
+        }
+        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.stage.getAttr('width') / this.$globalConf.baseWidth
       }
-      Object.keys(this.$globalConf.layerIds).map((layerId) => {
-        const layer = new Konva.Layer({
-          id: layerId,
-        })
-        this.$globalConf.layerManager[layerId] = layer
-        this.$globalConf.layerManager.BG_LAYER.listening(false)
-        this.stage.add(layer)
-      })
-      this.$refs['tool-bar'].active()
+      syncArea.setLayerScale()
     },
     // 初始化转换画板
     initConvertCanvas() {
-      if (this.convertCanvas) {
+      if (this.$globalConf.convertCanvas) {
         return
       }
-      this.convertCanvas = new Konva.Stage({
+      this.$globalConf.convertCanvas = new Konva.Stage({
         container: this.$refs.convertCanvas,
       })
-      this.convertCanvas.layer = new Konva.Layer()
-      this.convertCanvas.add(this.convertCanvas.layer)
+      this.$globalConf.convertCanvas.layer = new Konva.Layer()
+      this.$globalConf.convertCanvas.add(this.$globalConf.convertCanvas.layer)
     },
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
       if (Number(ret.retCode) === 0) {
         this.Msgloading = this.Msgloading || []
         this.Msgloading.push(Message.loading({
-          content: '读取中...',
+          content: '转换中...',
           duration: 0,
         }))
-        // let filePath = common.fileService + data.filePath
-        // let pdf = await pdfjsLib.getDocument(filePath).promise
-        const pdf = await loadPdf({ url: data.filePath })
-
-        this.shouldConvert = true
-
-        this.$nextTick(() => {
-          this.initConvertCanvas()
-          if (this.Msgloading.length) this.Msgloading.pop()()
-
-          addCover(pdf, {
-            stage: this.stage,
-            layer: this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER],
-            convertCanvas: this.convertCanvas,
-          })
+        // 文档转pdf，获取文档路径和文档id
+        let result = await new Promise((resolve, reject) => {
+          this.$api.post(
+            formateUrl(api.docToPdf, {
+              meetingId: this.$globalConf.meetingId,
+              whiteboardId: this.$globalConf.whiteboardId,
+            }),
+            {
+              docPath: data.filePath,
+            },
+            (res) => resolve(res),
+            (err) => reject(err),
+          )
         })
+        if (this.Msgloading.length) this.Msgloading.pop()()
+        if (Number(result.ret.retCode) === 0) {
+          this.Msgloading.push(Message.loading({
+            content: '读取中...',
+            duration: 0,
+          }))
+          const pdf = await loadPdf({ url: result.data.url })
+          if (this.Msgloading.length) this.Msgloading.pop()()
+          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId })
+        }
       }
     },
     // 点击画板，弹窗消失
@@ -161,189 +209,208 @@ export default {
       this.$refs['tool-bar'].boxName = ''
       this.tbMask = false
     },
-    getBoards() {
-      getSocket().on(socketEvent.getMeet, (res) => {
-        console.log('getBoard')
-        this.whiteboards = res.whiteboards
-        if (this.whiteboards.length >= 0) {
-          // 默认获取首个白板首屏数据初始化组件
-          const params = {
-            meetingId: this.$$globalConf.meetingId,
-            whiteboardId: this.whiteboards[0].whiteboardId,
-            documentId: '',
-          }
-          socketUtil.getComponent(params)
-          getSocket().on(socketEvent.getComponent, ({ components }) => {
-            this.initComponents(components)
-          })
-        }
-        // 创建一个白板
-        else {
-          console.log('创建白板')
-          const url = formateUrl(api.createBoard, { meetingId: this.$globalConf.meetingId })
-          const name = 'board_1'
-          this.$api.post(url, { whiteboardName: name }, (ret) => {
-            if (ret.retCode === '0') {
-              this.$globalConf.whiteboardId = ret.data.whiteboardId
-              // 记录主讲屏size,特殊组件
-              const el = document.querySelector('#board-container')
-              let params = {
-                meetingId: this.$globalConf.meetingId,
-                whiteboardId: ret.data.whiteboardId,
-                documentId: null,
-                componentType: 1,
-                componentId: sComponentId.size,
-                component: JSON.stringify({ attrs: { id: sComponentId.speakerSize, width: el.clientWidth, height: el.clientHeight } }),
-              }
-              socketUtil.addComponent(params)
-              params = {
-                meetingId: this.$globalConf.meetingId,
-                whiteboardId: ret.data.whiteboardId,
-                documentId: null,
-                componentType: 1,
-                componentId: sComponentId.stageXY,
-                component: JSON.stringify({ attrs: { id: sComponentId.stageXY, x: 0, y: 0 } }),
-              }
-              socketUtil.addComponent(params)
-              params = {
-                meetingId: this.$globalConf.meetingId,
-                whiteboardId: ret.data.whiteboardId,
-                documentId: null,
-                componentType: 1,
-                componentId: sComponentId.baseWdith,
-                component: JSON.stringify({ attrs: { id: sComponentId.baseWdith, baseWdith: el.clientWidth } }),
-              }
-              socketUtil.addComponent(params)
-            } else {
-              this.$error('创建白板失败')
-            }
-          })
-        }
-      })
-    },
-    // 开始初始化组件到Canvas 中
+    // 开始初始化组件到Canvas 中，有特殊组件和普通组件,对layer 进行缩放
     initComponents(components) {
       const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
       const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
+      const specialType = ['baseWidth', 'speakerSize', 'stageXY']
+      const renderComponent = []
+
+      cManager.clearLayer(bgLayer, textLayer, remarkLayer)
       components.map((component) => {
-        if (component.componentType === 0) {
-          // 文字,其他标注(普通)
-          if (component.attrs.className === 'Text') {
-            textLayer.add(new Konva.Text(component.attrs))
-          } else {
-            remarkLayer.add(new Konva[component.className](component.attrs))
-          }
+        component = JSON.parse(component)
+        // 特殊组件
+        if (specialType.includes(component.type)) {
+          this.$globalConf[component.type] = component[component.type]
         } else {
-          // 封面
-          bgLayer.add(new Konva.Image(component.attrs))
+          renderComponent.push(component)
         }
       })
+      this.updateStageInfo()
+      let shape
+      renderComponent.map((component) => {
+        if (component.type === 'remark') {
+          shape = new Konva[component.className](component.attrs)
+          remarkLayer.add(shape)
+          shape.cache()
+        } else if (component.type === 'text') {
+          shape = new Konva[component.className](component.attrs)
+          textLayer.add(shape)
+          shape.cache()
+        } else if (component.type === 'cover') {
+          shape = addCoverImage(component.attrs)
+        } else {
+          shape = new Konva.Image(component.attrs)
+          bgLayer.add(shape)
+          bgLayer.batchDraw()
+        }
+      })
+
       // 到时测试这种绘制的渲染效果
-      bgLayer.batchDraw()
-      textLayer.batchDraw()
-      remarkLayer.batchDraw()
+      bgLayer.draw()
+      textLayer.draw()
+      remarkLayer.draw()
     },
     fortest() {
-    // 下面只是为了测试,后续需要调整
-    // 临时创建会议
-      const p = {
-        theme: this.$route.params.theme,
-        type: 0,
-        startTime: '2020-01-06 10:00:00',
-        endTime: '2020-01-06 12:00:00',
-        adress: '南山A01大会议室',
-        docPermission: 0,
-        linkUrl: 'https://dev-meetingwhitboard.com/meeting/meet/meet.html',
-      }
+      // 下面只是为了测试,后续需要调整
       console.log(this.$route)
-      this.$api.post(api.createMeet, p, (res) => {
-        if (res.ret.retCode === '0') {
-          socketUtil.initSocket()
-          getSocket().on('connect', () => {
-            console.log(getSocket().connected) // true
-            this.$globalConf.meetingId = res.data.meetingId
-            console.log(`meetingId:${res.data.meetingId}`)
-            this.initStageInfo()
-            // socket 连接,加入会议房间
-            const p1 = {
-              theme: 'xxx',
-              meetingId: res.data.meetingId,
-              nickName: '张三',
-              userId: this.$route.params.userId,
-            }
-            socketUtil.joinMeet(p1)
-            // 获取会议
-            getSocket().on(socketEvent.joinMeet, () => {
-              socketUtil.getMeet({
-                meetingId: res.data.meetingId,
-              })
-              this.getBoards() // 开启等待
-            })
-          })
+      // 非主讲人
+      if (this.$route.params.userId === '0') {
+        this.$globalConf.isSpeaker = true
+        console.log('主屏')
+      } else {
+        this.$globalConf.isSpeaker = false
+        console.log('副屏')
+      }
+      this.$globalConf.meetingId = this.$route.params.meetingId || 74
+      socketUtil.initSocket()
+      this.startListener()
+      getSocket().on('connect', () => {
+        // console.log(getSocket().connected) // true
+        // console.log(`meetingId:${this.$globalConf.meetingId}`)
+        // socket 连接,加入会议房间
+        const p1 = {
+          theme: 'xxx',
+          meetingId: this.$globalConf.meetingId,
+          nickName: '张三',
+          userId: this.$route.params.userId || '2',
         }
+        socketUtil.joinMeet(p1)
+        // 获取会议
+        getSocket().on(socketEvent.joinMeet, () => {
+          socketUtil.getMeet({
+            meetingId: this.$globalConf.meetingId,
+          })
+        })
       })
+    },
+    startListener() {
+      getSocket().on(socketEvent.getComponent, ({ components }) => {
+        this.initComponents(components)
+      })
+      getSocket().on(socketEvent.getMeet, this.handleGetMeet)
+      getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
+      getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
+      getSocket().on(socketEvent.addComponent, this.handleAddComponent)
+    },
+    handleGetMeet(res) {
+      // console.log('getBoard')
+      this.whiteboards = res.whiteboards
+      if (this.whiteboards) {
+        // 取出指定的board(whiteboardId+documentId)
+        if (!isEmpty(res.syncAction)) {
+          const { whiteboardId, documentId } = JSON.parse(res.syncAction)
+          this.$globalConf.whiteboardId = whiteboardId
+          this.$globalConf.documentId = documentId
+          const params = {
+            meetingId: this.$globalConf.meetingId,
+            whiteboardId,
+            documentId,
+          }
+          socketUtil.getComponent(params)
+        } else {
+          // 没有就默认首个板
+          const params = {
+            meetingId: this.$globalConf.meetingId,
+            whiteboardId: this.whiteboards[0].whiteboardId,
+            documentId: null,
+          }
+          this.$globalConf.whiteboardId = this.whiteboards[0].whiteboardId
+          this.$globalConf.documentId = null
+          socketUtil.getComponent(params)
+        }
+      } else {
+        // 创建一个白板
+        // console.log('创建白板')
+        const url = formateUrl(api.createBoard, { meetingId: this.$globalConf.meetingId })
+        const name = 'board_1'
+        this.$api.post(url, { whiteboardName: name }, (ret) => {
+          if (ret.ret.retCode === '0') {
+            this.$globalConf.whiteboardId = ret.data.whiteboardId
+            this.$globalConf.documentId = null
+            // 记录主讲屏size,特殊组件
+            const el = document.querySelector('#board-container')
+
+            syncArea.addSpeakerSize({ width: el.clientWidth, height: el.clientHeight })
+            syncArea.addStageXY()
+            syncArea.addBaseWidth()
+
+            // 记录打开的画板id，文档id， 副屏打开时可以初始化
+            const params = {
+              meetingId: this.$globalConf.meetingId,
+              syncAction: JSON.stringify({
+                whiteboardId: ret.data.whiteboardId,
+                documentId: null,
+              }),
+            }
+            socketUtil.syncAction(params)
+            this.updateStageInfo()
+          } else {
+            this.$error('创建白板失败')
+          }
+        })
+      }
+    },
+    handleUpdateComponent(res) {
+      const { component } = res
+      if (component.type === sComponentId.baseWidth) {
+        console.log('update baseWidth')
+        this.$globalConf.baseWidth = component[sComponentId.baseWidth]
+        this.$globalConf.scale = this.stage.getAttr('width') / component[sComponentId.baseWidth]
+        syncArea.setLayerScale()
+      }
+    },
+    // 接收到新增组件消息
+    handleAddComponent(res) {
+      let { component } = res
+      component = JSON.parse(component)
+      let shape
+      const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
+      const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
+      const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
+      if (component.type === 'remark') {
+        shape = new Konva[component.className](component.attrs)
+        remarkLayer.add(shape)
+        remarkLayer.batchDraw()
+        shape.cache()
+      } else if (component.type === 'text') {
+        shape = new Konva[component.className](component.attrs)
+        textLayer.add(shape)
+        textLayer.batchDraw()
+        shape.cache()
+      } else {
+        shape = new Konva.Image(component.attrs)
+        bgLayer.add(shape)
+        bgLayer.batchDraw()
+      }
+    },
+    // 接收到清屏命令消息
+    handleClearBoard() {
+      const layers = [this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER], this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]]
+      layers.forEach((layer) => {
+        layer.destroyChildren()
+        layer.batchDraw()
+      })
+      const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
+      if (this.$globalConf.isSpeaker) {
+        // 没有文档封面
+        if (!bgLayer.findOne('Image')) {
+          syncArea.updateBaseWidth('')
+        }
+      }
+    },
+    clearBoard(componentType = 0) {
+      const { meetingId, whiteboardId, documentId } = this.$globalConf
+      const params = {
+        meetingId,
+        whiteboardId,
+        documentId,
+        componentType,
+      }
+      socketUtil.clearBoard(params)
     },
   },
 }
 </script>
-
-<style lang="scss" scoped>
-.board-page {
-  position: relative;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  /deep/ {
-    canvas {
-      transform: translateZ(0);
-    }
-  }
-  .board-container-wrapper {
-    background-color: #fff;
-    flex: 1;
-    margin: 10px 10px 0;
-    border: 1px solid #eee;
-    overflow: hidden;
-    position: relative;
-    justify-content: center;
-    align-items: center;
-    #board-container{
-      position:relative;
-      z-index:10;
-      width:100%;
-      height:100%;
-      /deep/ .konvajs-content{
-        transition: opacity 0.5s;
-        opacity: 1;
-        &.invisible{
-          opacity: 0;
-        }
-      }
-    }
-    .tool-box-mask{
-      position: absolute;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      z-index: 11;
-    }
-  }
-  .tool-wrapper {
-    position: relative;
-    margin: 10px;
-    z-index:12;
-  }
-  .convertCanvas {
-    width: 10px;
-    height: 10px;
-    overflow: hidden;
-    position: absolute;
-    z-index: -10;
-    top: 0;
-    left: 0;
-  }
-}
-</style>
+<style lang="scss" src="./WhiteBoard.scss" scoped></style>

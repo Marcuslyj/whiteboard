@@ -1,6 +1,6 @@
 // 组件删除
 import Konva from 'konva'
-import graphicManager from '../graphicManager'
+import cManager from '../componentManager'
 
 let tr
 let label
@@ -15,7 +15,6 @@ function create(params) {
   stage.on('click tap', (evt) => {
     if (isRunning || evt.target === stage) { return }
     isRunning = true
-
     stage.find('Transformer').destroy()
     tr = new Konva.Transformer({
       node: evt.target,

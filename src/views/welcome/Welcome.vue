@@ -17,28 +17,37 @@ Description
           <div class="box">
               <div class="input-container">
                   <h4 class="title">开启一个会议</h4>
-                  <input placeholder="请输入名称" v-model="theme"/>
+                  <input placeholder="meetingId，不要修改" v-model="meetingId"/>
               </div>
-                <input placeholder="userId" v-model="userId"/>
+                <input placeholder="userId 0 表示主讲人，其他非主讲人" :value="userId"/>
+                 <!-- <input placeholder="meetingId" v-model="meetingId"/> -->
              <button class="btn" @click="joinMeet">开始</button>
           </div>
+          <MiniMenu type="select"></MiniMenu>
       </div>
   </div>
 </template>
 
 <script>
 
+import MiniMenu from '@/components/miniMenu/MiniMenu'
+
 export default {
+  components: {
+    MiniMenu,
+  },
   data() {
     return {
       theme: '',
-      userId: '',
+      userId: '0',
+      meetingId: '74',
     }
   },
   methods: {
     joinMeet() {
-      const params = { theme: this.theme, userId: this.userId }
+      const params = { theme: this.theme, userId: this.userId, meetingId: this.meetingId }
       this.$router.push({ name: 'whiteboard', params })
+      console.log(`theme:${this.theme}`)
     },
   },
 }

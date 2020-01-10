@@ -5,7 +5,7 @@ Description
 @version 1.0.0
 -->
 <template>
-  <div class="toolbar">
+  <div class="toolbar"  @mousedown.stop="" @touchstar.stop="">
     <!-- 工具条能否起作用的遮罩 -->
     <div
       class="mask"
@@ -123,7 +123,7 @@ Description
             </div>
           </div>
         </li>
-        <li ref="text-tool" @click="clickTextTool">
+        <li ref="text-tool" @click.stop="clickTextTool">
           <i class="iconfont icon-text"></i>
         </li>
       </ul>
@@ -161,7 +161,6 @@ import { Upload, Message } from 'view-design'
 import common from '@common/common'
 import Vue from 'vue'
 
-
 export default {
   props: {
     // 简单模式，没有左边的工具
@@ -179,9 +178,10 @@ export default {
   },
   data() {
     return {
+      isActive: false,
       common,
       // 笔
-      pencilColorArr: ['#000', '#f00', 'yellow', '#00f', '#0f0'],
+      pencilColorArr: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
       widthArr: [
         {
           width: 0.4,
@@ -247,9 +247,15 @@ export default {
     //   // data: { filePath: '/F19/12/100/2d46f4f8-b2de-4401-83a4-ffd2040937a8.pdf' },
     //   ret: { retCode: 0 },
     // })
-    // document.body.addEventListener('mousedown', () => {
-    //   this.boxName = ''
-    // })
+
+    document.body.addEventListener('mousedown', this.handleBodyClick)
+    document.body.addEventListener('touchstart', this.handleBodyClick)
+  },
+  // 关闭时销毁工具
+  beforeDestroy() {
+    document.body.removeEventListener('mousedown', this.handleBodyClick)
+    document.body.removeEventListener('touchstart', this.handleBodyClick)
+    Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
   },
   methods: {
     beforeUpload() {
@@ -311,14 +317,15 @@ export default {
         })
       } else {
         this.$confirm('确定清除所有批注?不可撤销!', () => {
-          const layers = [
-            layer,
-            this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER],
-          ]
-          Vue.eventBus.$emit('active-tool', {
-            toolName: this.$globalConf.activeTool,
-            layers,
-          })
+          // const layers = [
+          //   layer,
+          //   this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER],
+          // ]
+          // Vue.eventBus.$emit('active-tool', {
+          //   toolName: this.$globalConf.activeTool,
+          //   layers,
+          // })
+          this.$emit('clearBoard')
         })
       }
     },
@@ -326,6 +333,8 @@ export default {
       this.$globalConf.eraser.lineWidth = lineWidth
     },
     active() {
+      if (this.isActive) { return }
+      this.isActive = true
       this.setLiStyle('pencil-tool')
       this.changePencilTool(this.$globalConf.activeTool, true)
     },
@@ -374,6 +383,18 @@ export default {
     },
     clickTextTool() {
       this.setLiStyle('text-tool')
+      this.setBoxName('')
+      const stage = this.$globalConf.board
+      const layer = this.$globalConf.layerManager[
+        this.$globalConf.layerIds.TEXT_LAYER
+      ]
+      Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+      this.$globalConf.activeTool = 'text'
+      Vue.eventBus.$emit('active-tool', {
+        toolName: this.$globalConf.activeTool,
+        stage,
+        layer,
+      })
     },
     setLiStyle(ref) {
       const el = document.querySelector('.center .activeTool')
@@ -383,7 +404,7 @@ export default {
     setBoxName(boxName) {
       this.boxName = boxName
       console.log(this.boxName)
-      Vue.eventBus.$emit('setTbMask', this.boxName !== '')
+      // Vue.eventBus.$emit('setTbMask', this.boxName !== '')
     },
     // 预览图
     resetCanvas() {
@@ -448,6 +469,9 @@ export default {
       default:
         break
       }
+    },
+    handleBodyClick() {
+      this.boxName = ''
     },
   },
 }

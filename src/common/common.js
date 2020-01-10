@@ -6,12 +6,14 @@ export const fileService = process.env.VUE_APP_fileService
 
 export const api = {
   upload: `${webService}/upload/normal/file`,
+  docToPdf: `${'https://dev-whiteboard.tvflnet.com/'}/meeting-manager/meeting/{meetingId}/whiteboard/{whiteboardId}/doc-to-pdf`,
   createMeet: '/meeting-manager/meeting',
   createBoard: '/meeting-manager/meeting/{meetingId}/whiteboard',
 }
 
 export const fbId = {
   upload: 'F1912100',
+  docCover: 'F1912101',
 }
 
 export const socketUrl = process.env.VUE_APP_socketUrl
@@ -20,9 +22,11 @@ export const socketEvent = {
   getMeet: 'get-meeting',
   getComponent: 'get-component',
   addComponent: 'add-component',
+  syncAction: 'sync-action',
   updateComponent: 'update-component',
   deletecomponents: 'delete-components',
   updateComponentState: 'update-component-state',
+  clearBoard: 'clear-board',
 }
 
 /**
