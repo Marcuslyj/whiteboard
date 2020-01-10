@@ -215,14 +215,22 @@ export default {
       const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
       const specialType = ['baseWidth', 'speakerSize', 'stageXY']
+      const renderComponent = []
+
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
       components.map((component) => {
         component = JSON.parse(component)
-        let shape
         // 特殊组件
         if (specialType.includes(component.type)) {
           this.$globalConf[component.type] = component[component.type]
-        } else if (component.type === 'remark') {
+        } else {
+          renderComponent.push(component)
+        }
+      })
+      this.updateStageInfo()
+      let shape
+      renderComponent.map((component) => {
+        if (component.type === 'remark') {
           shape = new Konva[component.className](component.attrs)
           remarkLayer.add(shape)
           shape.cache()
@@ -238,14 +246,14 @@ export default {
           bgLayer.batchDraw()
         }
       })
-      this.updateStageInfo()
+
       // 到时测试这种绘制的渲染效果
       bgLayer.draw()
       textLayer.draw()
       remarkLayer.draw()
     },
     fortest() {
-    // 下面只是为了测试,后续需要调整
+      // 下面只是为了测试,后续需要调整
       console.log(this.$route)
       // 非主讲人
       if (this.$route.params.userId === '0') {
