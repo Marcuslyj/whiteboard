@@ -160,8 +160,9 @@ export async function addCover(pdf, {
     viewport,
   }
 
-  const widthSafe = Math.floor((stage.width() - viewport.width) * 0.8)
-  const heightSafe = Math.floor((stage.height() - viewport.height) * 0.8)
+  // 还原缩放和偏移的处理
+  const widthSafe = Math.floor(((stage.width() - viewport.width - stage.getAttr('x')) * 0.8) / config.scale)
+  const heightSafe = Math.floor(((stage.height() - viewport.height - stage.getAttr('y')) * 0.8) / config.scale)
   const x = Math.floor(Math.random() * widthSafe)
   const y = Math.floor(Math.random() * heightSafe)
 
@@ -430,7 +431,7 @@ async function renderPage({
  * resize
  */
 function onResize() {
-  init(config.documentId, config.documentPath)
+  if (docOpened) init(config.documentId, config.documentPath)
 }
 
 export default {

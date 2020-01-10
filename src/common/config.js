@@ -13,7 +13,7 @@ export default Vue.observable({
   // 画布拖动
   stageXy: {},
   // 跟基准值的缩放比
-  scale: '',
+  scale: 1,
   board: null,
   layerIds: {
     BG_LAYER: 'BG_LAYER',
