@@ -66,6 +66,9 @@ export default {
       miniMenuStyle: {},
     }
   },
+  created() {
+    this.$globalConf.mode = 'board'
+  },
   mounted() {
     // 创建stage
     const el = document.querySelector('.board-container-wrapper')
@@ -410,6 +413,9 @@ export default {
       }
       socketUtil.clearBoard(params)
     },
+  },
+  beforeDestroy() {
+    this.$globalConf.mode = ''
   },
 }
 </script>
