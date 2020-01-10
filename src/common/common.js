@@ -13,6 +13,7 @@ export const api = {
 
 export const fbId = {
   upload: 'F1912100',
+  docCover: 'F1912101',
 }
 
 export const socketUrl = process.env.VUE_APP_socketUrl
