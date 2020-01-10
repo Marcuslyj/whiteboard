@@ -66,6 +66,9 @@ export default {
       miniMenuStyle: {},
     }
   },
+  created() {
+    this.$globalConf.mode = 'board'
+  },
   mounted() {
     // 创建stage
     const el = document.querySelector('.board-container-wrapper')
@@ -242,6 +245,8 @@ export default {
       const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
       const specialType = ['baseWidth', 'speakerSize', 'stageXY']
+      const renderComponent = []
+
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
       this.renderComponent = []
       let shape
@@ -279,7 +284,7 @@ export default {
       remarkLayer.draw()
     },
     fortest() {
-    // 下面只是为了测试,后续需要调整
+      // 下面只是为了测试,后续需要调整
       console.log(this.$route)
       // 非主讲人
       if (this.$route.params.userId === '0') {
@@ -450,6 +455,9 @@ export default {
       }
       socketUtil.clearBoard(params)
     },
+  },
+  beforeDestroy() {
+    this.$globalConf.mode = ''
   },
 }
 </script>
