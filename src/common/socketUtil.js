@@ -37,6 +37,11 @@ function getMeet(params) {
   socket.emit(socketEvent.getMeet, params)
 }
 
+// 通知后台当前操作的某个画板某个文档id
+function syncAction(params) {
+  socket.emit(socketEvent.syncAction, params)
+}
+
 // 获取会议组件初始化
 function getComponent(params) {
   socket.emit(socketEvent.getComponent, params)
@@ -47,23 +52,19 @@ function addComponent(params) {
   socket.emit(socketEvent.addComponent, params)
 }
 
-// 通知后台当前操作的某个画板某个文档id
-function syncAction(params) {
-  socket.emit(socketEvent.syncAction, params)
-}
-
 // 更新组件
 function updateComponent(params) {
   socket.emit(socketEvent.updateComponent, params)
 }
+
+// 更新组件删除，存在状态
+function updateComponentState(params) {
+  socket.emit(socketEvent.updateComponentState, params)
+}
+
 // 批量删除
 function deleteComponents(params) {
   socket.emit(socketEvent.deletecomponents, params)
-}
-
-// 更新状态
-function updateComponentState(params) {
-  socket.emit(socketEvent.updateComponentState, params)
 }
 
 // 清屏
@@ -78,11 +79,11 @@ export default {
   destroySocket,
   joinMeet,
   getMeet,
+  syncAction,
   getComponent,
   addComponent,
-  syncAction,
   updateComponent,
-  deleteComponents,
   updateComponentState,
+  deleteComponents,
   clearBoard,
 }

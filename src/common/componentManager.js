@@ -2,7 +2,9 @@ import syncArea from '@common/syncArea'
 import config from './config'
 import socketUtil from './socketUtil'
 import { formateComponent } from './utils'
-
+/**
+ * 组件的加载移除等操作
+ */
 let positionIndex = -1
 /**
  * 组件传递到后台的格式是
@@ -36,6 +38,21 @@ function addComponent(graphic, componentType = 0, type = 'remark') {
   config.cacheGraphics.push(graphic)
 }
 
+/**
+ *
+ * @param {*} componentId
+ * @param {*} componentType
+ * @param {*} state  0 删除   1 恢复/新增
+ */
+function updateComponentState(componentId, componentType = 0, state) {
+  const params = {
+    componentType,
+    componentId,
+    state,
+  }
+  socketUtil.updateComponentState(formateComponent(params))
+}
+
 function clearCache() {
   config.cacheGraphics = []
   positionIndex = -1
@@ -58,10 +75,21 @@ function clearLayer(...layers) {
   })
 }
 
+// 更新删除 ，回复状态
+function updateVisible(componentId, state) {
+  const target = config.board.findOne(`#${componentId}`)
+  if (target) {
+    target.visible(state)
+    config.board.draw()
+  }
+}
+
 export default {
   addComponent,
+  updateComponentState,
   clearCache,
   goAhead,
   back,
   clearLayer,
+  updateVisible,
 }

@@ -20,12 +20,12 @@ export const socketUrl = process.env.VUE_APP_socketUrl
 export const socketEvent = {
   joinMeet: 'join-meeting',
   getMeet: 'get-meeting',
+  syncAction: 'sync-action',
   getComponent: 'get-component',
   addComponent: 'add-component',
-  syncAction: 'sync-action',
   updateComponent: 'update-component',
-  deletecomponents: 'delete-components',
   updateComponentState: 'update-component-state',
+  deletecomponents: 'delete-components',
   clearBoard: 'clear-board',
 }
 

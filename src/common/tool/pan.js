@@ -6,7 +6,7 @@ function create(params) {
   currentStage = stage
   stage.draggable(true)
   stage.on('dragend', () => {
-    const { x, y } = stage.getAbosultePosition()
+    const { x, y } = stage.absolutePosition()
     syncArea.updateStageXY(x, y)
   })
 }

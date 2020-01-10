@@ -22,6 +22,11 @@ function setLayerScale() {
   remarkLayer.draw()
 }
 
+function setStageXY() {
+  config.board.position(config.stageXY)
+  config.board.draw()
+}
+
 function addSpeakerSize(size) {
   const params = {
     componentType: 2,
@@ -85,7 +90,7 @@ function addBaseWidth() {
     componentId: sComponentId.baseWidth,
     component: JSON.stringify({
       componentId: sComponentId.baseWidth,
-      baseWidth: '',
+      baseWidth: config.board.getAttr('width'),
       type: sComponentId.baseWidth,
     }),
   }
@@ -110,6 +115,7 @@ function updateBaseWidth(baseWidth) {
 
 export default ({
   setLayerScale,
+  setStageXY,
   updateSpeakerSize,
   addSpeakerSize,
   addStageXY,

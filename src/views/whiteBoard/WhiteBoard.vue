@@ -103,8 +103,6 @@ export default {
       // }
     })
     initTool()
-    this.$refs['tool-bar'].active()
-    this.enable = true
     Vue.eventBus.$on('setTbMask', (visible) => {
       this.tbMask = visible
     })
@@ -128,7 +126,6 @@ export default {
           width: wrapper.clientWidth,
           height: wrapper.clientHeight,
         })
-
         this.stage.size(this.$globalConf.speakerSize)
         this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
         this.$refs['tool-bar'].active()
@@ -158,6 +155,7 @@ export default {
         this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.stage.getAttr('width') / this.$globalConf.baseWidth
       }
       syncArea.setLayerScale()
+      syncArea.setStageXY()
     },
     // 初始化转换画板
     initConvertCanvas() {
@@ -216,13 +214,20 @@ export default {
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
       const specialType = ['baseWidth', 'speakerSize', 'stageXY']
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
+      const renderComponent = []
+      let shape
       components.map((component) => {
         component = JSON.parse(component)
-        let shape
         // 特殊组件
         if (specialType.includes(component.type)) {
           this.$globalConf[component.type] = component[component.type]
-        } else if (component.type === 'remark') {
+        } else {
+          renderComponent.push(component)
+        }
+      })
+      this.updateStageInfo()
+      renderComponent.forEach((component) => {
+        if (component.type === 'remark') {
           shape = new Konva[component.className](component.attrs)
           remarkLayer.add(shape)
           shape.cache()
@@ -238,7 +243,7 @@ export default {
           bgLayer.batchDraw()
         }
       })
-      this.updateStageInfo()
+
       // 到时测试这种绘制的渲染效果
       bgLayer.draw()
       textLayer.draw()
@@ -255,7 +260,7 @@ export default {
         this.$globalConf.isSpeaker = false
         console.log('副屏')
       }
-      this.$globalConf.meetingId = this.$route.params.meetingId || 74
+      this.$globalConf.meetingId = this.$route.params.meetingId || 78
       socketUtil.initSocket()
       this.startListener()
       getSocket().on('connect', () => {
@@ -285,9 +290,9 @@ export default {
       getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
       getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
       getSocket().on(socketEvent.addComponent, this.handleAddComponent)
+      getSocket().on(socketEvent.updateComponentState, this.handleUpdateComponentState)
     },
     handleGetMeet(res) {
-      // console.log('getBoard')
       this.whiteboards = res.whiteboards
       if (this.whiteboards) {
         // 取出指定的board(whiteboardId+documentId)
@@ -344,6 +349,7 @@ export default {
         })
       }
     },
+    // 收到更新信息
     handleUpdateComponent(res) {
       const { component } = res
       if (component.type === sComponentId.baseWidth) {
@@ -351,6 +357,11 @@ export default {
         this.$globalConf.baseWidth = component[sComponentId.baseWidth]
         this.$globalConf.scale = this.stage.getAttr('width') / component[sComponentId.baseWidth]
         syncArea.setLayerScale()
+      } else if (component.type === sComponentId.speakerSize) {
+
+      } else if (component.type === sComponentId.stageXY) {
+        this.$globalConf.stageXY = component.stageXY
+        syncArea.setStageXY()
       }
     },
     // 接收到新增组件消息
@@ -376,6 +387,11 @@ export default {
         bgLayer.add(shape)
         bgLayer.batchDraw()
       }
+    },
+    // 收到更新组件状态信息
+    handleUpdateComponentState(res) {
+      const { componentId, state } = res
+      cManager.updateVisible(componentId, state)
     },
     // 接收到清屏命令消息
     handleClearBoard() {

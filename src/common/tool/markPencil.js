@@ -43,7 +43,7 @@ function create(params) {
       isDrawing = false
       // 性能优化
       line.cache()
-      cManager.addGraphic(line)
+      cManager.addComponent(line)
       line = null
     }
   })
