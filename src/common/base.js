@@ -132,4 +132,41 @@ exports.install = function (Vue) {
     const vm = this
     return (vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random() + vm.$random()).toLocaleUpperCase()
   }
+  
+  Vue.prototype.getCookie = function (cname) {
+        const name = cname + '=',
+            ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++){
+            let c = ca[i];
+            while(c.charAt(0) === ' ') c = c.substring(1);
+            if(c.indexOf(name) !== -1){
+                return c.substring(name.length, c.length);
+            }
+        }
+        return '';
+    };
+  
+  /**
+     * set cookie
+     * @param name
+     * @param value
+     * @param expire
+     */
+    Vue.prototype.setCookie = function (name, value, expire) {
+        const d = new Date();
+        d.setTime(d.getTime() + (expire * 24 * 60 * 60 * 1000));
+        const expires = 'expires=' + d.toUTCString();
+        document.cookie = name + '=' + value + ';' + expires;
+    };
+
+    /**
+     * delete cookie
+     * @param name
+     */
+    Vue.prototype.delCookie = function (name) {
+        const d = new Date();
+        d.setTime(d.getTime() - (24 * 60 * 60 * 1000));
+        const expire = 'expires=' + d.toUTCString();
+        document.cookie = name + '="";' + expire;
+    };
 }
