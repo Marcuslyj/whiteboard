@@ -155,7 +155,7 @@ export default {
             height: wrapper.clientHeight,
           })
         }
-        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.stage.getAttr('width') / this.$globalConf.baseWdith
+        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.stage.getAttr('width') / this.$globalConf.baseWidth
       }
       syncArea.setLayerScale()
     },
@@ -231,7 +231,9 @@ export default {
           textLayer.add(shape)
           shape.cache()
         } else {
-          bgLayer.add(new Konva.Image(component.attrs))
+          shape = new Konva.Image(component.attrs)
+          bgLayer.add(shape)
+          bgLayer.batchDraw()
         }
       })
       this.updateStageInfo()
@@ -280,6 +282,7 @@ export default {
       getSocket().on(socketEvent.getMeet, this.handleGetMeet)
       getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
       getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
+      getSocket().on(socketEvent.addComponent, this.handleAddComponent)
     },
     handleGetMeet(res) {
       // console.log('getBoard')
@@ -348,23 +351,52 @@ export default {
         syncArea.setLayerScale()
       }
     },
+    // 接收到新增组件消息
+    handleAddComponent(res) {
+      let { component } = res
+      component = JSON.parse(component)
+      let shape
+      const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
+      const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
+      const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
+      if (component.type === 'remark') {
+        shape = new Konva[component.className](component.attrs)
+        remarkLayer.add(shape)
+        remarkLayer.batchDraw()
+        shape.cache()
+      } else if (component.type === 'text') {
+        shape = new Konva[component.className](component.attrs)
+        textLayer.add(shape)
+        textLayer.batchDraw()
+        shape.cache()
+      } else {
+        shape = new Konva.Image(component.attrs)
+        bgLayer.add(shape)
+        bgLayer.batchDraw()
+      }
+    },
+    // 接收到清屏命令消息
     handleClearBoard() {
       const layers = [this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER], this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]]
       layers.forEach((layer) => {
         layer.destroyChildren()
         layer.batchDraw()
       })
+      const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
       if (this.$globalConf.isSpeaker) {
-        syncArea.updateBaseWidth('')
+        // 没有文档封面
+        if (!bgLayer.findOne('Image')) {
+          syncArea.updateBaseWidth('')
+        }
       }
     },
-    clearBoard() {
+    clearBoard(componentType = 0) {
       const { meetingId, whiteboardId, documentId } = this.$globalConf
       const params = {
         meetingId,
         whiteboardId,
         documentId,
-        componentType: 0,
+        componentType,
       }
       socketUtil.clearBoard(params)
     },

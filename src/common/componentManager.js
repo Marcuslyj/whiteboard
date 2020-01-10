@@ -1,6 +1,6 @@
+import syncArea from '@common/syncArea'
 import config from './config'
 import socketUtil from './socketUtil'
-import { sComponentId } from './common'
 import { formateComponent } from './utils'
 
 let positionIndex = -1
@@ -15,22 +15,12 @@ let positionIndex = -1
  *    documentId
  *  }
  * @param {*} graphic
- * @param {*} componentType   0 表示清屏需要删除（画笔数据）    1 清屏不需要删除（封面）
+ * @param {*} componentType   0 表示清屏需要删除（画笔数据）    1 清屏不需要删除（封面） 2 特殊组件
  */
 function addComponent(graphic, componentType = 0, type = 'remark') {
   let params
   if (config.baseWidth === '') {
-    // 更新基准宽度
-    params = {
-      componentType: 0,
-      componentId: sComponentId.baseWidth,
-      component: JSON.stringify({
-        componentId: sComponentId.baseWidth,
-        baseWidth: config.board.getAttr('width'),
-        type: sComponentId.baseWdith,
-      }),
-    }
-    socketUtil.updateComponent(formateComponent(params))
+    syncArea.updateBaseWidth(config.board.getAttr('width'))
   }
   params = {
     componentType,
