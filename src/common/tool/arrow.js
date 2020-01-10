@@ -38,7 +38,7 @@ function create(params) {
   stage.on('mouseup touchend', () => {
     if (isDrawing) {
       isDrawing = false
-      // arrow.cache()
+      arrow.cache()
       cManager.addComponent(arrow)
       arrow = null
     }

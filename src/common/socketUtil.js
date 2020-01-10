@@ -1,6 +1,5 @@
 //  eslint-disable-next-line
 import io from 'socket.io-client'
-import Vue from 'vue'
 import { socketUrl, socketEvent } from './common'
 
 let socket

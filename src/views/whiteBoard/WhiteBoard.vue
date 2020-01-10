@@ -11,7 +11,9 @@ Description
       ref="board-container">
     </div>
     <!-- 用于工具条menu 关闭遮罩 -->
-    <div class="tool-box-mask" v-if="tbMask" @click="clickTbMask"></div>
+    <div class="tool-box-mask" v-if="tbMask" @touchstart="clickTbMask" @mousedown="clickTbMask"></div>
+    <!-- 绘制时的工具栏 -->
+    <MiniMenu class="mini-menu" :type="miniMenuType" :miniStyle="miniMenuStyle"></MiniMenu>
     </section>
     <div class="tool-wrapper">
       <tool-bar
@@ -45,12 +47,14 @@ import { formateUrl, isEmpty } from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
+import MiniMenu from '@/components/miniMenu/MiniMenu'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
 
 export default {
   components: {
     ToolBar,
+    MiniMenu,
   },
   data() {
     return {
@@ -58,6 +62,8 @@ export default {
       tbMask: false,
       whiteboards: [],
       enable: false,
+      miniMenuType: '',
+      miniMenuStyle: {},
     }
   },
   mounted() {
@@ -97,8 +103,16 @@ export default {
       // }
     })
     initTool()
+    this.$refs['tool-bar'].active()
+    this.enable = true
     Vue.eventBus.$on('setTbMask', (visible) => {
       this.tbMask = visible
+    })
+    Vue.eventBus.$on('setMiniMenu', (params) => {
+      const { miniMenuType = '', miniMenuStyle } = params
+      this.miniMenuType = miniMenuType
+      this.miniMenuStyle = miniMenuStyle
+      console.log(this.miniMenuStyle)
     })
     this.fortest()
     this.initConvertCanvas()

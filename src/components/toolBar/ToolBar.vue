@@ -5,7 +5,7 @@ Description
 @version 1.0.0
 -->
 <template>
-  <div class="toolbar">
+  <div class="toolbar"  @mousedown.stop="" @touchstar.stop="">
     <!-- 工具条能否起作用的遮罩 -->
     <div
       class="mask"
@@ -161,7 +161,6 @@ import { Upload, Message } from 'view-design'
 import common from '@common/common'
 import Vue from 'vue'
 
-
 export default {
   props: {
     // 简单模式，没有左边的工具
@@ -240,12 +239,13 @@ export default {
     }
   },
   mounted() {
-    // document.body.addEventListener('mousedown', () => {
-    //   this.boxName = ''
-    // })
+    document.body.addEventListener('mousedown', this.handleBodyClick)
+    document.body.addEventListener('touchstart', this.handleBodyClick)
   },
   // 关闭时销毁工具
   beforeDestroy() {
+    document.body.removeEventListener('mousedown', this.handleBodyClick)
+    document.body.removeEventListener('touchstart', this.handleBodyClick)
     Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
   },
   methods: {
@@ -395,7 +395,7 @@ export default {
     setBoxName(boxName) {
       this.boxName = boxName
       console.log(this.boxName)
-      Vue.eventBus.$emit('setTbMask', this.boxName !== '')
+      // Vue.eventBus.$emit('setTbMask', this.boxName !== '')
     },
     // 预览图
     resetCanvas() {
@@ -460,6 +460,9 @@ export default {
       default:
         break
       }
+    },
+    handleBodyClick() {
+      this.boxName = ''
     },
   },
 }
