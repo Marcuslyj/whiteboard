@@ -1,11 +1,13 @@
 import config from '@common/config'
 import { isFirefox } from '@common/utils'
 import Konva from 'konva'
-import { fileService } from '@common/common'
+import { fileService, api, fbId } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
 import bus from '@common/eventBus'
 import { debounce } from 'throttle-debounce'
 import image from '@common/tool/image'
+import Vue from 'vue'
+import cManager from '../componentManager'
 
 /**
  * 正在查阅的pdf
@@ -134,6 +136,33 @@ export async function loadPdf({ url, documentId }) {
   return pdf
 }
 
+export function formatCoverUrl(url) {
+  if (!/^((ht|f)tps?):\/\//.test(url)) {
+    url = `${fileService}${url}`
+  }
+  return url
+}
+
+
+function convertBase64UrlToBlob(urlData) {
+  let bytes = window.atob(urlData.split(',')[1]) // 去掉url的头，并转换为byte
+
+  // 处理异常,将ascii码小于0的转换为大于0
+
+  let ab = new ArrayBuffer(bytes.length)
+
+  let ia = new Uint8Array(ab)
+
+  for (let i = 0; i < bytes.length; i++) {
+    ia[i] = bytes.charCodeAt(i)
+  }
+
+  return new Blob([ab], {
+
+    type: 'image/png',
+
+  })
+}
 /**
  * 文档cover添加到首页
  * @param {*} pdf
@@ -161,39 +190,66 @@ export async function addCover(pdf, {
   }
 
   // 还原缩放和偏移的处理
-  const widthSafe = Math.floor(((stage.width() - viewport.width - stage.getAttr('x')) * 0.8) / config.scale)
-  const heightSafe = Math.floor(((stage.height() - viewport.height - stage.getAttr('y')) * 0.8) / config.scale)
-  const x = Math.floor(Math.random() * widthSafe)
-  const y = Math.floor(Math.random() * heightSafe)
+  const widthSafe = Math.floor(stage.width() - viewport.width - stage.getAttr('x')) * 0.8
+  const heightSafe = Math.floor(stage.height() - viewport.height - stage.getAttr('y')) * 0.8
+  const x = Math.floor((Math.random() * widthSafe) / config.scale)
+  const y = Math.floor((Math.random() * heightSafe) / config.scale)
 
   const render = async (_page, _renderContext) => {
     await _page.render(_renderContext).promise
     const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
-
-    // 上传图片
-    let img = new Image()
-    img.src = imgUrl
-    img.onload = () => {
+    // 上传封面图片
+    let result = await new Promise((resolve, reject) => {
+      let param = new FormData()
+      param.append('fbId', fbId.docCover)
+      param.append('file', convertBase64UrlToBlob(imgUrl))
+      Vue.prototype.$api.post(
+        api.upload,
+        param,
+        (res) => resolve(res),
+        (err) => reject(err),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      )
+    })
+    if (result && Number(result.ret.retCode) === 0) {
       let options = {
         documentId,
         documentPath,
         x,
         y,
-        image: img,
-        width,
-        height,
         componentType: '1',
         type: 'cover',
+        imgUrl: result.data.filePath,
       }
-      addCoverImage(options)
+      addCoverImage(options, true)
     }
   }
   // 渲染
   render(page, renderContext)
 }
 
-export function addCoverImage(options) {
+export async function addCoverImage(options, broadcast = false) {
+  // debugger
   let layer = getLayer()
+  let stage = getStage()
+  // 屏幕宽度十分之一
+  options.width = Math.floor(stage.width() / 10)
+  delete options.height
+  let img = new Image()
+  img.src = formatCoverUrl(options.imgUrl)
+
+  await new Promise((resolve) => {
+    img.onload = () => {
+      options.height = (img.height * options.width) / img.width
+      resolve()
+    }
+  })
+  options.image = img
+
   let konvaImage = image.create(layer, options)
   // 事件
   konvaImage.on('mouseover', ({ target }) => {
@@ -209,6 +265,9 @@ export function addCoverImage(options) {
     // open(documentId, { stage, layer, convertCanvas })
     init(options.documentId, options.documentPath)
   })
+  // 同步操作
+  if (broadcast) cManager.addComponent(konvaImage, 1, 'cover')
+  return konvaImage
 }
 
 
@@ -308,7 +367,7 @@ function getCoverViewport(page) {
   })
   const stage = getStage()
   // 封面宽度，屏宽1600对应160,即画布宽度十分之一
-  const width = Math.floor(stage.width() / 10)
+  const width = Math.max(Math.floor(stage.width() / 10), 200)
   if (viewport.width !== width) {
     viewport = page.getViewport({
       // width * 1 / viewport.width

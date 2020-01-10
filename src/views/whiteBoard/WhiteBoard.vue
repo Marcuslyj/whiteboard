@@ -36,7 +36,7 @@ Description
 import { Message } from 'view-design'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
-import { addCover, loadPdf } from '@common/tool/document'
+import { addCover, loadPdf, addCoverImage } from '@common/tool/document'
 import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
 import {
@@ -230,6 +230,8 @@ export default {
           shape = new Konva[component.className](component.attrs)
           textLayer.add(shape)
           shape.cache()
+        } else if (component.type === 'cover') {
+          shape = addCoverImage(component.attrs)
         } else {
           shape = new Konva.Image(component.attrs)
           bgLayer.add(shape)
