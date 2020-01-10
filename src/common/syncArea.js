@@ -23,6 +23,7 @@ function setLayerScale() {
 }
 
 function setStageXY() {
+  console.log(`stage 偏移${config.stageXY.x} ${config.stageXY.y} `)
   config.board.position(config.stageXY)
   config.board.draw()
 }
@@ -70,17 +71,17 @@ function addStageXY() {
 }
 
 
-function updateStageXY(x, y) {
+function updateStageXY(obj) {
   const params = {
     componentType: 2,
     componentId: sComponentId.stageXY,
     component: JSON.stringify({
       componentId: sComponentId.stageXY,
       type: sComponentId.stageXY,
-      stageXY: { x, y },
+      stageXY: obj,
     }),
   }
-  config.stageXy = { x, y }
+  config.stageXy = obj
   socketUtil.updateComponent(formateComponent(params))
 }
 

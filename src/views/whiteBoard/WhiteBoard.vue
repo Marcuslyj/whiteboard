@@ -122,12 +122,29 @@ export default {
       if (this.$globalConf.isSpeaker) {
         // 主讲屏
         this.enable = true
+        // 先记录
+        const lastSpeakerSize = this.$globalConf.speakerSize
+        const lastStageXY = this.$globalConf.stageXY
         syncArea.updateSpeakerSize({
           width: wrapper.clientWidth,
           height: wrapper.clientHeight,
         })
         this.stage.size(this.$globalConf.speakerSize)
-        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+        this.$globalConf.scale = (this.renderComponent.length === 0) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+        if (this.renderComponent.length === 0) {
+          this.$globalConf.scale = 1
+          this.$globalConf.stageXY = {
+            x: 0,
+            y: 0,
+          }
+        } else {
+          this.$globalConf.scale = this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+          this.$globalConf.stageXY = {
+            x: lastStageXY.x * (this.$globalConf.speakerSize.width / lastSpeakerSize.width),
+            y: lastStageXY.y * (this.$globalConf.speakerSize.height / lastSpeakerSize.height),
+          }
+        }
+        syncArea.updateStageXY(this.$globalConf.stageXY)
         this.$refs['tool-bar'].active()
       } else {
         // 非主讲屏
@@ -152,7 +169,19 @@ export default {
             height: wrapper.clientHeight,
           })
         }
-        this.$globalConf.scale = isEmpty(this.$globalConf.baseWidth) ? 1 : this.stage.getAttr('width') / this.$globalConf.baseWidth
+        if (this.renderComponent.length === 0) {
+          this.$globalConf.scale = 1
+          this.$globalConf.stageXY = {
+            x: 0,
+            y: 0,
+          }
+        } else {
+          this.$globalConf.scale = this.stage.getAttr('width') / this.$globalConf.baseWidth
+          this.$globalConf.stageXY = {
+            x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
+            y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+          }
+        }
       }
       syncArea.setLayerScale()
       syncArea.setStageXY()
@@ -214,7 +243,7 @@ export default {
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
       const specialType = ['baseWidth', 'speakerSize', 'stageXY']
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
-      const renderComponent = []
+      this.renderComponent = []
       let shape
       components.map((component) => {
         component = JSON.parse(component)
@@ -222,11 +251,11 @@ export default {
         if (specialType.includes(component.type)) {
           this.$globalConf[component.type] = component[component.type]
         } else {
-          renderComponent.push(component)
+          this.renderComponent.push(component)
         }
       })
       this.updateStageInfo()
-      renderComponent.forEach((component) => {
+      this.renderComponent.forEach((component) => {
         if (component.type === 'remark') {
           shape = new Konva[component.className](component.attrs)
           remarkLayer.add(shape)
@@ -351,7 +380,7 @@ export default {
     },
     // 收到更新信息
     handleUpdateComponent(res) {
-      const { component } = res
+      const component = JSON.parse(res.component)
       if (component.type === sComponentId.baseWidth) {
         console.log('update baseWidth')
         this.$globalConf.baseWidth = component[sComponentId.baseWidth]
@@ -360,7 +389,10 @@ export default {
       } else if (component.type === sComponentId.speakerSize) {
 
       } else if (component.type === sComponentId.stageXY) {
-        this.$globalConf.stageXY = component.stageXY
+        this.$globalConf.stageXY = {
+          x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
+          y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+        }
         syncArea.setStageXY()
       }
     },

@@ -10,6 +10,7 @@ export default Vue.observable({
   speakerSize: {},
   // 第一笔绘制时的基准宽度
   baseWidth: '',
+  lastSpeakerSize: {},
   // 画布拖动
   stageXy: {},
   // 跟基准值的缩放比
