@@ -22,7 +22,7 @@ function create(layer, {
   // 跨域导致不能使用
   if (rest.type === 'cover') {
     konvaImage.cache()
-    konvaImage.filters([Konva.Filters.Contrast])
+  //   konvaImage.filters([Konva.Filters.Contrast])
   }
   layer.add(konvaImage)
   layer.draw()
