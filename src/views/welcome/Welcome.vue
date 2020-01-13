@@ -17,9 +17,9 @@ Description
           <div class="box">
               <div class="input-container">
                   <h4 class="title">开启一个会议</h4>
-                  <input placeholder="meetingId，不要修改" v-model="meetingId"/>
+                  <input placeholder="meetingId，74,78,专人使用，请自己找后台分配" v-model="meetingId"/>
               </div>
-                <input placeholder="userId 0 表示主讲人，其他非主讲人" :value="userId"/>
+                <input placeholder="userId 0 表示主讲人，其他非主讲人" v-model="userId"/>
                  <!-- <input placeholder="meetingId" v-model="meetingId"/> -->
              <button class="btn" @click="joinMeet">开始</button>
           </div>
@@ -40,7 +40,7 @@ export default {
     return {
       theme: '',
       userId: '0',
-      meetingId: '74',
+      meetingId: '78',
     }
   },
   methods: {

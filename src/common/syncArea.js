@@ -32,6 +32,12 @@ function setLayerScale() {
   remarkLayer.draw()
 }
 
+function setStageXY() {
+  console.log(`stage 偏移${config.stageXY.x} ${config.stageXY.y} `)
+  config.board.position(config.stageXY)
+  config.board.draw()
+}
+
 function addSpeakerSize(size) {
   const params = {
     componentType: 2,
@@ -75,17 +81,17 @@ function addStageXY() {
 }
 
 
-function updateStageXY(x, y) {
+function updateStageXY(obj) {
   const params = {
     componentType: 2,
     componentId: sComponentId.stageXY,
     component: JSON.stringify({
       componentId: sComponentId.stageXY,
       type: sComponentId.stageXY,
-      stageXY: { x, y },
+      stageXY: obj,
     }),
   }
-  config.stageXy = { x, y }
+  config.stageXy = obj
   socketUtil.updateComponent(formateComponent(params))
 }
 
@@ -95,7 +101,7 @@ function addBaseWidth() {
     componentId: sComponentId.baseWidth,
     component: JSON.stringify({
       componentId: sComponentId.baseWidth,
-      baseWidth: '',
+      baseWidth: config.board.getAttr('width'),
       type: sComponentId.baseWidth,
     }),
   }
@@ -120,6 +126,7 @@ function updateBaseWidth(baseWidth) {
 
 export default ({
   setLayerScale,
+  setStageXY,
   updateSpeakerSize,
   addSpeakerSize,
   addStageXY,
