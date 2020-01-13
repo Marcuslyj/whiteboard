@@ -146,8 +146,8 @@ Description
         <li><i class="iconfont icon-clip"></i></li>
       </ul>
       <ul class="group other-tool">
-        <li><i class="iconfont icon-houtui"></i></li>
-        <li><i class="iconfont icon-qianjin"></i></li>
+        <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
+        <li @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
       </ul>
     </div>
     <div class="right part">
@@ -160,6 +160,7 @@ Description
 import { Upload, Message } from 'view-design'
 import common from '@common/common'
 import Vue from 'vue'
+import cManager from '@common/componentManager'
 
 export default {
   props: {
@@ -395,6 +396,12 @@ export default {
         stage,
         layer,
       })
+    },
+    back() {
+      cManager.back()
+    },
+    goAhead() {
+      cManager.goAhead()
     },
     setLiStyle(ref) {
       const el = document.querySelector('.center .activeTool')
