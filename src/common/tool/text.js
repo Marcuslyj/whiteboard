@@ -3,7 +3,6 @@ import config from '@common/config'
 import Konva from 'konva'
 import Vue from 'vue'
 import cManager from '@common/componentManager'
-import { get } from 'https'
 
 let editorDom
 let currentStage
