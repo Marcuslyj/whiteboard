@@ -254,12 +254,14 @@ export default {
       this.renderComponent = []
       let shape
       components.map((component) => {
-        component = JSON.parse(component)
-        // 特殊组件
-        if (specialType.includes(component.type)) {
-          this.$globalConf[component.type] = component[component.type]
-        } else {
-          this.renderComponent.push(component)
+        if (component) {
+          component = JSON.parse(component)
+          // 特殊组件
+          if (specialType.includes(component.type)) {
+            this.$globalConf[component.type] = component[component.type]
+          } else {
+            this.renderComponent.push(component)
+          }
         }
       })
       this.updateStageInfo()
@@ -395,13 +397,17 @@ export default {
         this.$globalConf.scale = this.stage.getAttr('width') / component[sComponentId.baseWidth]
         syncArea.setLayerScale()
       } else if (component.type === sComponentId.speakerSize) {
-
+        //
       } else if (component.type === sComponentId.stageXY) {
         this.$globalConf.stageXY = {
           x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
           y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
         }
         syncArea.setStageXY()
+      } else if (component.type === 'cover') {
+        let node = this.stage.find(`#${component.attrs.id}`)[0]
+        if (node) node.setAttrs({ x: component.attrs.x, y: component.attrs.y })
+        this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER].draw()
       }
     },
     // 接收到新增组件消息

@@ -1,5 +1,5 @@
 import config from '@common/config'
-import { isFirefox } from '@common/utils'
+import { isFirefox, formateComponent } from '@common/utils'
 import Konva from 'konva'
 import {
   imageService, fileService, api, fbId,
@@ -10,6 +10,7 @@ import { debounce } from 'throttle-debounce'
 import image from '@common/tool/image'
 import Vue from 'vue'
 import cManager from '../componentManager'
+import socketUtil from '@/common/socketUtil'
 
 /**
  * 正在查阅的pdf
@@ -29,7 +30,7 @@ let elWrapper
 const getStage = () => config.board
 const getConvertCanvas = () => config.convertCanvas
 const getLayer = () => config.layerManager[config.layerIds.BG_LAYER]
-const getDocumentId = () => config.documentId
+// const getDocumentId = () => config.documentId
 const getDocumentPath = () => config.documentPath
 /**
  * 防抖
@@ -262,18 +263,26 @@ export async function addCoverImage(options, broadcast = false) {
   let konvaImage = image.create(layer, options)
   if (config.isSpeaker) {
   // 事件
-    konvaImage.on('mouseover', ({ target }) => {
-      target.contrast(20)
-      layer.draw()
-    })
-    konvaImage.on('mouseout', ({ target }) => {
-      target.contrast(0)
-      layer.draw()
-    })
+    // konvaImage.on('mouseover', ({ target }) => {
+    //   target.contrast(20)
+    //   layer.draw()
+    // })
+    // konvaImage.on('mouseout', ({ target }) => {
+    //   target.contrast(0)
+    //   layer.draw()
+    // })
     konvaImage.on('click tap', () => {
-    // 传文档id
-    // open(documentId, { stage, layer, convertCanvas })
+      // 传文档id
       init(options.documentId, options.documentPath)
+      // 获取白板批注
+    })
+    konvaImage.on('dragend', () => {
+      let params = {
+        componentType: '1',
+        component: JSON.stringify(Object.assign(konvaImage.toObject(), { type: 'cover' })),
+        componentId: konvaImage.getAttr('id'),
+      }
+      socketUtil.updateComponent(formateComponent(params))
     })
     // 同步操作
     if (broadcast) cManager.addComponent(konvaImage, 1, 'cover')
