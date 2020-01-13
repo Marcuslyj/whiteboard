@@ -437,7 +437,7 @@ export default {
     // 收到更新组件状态信息
     handleUpdateComponentState(res) {
       const { componentId, state } = res
-      cManager.updateVisible(componentId, state)
+      cManager.updateVisible(componentId, state === 1)
     },
     // 接收到清屏命令消息
     handleClearBoard() {
