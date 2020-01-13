@@ -30,16 +30,16 @@ export default new Router({
       component: Authority,
       children: [{
         path: '/',
-        redirect: '/authority/login'
+        redirect: '/authority/login',
       }, {
         path: 'login',
         name: 'login',
-        component: AuthorityLogin
+        component: AuthorityLogin,
       }, {
         path: 'meeting',
         name: 'meeting',
-        component: AuthorityMeeting
-      }]
+        component: AuthorityMeeting,
+      }],
     },
   ],
 

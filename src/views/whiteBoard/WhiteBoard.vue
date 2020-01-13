@@ -248,7 +248,6 @@ export default {
       const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
       const specialType = ['baseWidth', 'speakerSize', 'stageXY']
-      const renderComponent = []
 
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
       this.renderComponent = []
