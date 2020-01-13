@@ -1,11 +1,13 @@
-import { setStyle } from '@common/utils'
+import { setStyle, getPoiWithOffset } from '@common/utils'
 import config from '@common/config'
 import Konva from 'konva'
 import Vue from 'vue'
 import cManager from '@common/componentManager'
+import { get } from 'https'
 
 let editorDom
 let currentStage
+let startPoi
 function create(params) {
   const { stage, layer } = params
   currentStage = stage
@@ -33,12 +35,13 @@ function create(params) {
     // 有文字的话就不再弹框了
     if (editorDom && editorDom.value !== '') {
       // 绘制到layer上
+      const newPoi = getPoiWithOffset(startPoi, stage)
       const shape = new Konva.Text({
         text: editorDom.value,
         fontSize: config.text.fontSize,
         fill: config.text.color,
-        x: Number(editorDom.style.left.split('px')[0]),
-        y: Number(editorDom.style.top.split('px')[0]),
+        x: newPoi.x,
+        y: newPoi.y,
       })
       editorDom.value = ''
       layer.add(shape)
@@ -59,6 +62,7 @@ function create(params) {
     const boundingClientRect = stage.content.getBoundingClientRect()
     const offsetX = evt.clientX - boundingClientRect.left
     const offsetY = evt.clientY - boundingClientRect.top
+    startPoi = stage.getPointerPosition()
     setStyle(editorDom, {
       left: `${offsetX}px`,
       top: `${offsetY}px`,
