@@ -131,8 +131,8 @@ Description
         <li>
           <Upload
             :action="common.api.upload"
-            accept="application/pdf"
-            :format="['pdf']"
+            accept="application/pdf,application/msword"
+            :format="['pdf','doc','docx']"
             :before-upload="beforeUpload"
             :on-success="uploadSuccess"
             :data="{ fbId: common.fbId.upload }"

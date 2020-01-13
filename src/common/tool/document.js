@@ -198,14 +198,6 @@ export async function addCover(pdf, {
   const heightSafe = Math.floor((stage.height() / config.scale - viewport.height) * 0.8 - stage.getAttr('y') / config.scale)
   const x = Math.floor(Math.random() * widthSafe)
   const y = Math.floor(Math.random() * heightSafe)
-  console.log(`baseWidth:${config.baseWidth}`)
-  console.log(`scale:${config.scale}`)
-  console.log('stage width:', stage.width())
-  console.log('stage height:', stage.height())
-  console.log(`widthSafe:${widthSafe}`)
-  console.log(`heightSafe:${heightSafe}`)
-  console.log(`layer scale:${getLayer().getAttr('scaleX')}`)
-
 
   const render = async (_page, _renderContext) => {
     await _page.render(_renderContext).promise
@@ -249,7 +241,8 @@ export async function addCoverImage(options, broadcast = false) {
   let layer = getLayer()
   let stage = getStage()
   // 屏幕宽度十分之一
-  options.width = Math.floor(stage.width() / 10)
+  // options.width = Math.floor(stage.width() / 10)
+  options.width = Math.floor(config.baseWidth / 10)
   delete options.height
   let img = new Image()
   img.src = formatCoverUrl(options.imgUrl)
