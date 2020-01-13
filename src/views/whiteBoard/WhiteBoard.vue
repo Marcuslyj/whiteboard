@@ -297,7 +297,7 @@ export default {
         this.$globalConf.isSpeaker = false
         console.log('副屏')
       }
-      this.$globalConf.meetingId = this.$route.params.meetingId || 78
+      this.$globalConf.meetingId = this.$route.params.meetingId || 74
       socketUtil.initSocket()
       this.startListener()
       getSocket().on('connect', () => {
