@@ -192,10 +192,20 @@ export async function addCover(pdf, {
   }
 
   // 还原缩放和偏移的处理
-  const widthSafe = Math.floor(stage.width() - viewport.width - stage.getAttr('x')) * 0.8
-  const heightSafe = Math.floor(stage.height() - viewport.height - stage.getAttr('y')) * 0.8
-  const x = Math.floor((Math.random() * widthSafe) / config.scale)
-  const y = Math.floor((Math.random() * heightSafe) / config.scale)
+  // const widthSafe = Math.floor(stage.width() - viewport.width - stage.getAttr('x')) * 0.8
+  // const heightSafe = Math.floor(stage.height() - viewport.height - stage.getAttr('y')) * 0.8
+  const widthSafe = Math.floor((config.baseWidth - viewport.width) * 0.8 - stage.getAttr('x') / config.scale)
+  const heightSafe = Math.floor((stage.height() / config.scale - viewport.height) * 0.8 - stage.getAttr('y') / config.scale)
+  const x = Math.floor(Math.random() * widthSafe)
+  const y = Math.floor(Math.random() * heightSafe)
+  console.log(`baseWidth:${config.baseWidth}`)
+  console.log(`scale:${config.scale}`)
+  console.log('stage width:', stage.width())
+  console.log('stage height:', stage.height())
+  console.log(`widthSafe:${widthSafe}`)
+  console.log(`heightSafe:${heightSafe}`)
+  console.log(`layer scale:${getLayer().getAttr('scaleX')}`)
+
 
   const render = async (_page, _renderContext) => {
     await _page.render(_renderContext).promise
@@ -367,9 +377,10 @@ function getCoverViewport(page) {
   let viewport = page.getViewport({
     scale: 1,
   })
-  const stage = getStage()
+  // const stage = getStage()
   // 封面宽度，屏宽1600对应160,即画布宽度十分之一
-  const width = Math.max(Math.floor(stage.width() / 10), 200)
+  // baseWidth的十分之一,最小宽度暂定200
+  const width = Math.max(Math.floor(config.baseWidth / 10), 200)
   if (viewport.width !== width) {
     viewport = page.getViewport({
       // width * 1 / viewport.width

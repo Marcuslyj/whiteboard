@@ -10,6 +10,7 @@ function setLayerScale() {
   console.log(`layer 缩放${config.scale}`)
   const textLayer = config.layerManager[config.layerIds.TEXT_LAYER]
   const remarkLayer = config.layerManager[config.layerIds.REMARK_LAYER]
+  const bgLayer = config.layerManager[config.layerIds.BG_LAYER]
   textLayer.scale({
     x: config.scale,
     y: config.scale,
@@ -18,6 +19,15 @@ function setLayerScale() {
     x: config.scale,
     y: config.scale,
   })
+  console.log(config.mode)
+  // 首页背景层做缩放
+  if (config.mode === 'board') {
+    bgLayer.scale({
+      x: config.scale,
+      y: config.scale,
+    })
+    bgLayer.draw()
+  }
   textLayer.draw()
   remarkLayer.draw()
 }

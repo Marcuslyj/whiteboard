@@ -70,6 +70,7 @@ export default {
     this.$globalConf.mode = 'board'
   },
   mounted() {
+    this.$globalConf.mode = 'board'
     // 创建stage
     const el = document.querySelector('.board-container-wrapper')
     this.$globalConf.board = this.stage = new Konva.Stage({
@@ -190,11 +191,13 @@ export default {
             }),
             {
               docPath: data.filePath,
+              docName: data.fileName,
             },
             (res) => resolve(res),
             (err) => reject(err),
           )
         })
+        console.log(result)
         if (this.Msgloading.length) this.Msgloading.pop()()
         if (Number(result.ret.retCode) === 0) {
           this.Msgloading.push(Message.loading({
