@@ -54,6 +54,10 @@ function getElWrapper() {
  * @param {*} param1
  */
 export function init(documentId, documentPath) {
+  // stage y
+  let stage = getStage()
+  stage.setAttrs({ y: 0 })
+
   config.documentId = documentId
   config.documentPath = documentPath
   config.mode = 'document'
@@ -194,8 +198,6 @@ export async function addCover(pdf, {
   }
 
   // 还原缩放和偏移的处理
-  // const widthSafe = Math.floor(stage.width() - viewport.width - stage.getAttr('x')) * 0.8
-  // const heightSafe = Math.floor(stage.height() - viewport.height - stage.getAttr('y')) * 0.8
   const widthSafe = Math.floor((config.baseWidth - viewport.width) - stage.getAttr('x') / config.scale)
   const heightSafe = Math.floor((stage.height() / config.scale - viewport.height) - stage.getAttr('y') / config.scale)
   const x = Math.floor(Math.random() * widthSafe)
@@ -242,9 +244,10 @@ export async function addCoverImage(options, broadcast = false) {
   // debugger
   let layer = getLayer()
   // 屏幕宽度十分之一
-  // options.width = Math.floor(stage.width() / 10)
   options.width = Math.floor(config.baseWidth / 10)
   delete options.height
+  // 是否可拖动
+  options.draggable = !!config.isSpeaker
   let img = new Image()
   img.src = formatCoverUrl(options.imgUrl)
 
@@ -257,22 +260,25 @@ export async function addCoverImage(options, broadcast = false) {
   options.image = img
 
   let konvaImage = image.create(layer, options)
+  if (config.isSpeaker) {
   // 事件
-  konvaImage.on('mouseover', ({ target }) => {
-    target.contrast(20)
-    layer.draw()
-  })
-  konvaImage.on('mouseout', ({ target }) => {
-    target.contrast(0)
-    layer.draw()
-  })
-  konvaImage.on('click tap', () => {
+    konvaImage.on('mouseover', ({ target }) => {
+      target.contrast(20)
+      layer.draw()
+    })
+    konvaImage.on('mouseout', ({ target }) => {
+      target.contrast(0)
+      layer.draw()
+    })
+    konvaImage.on('click tap', () => {
     // 传文档id
     // open(documentId, { stage, layer, convertCanvas })
-    init(options.documentId, options.documentPath)
-  })
-  // 同步操作
-  if (broadcast) cManager.addComponent(konvaImage, 1, 'cover')
+      init(options.documentId, options.documentPath)
+    })
+    // 同步操作
+    if (broadcast) cManager.addComponent(konvaImage, 1, 'cover')
+  }
+
   return konvaImage
 }
 
@@ -374,7 +380,7 @@ function getCoverViewport(page) {
   // const stage = getStage()
   // 封面宽度，屏宽1600对应160,即画布宽度十分之一
   // baseWidth的十分之一,最小宽度暂定200
-  const width = Math.max(Math.floor(config.baseWidth / 10), 200)
+  const width = Math.max(Math.floor(config.baseWidth / 10), 300)
   if (viewport.width !== width) {
     viewport = page.getViewport({
       // width * 1 / viewport.width
