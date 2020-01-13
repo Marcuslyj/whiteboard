@@ -1,7 +1,9 @@
 import config from '@common/config'
 import { isFirefox } from '@common/utils'
 import Konva from 'konva'
-import { fileService, api, fbId } from '@common/common'
+import {
+  imageService, fileService, api, fbId,
+} from '@common/common'
 import pdfjsLib from 'pdfjsLib'
 import bus from '@common/eventBus'
 import { debounce } from 'throttle-debounce'
@@ -140,7 +142,7 @@ export async function loadPdf({ url, documentId }) {
 
 export function formatCoverUrl(url) {
   if (!/^((ht|f)tps?):\/\//.test(url)) {
-    url = `${fileService}${url}`
+    url = `${imageService}${url}`
   }
   return url
 }
@@ -192,10 +194,12 @@ export async function addCover(pdf, {
   }
 
   // 还原缩放和偏移的处理
-  const widthSafe = Math.floor(stage.width() - viewport.width - stage.getAttr('x')) * 0.8
-  const heightSafe = Math.floor(stage.height() - viewport.height - stage.getAttr('y')) * 0.8
-  const x = Math.floor((Math.random() * widthSafe) / config.scale)
-  const y = Math.floor((Math.random() * heightSafe) / config.scale)
+  // const widthSafe = Math.floor(stage.width() - viewport.width - stage.getAttr('x')) * 0.8
+  // const heightSafe = Math.floor(stage.height() - viewport.height - stage.getAttr('y')) * 0.8
+  const widthSafe = Math.floor((config.baseWidth - viewport.width) - stage.getAttr('x') / config.scale)
+  const heightSafe = Math.floor((stage.height() / config.scale - viewport.height) - stage.getAttr('y') / config.scale)
+  const x = Math.floor(Math.random() * widthSafe)
+  const y = Math.floor(Math.random() * heightSafe)
 
   const render = async (_page, _renderContext) => {
     await _page.render(_renderContext).promise
@@ -237,9 +241,9 @@ export async function addCover(pdf, {
 export async function addCoverImage(options, broadcast = false) {
   // debugger
   let layer = getLayer()
-  let stage = getStage()
   // 屏幕宽度十分之一
-  options.width = Math.floor(stage.width() / 10)
+  // options.width = Math.floor(stage.width() / 10)
+  options.width = Math.floor(config.baseWidth / 10)
   delete options.height
   let img = new Image()
   img.src = formatCoverUrl(options.imgUrl)
@@ -367,9 +371,10 @@ function getCoverViewport(page) {
   let viewport = page.getViewport({
     scale: 1,
   })
-  const stage = getStage()
+  // const stage = getStage()
   // 封面宽度，屏宽1600对应160,即画布宽度十分之一
-  const width = Math.max(Math.floor(stage.width() / 10), 200)
+  // baseWidth的十分之一,最小宽度暂定200
+  const width = Math.max(Math.floor(config.baseWidth / 10), 200)
   if (viewport.width !== width) {
     viewport = page.getViewport({
       // width * 1 / viewport.width
