@@ -128,7 +128,7 @@ Description
         </li>
       </ul>
       <ul class="group bussiness-tool">
-        <li>
+        <li v-if="$globalConf.isSpeaker">
           <Upload
             :action="common.api.upload"
             accept="application/pdf,application/msword"

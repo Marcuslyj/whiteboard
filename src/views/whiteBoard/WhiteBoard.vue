@@ -66,8 +66,9 @@ export default {
       miniMenuStyle: {},
     }
   },
-  created() {
-    this.$globalConf.mode = 'board'
+  beforeCreate() {
+    // 切换路由，重新初始化
+    this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
   },
   mounted() {
     this.$globalConf.mode = 'board'

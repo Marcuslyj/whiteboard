@@ -42,4 +42,5 @@ export default Vue.observable({
   convertCanvas: null,
   // board 和 document两种模式
   mode: 'board',
+  toggleRouter: false,
 })
