@@ -28,6 +28,7 @@ export const socketEvent = {
   updateComponentState: 'update-component-state',
   deletecomponents: 'delete-components',
   clearBoard: 'clear-board',
+  broadcast: 'broadcast',
 }
 
 /**

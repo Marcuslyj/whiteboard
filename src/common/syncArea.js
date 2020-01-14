@@ -19,7 +19,6 @@ function setLayerScale() {
     x: config.scale,
     y: config.scale,
   })
-  console.log(config.mode)
   // 首页背景层做缩放
   if (config.mode === 'board') {
     bgLayer.scale({

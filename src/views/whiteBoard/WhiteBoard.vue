@@ -36,7 +36,9 @@ Description
 import { Message } from 'view-design'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
-import { addCover, loadPdf, addCoverImage } from '@common/tool/document'
+import {
+  addCover, loadPdf, addCoverImage, init as initDocument,
+} from '@common/tool/document'
 import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
 import {
@@ -66,10 +68,6 @@ export default {
       miniMenuStyle: {},
       renderComponent: [],
     }
-  },
-  beforeCreate() {
-    // 切换路由，重新初始化
-    this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
   },
   mounted() {
     console.log('mounted')
@@ -122,6 +120,14 @@ export default {
     this.initConvertCanvas()
   },
   methods: {
+    onRefresh() {
+      this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+      // this.$nextTick(() => {
+      // // 重新初始化
+      //   console.log(this.$globalConf, this.$globalConf.documentPath)
+      //   initDoc(this.$globalConf.documentId, this.$globalConf.documentPath)
+      // })
+    },
     // 更新stage
     updateStageInfo() {
       const wrapper = document.querySelector('.board-container-wrapper')
@@ -251,7 +257,14 @@ export default {
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
       const specialType = ['baseWidth', 'speakerSize', 'stageXY']
 
+      let hasSpecial
+      // 有特殊组件
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
+      // 初始化文档
+      if (this.$globalConf.documentPath && `${this.$globalConf.documentId}`) {
+        initDocument(this.$globalConf.documentId, this.$globalConf.documentPath)
+      }
+      // 初始化画笔数据
       this.renderComponent = []
       let shape
       components.map((component) => {
@@ -260,38 +273,51 @@ export default {
           // 特殊组件
           if (specialType.includes(component.type)) {
             this.$globalConf[component.type] = component[component.type]
+            hasSpecial = true
           } else {
             this.renderComponent.push(component)
           }
         }
       })
-      this.updateStageInfo()
-      this.renderComponent.forEach((component) => {
-        if (component.type === 'remark') {
-          shape = new Konva[component.className](component.attrs)
-          remarkLayer.add(shape)
-          shape.cache()
-        } else if (component.type === 'text') {
-          shape = new Konva[component.className](component.attrs)
-          textLayer.add(shape)
-          shape.cache()
-        } else if (component.type === 'cover') {
-          shape = addCoverImage(component.attrs)
-        } else {
-          shape = new Konva.Image(component.attrs)
-          bgLayer.add(shape)
-          bgLayer.batchDraw()
-        }
-      })
 
-      // 到时测试这种绘制的渲染效果
-      bgLayer.draw()
-      textLayer.draw()
-      remarkLayer.draw()
+      if (hasSpecial) {
+        this.updateStageInfo()
+        this.renderComponent.forEach((component) => {
+          if (component.type === 'remark') {
+            shape = new Konva[component.className](component.attrs)
+            remarkLayer.add(shape)
+            shape.cache()
+          } else if (component.type === 'text') {
+            shape = new Konva[component.className](component.attrs)
+            textLayer.add(shape)
+            shape.cache()
+          } else if (component.type === 'cover') {
+            shape = addCoverImage(component.attrs)
+          } else {
+            shape = new Konva.Image(component.attrs)
+            bgLayer.add(shape)
+            bgLayer.batchDraw()
+          }
+        })
+
+        // 到时测试这种绘制的渲染效果
+        bgLayer.draw()
+        textLayer.draw()
+        remarkLayer.draw()
+      } else {
+        // 添加特殊组件
+        this.addSpecialComponent()
+        console.log('add special component')
+        // const params = {
+        //   meetingId: this.$globalConf.meetingId,
+        //   whiteboardId: this.$globalConf.whiteboardId,
+        //   documentId: this.$globalConf.documentId,
+        // }
+        // socketUtil.getComponent(params)
+      }
     },
     fortest() {
       // 下面只是为了测试,后续需要调整
-      console.log(this.$route)
       // 非主讲人
       if (this.$route.params.userId === '0') {
         this.$globalConf.isSpeaker = true
@@ -301,6 +327,7 @@ export default {
         console.log('副屏')
       }
       this.$globalConf.meetingId = this.$route.params.meetingId || 74
+
       socketUtil.initSocket()
       this.startListener()
       getSocket().on('connect', () => {
@@ -331,15 +358,30 @@ export default {
       getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
       getSocket().on(socketEvent.addComponent, this.handleAddComponent)
       getSocket().on(socketEvent.updateComponentState, this.handleUpdateComponentState)
+      getSocket().on(socketEvent.broadcast, ({ msg }) => {
+        let { event } = JSON.parse(msg)
+        switch (event) {
+        case 'refresh':
+          this.onRefresh()
+          break
+        default:
+          break
+        }
+      })
     },
     handleGetMeet(res) {
+      this.$globalConf.mode = 'board'
+      // debugger
       this.whiteboards = res.whiteboards
       if (this.whiteboards) {
         // 取出指定的board(whiteboardId+documentId)
         if (!isEmpty(res.syncAction)) {
-          const { whiteboardId, documentId } = JSON.parse(res.syncAction)
+          const { whiteboardId, documentId, documentPath } = this.$globalConf.syncAction = JSON.parse(res.syncAction)
+          this.$globalConf.mode = documentId == null ? 'board' : 'document'
+
           this.$globalConf.whiteboardId = whiteboardId
           this.$globalConf.documentId = documentId
+          this.$globalConf.documentPath = documentPath
           const params = {
             meetingId: this.$globalConf.meetingId,
             whiteboardId,
@@ -355,6 +397,7 @@ export default {
           }
           this.$globalConf.whiteboardId = this.whiteboards[0].whiteboardId
           this.$globalConf.documentId = null
+          this.$globalConf.documentPath = null
           socketUtil.getComponent(params)
         }
       } else {
@@ -367,11 +410,7 @@ export default {
             this.$globalConf.whiteboardId = ret.data.whiteboardId
             this.$globalConf.documentId = null
             // 记录主讲屏size,特殊组件
-            const el = document.querySelector('#board-container')
-
-            syncArea.addSpeakerSize({ width: el.clientWidth, height: el.clientHeight })
-            syncArea.addStageXY()
-            syncArea.addBaseWidth()
+            this.addSpecialComponent()
 
             // 记录打开的画板id，文档id， 副屏打开时可以初始化
             const params = {
@@ -388,6 +427,13 @@ export default {
           }
         })
       }
+    },
+    addSpecialComponent() {
+      const el = document.querySelector('#board-container')
+
+      syncArea.addSpeakerSize({ width: el.clientWidth, height: el.clientHeight })
+      syncArea.addStageXY()
+      syncArea.addBaseWidth()
     },
     // 收到更新信息
     handleUpdateComponent(res) {
@@ -469,6 +515,8 @@ export default {
   },
   beforeDestroy() {
     this.$globalConf.mode = ''
+    // 销毁socket
+    getSocket().close()
   },
 }
 </script>

@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <router-view v-if="$globalConf.toggleRouter"></router-view>
-    <router-view v-if="!$globalConf.toggleRouter"></router-view>
+    <router-view></router-view>
   </div>
 </template>
 

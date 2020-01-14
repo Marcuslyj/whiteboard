@@ -3,7 +3,8 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-const Whiteboard = () => import('../views/whiteBoard/WhiteBoard')
+// const Whiteboard = () => import('../views/whiteBoard/WhiteBoard')
+const Whiteboard = () => import('../views/whiteBoard/Board.vue')
 const Welcome = () => import('../views/welcome/Welcome')
 const Authority = () => import('../views/authority/Authority')
 const AuthorityLogin = () => import('../views/authority/Login')
