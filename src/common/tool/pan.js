@@ -11,6 +11,7 @@ function create(params) {
 }
 
 function destroy() {
+  if (!currentStage) return
   currentStage.draggable(false)
   currentStage.off('dragend')
 }

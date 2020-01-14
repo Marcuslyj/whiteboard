@@ -82,6 +82,7 @@ function create(params) {
 }
 
 function destroy() {
+  if (!currentStage) return
   currentStage.off('click tap')
   if (editorDom.style.display === 'block') {
     editorDom.style.display = 'none'

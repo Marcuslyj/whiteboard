@@ -36,7 +36,6 @@ function setStageXY() {
   console.log(`stage 偏移${config.stageXY.x} ${config.stageXY.y} `)
   config.board.position(config.stageXY)
   config.board.draw()
-  console.log(config.board)
 }
 
 function addSpeakerSize(size) {

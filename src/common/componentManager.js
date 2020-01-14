@@ -78,7 +78,8 @@ function clearCache() {
 
 // 撤销
 function back() {
-  if (config.cacheGraphics === 0 || positionIndex === -1) return
+  if (config.cacheGraphics.length === 0 || positionIndex === -1) return
+  console.log(`positionIndex:${positionIndex}`)
   const cache = config.cacheGraphics[positionIndex]
   switch (cache.opeType) {
   case 'addComponent':
@@ -103,6 +104,7 @@ function back() {
 function goAhead() {
   if (positionIndex + 1 >= config.cacheGraphics.length) return
   const cache = config.cacheGraphics[++positionIndex]
+  console.log(`positionIndex:${positionIndex}`)
   switch (cache.opeType) {
   case 'addComponent':
     updateVisible(cache.graphic.attrs.id, true)
@@ -113,7 +115,7 @@ function goAhead() {
     updateComponent(cache.newGraphic, 0, cache.type, false)
     break
   case 'updateComponentState':
-    updateVisible(cache.graphic.attrs.id, cache.state)
+    updateVisible(cache.graphic.attrs.id, cache.state === 1)
     updateComponentState(cache.graphic.attrs.id, 0, cache.state, false)
     break
   default:

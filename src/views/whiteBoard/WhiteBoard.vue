@@ -64,6 +64,7 @@ export default {
       enable: false,
       miniMenuType: '',
       miniMenuStyle: {},
+      renderComponent: [],
     }
   },
   beforeCreate() {
@@ -71,6 +72,7 @@ export default {
     this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
   },
   mounted() {
+    console.log('mounted')
     this.$globalConf.mode = 'board'
     // 创建stage
     const el = document.querySelector('.board-container-wrapper')
@@ -115,7 +117,6 @@ export default {
       const { miniMenuType = '', miniMenuStyle } = params
       this.miniMenuType = miniMenuType
       this.miniMenuStyle = miniMenuStyle
-      console.log(this.miniMenuStyle)
     })
     this.fortest()
     this.initConvertCanvas()
@@ -397,11 +398,12 @@ export default {
         this.$globalConf.scale = this.stage.getAttr('width') / component[sComponentId.baseWidth]
         syncArea.setLayerScale()
       } else if (component.type === sComponentId.speakerSize) {
-        //
+        console.log('speakerSize')
+        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
       } else if (component.type === sComponentId.stageXY) {
         this.$globalConf.stageXY = {
-          x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
-          y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+          x: component.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
+          y: component.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
         }
         syncArea.setStageXY()
       } else if (component.type === 'cover') {
