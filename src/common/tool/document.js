@@ -9,6 +9,7 @@ import bus from '@common/eventBus'
 import { debounce } from 'throttle-debounce'
 import image from '@common/tool/image'
 import Vue from 'vue'
+import syncArea from '@common/syncArea'
 import cManager from '../componentManager'
 import socketUtil from '@/common/socketUtil'
 
@@ -32,6 +33,8 @@ const getConvertCanvas = () => config.convertCanvas
 const getLayer = () => config.layerManager[config.layerIds.BG_LAYER]
 // const getDocumentId = () => config.documentId
 const getDocumentPath = () => config.documentPath
+let timerScroll
+
 /**
  * 防抖
  */
@@ -273,19 +276,6 @@ export async function addCoverImage(options, broadcast = false) {
       // 获取白板批注
 
       // 同步动作
-      // // 1.syncAction， 设置documentId documentPath
-      // let syncAction = config.syncAction || {}
-      // syncAction.documentId = konvaImage.getAttr('documentId')
-      // syncAction.documentPath = konvaImage.getAttr('documentPath')
-
-      // socketUtil.syncAction({
-      //   meetingId: config.meetingId,
-      //   syncAction: JSON.stringify(syncAction),
-      // }, function (res) {
-      //   console.log(res)
-      // })
-      // // 2.通知副屏重新初始化
-      // socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
       // 1.设置全局信息
       let syncAction = config.syncAction || {}
       syncAction.documentId = konvaImage.getAttr('documentId')
@@ -395,10 +385,25 @@ export function enableScroll(enable = true) {
       }
       // 加载页面
       renderPages()
+
+      // 触发副屏滚动
+      broadcastScroll()
     })
   } else {
     stage.off('wheel dragmove')
   }
+}
+
+function broadcastScroll() {
+  clearTimeout(timerScroll)
+  timerScroll = setTimeout(() => {
+    let stage = getStage()
+    let stageXY = {
+      x: stage.getAttr('x') / config.scale,
+      y: stage.getAttr('y') / config.scale,
+    }
+    syncArea.updateStageXY(stageXY)
+  }, 300)
 }
 
 /**
