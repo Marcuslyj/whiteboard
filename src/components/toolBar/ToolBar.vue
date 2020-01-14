@@ -146,12 +146,12 @@ Description
         <li><i class="iconfont icon-clip"></i></li>
       </ul>
       <ul class="group other-tool">
-        <li><i class="iconfont icon-houtui"></i></li>
-        <li><i class="iconfont icon-qianjin"></i></li>
+        <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
+        <li @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
       </ul>
     </div>
     <div class="right part">
-      <span><i class="iconfont icon-fullscreen"></i></span>
+      <span @click="handleFullscreen"><i :class="['iconfont',`icon-${isfullscreen?'normalscreen':'fullscreen'}`]"></i></span>
     </div>
   </div>
 </template>
@@ -160,6 +160,8 @@ Description
 import { Upload, Message } from 'view-design'
 import common from '@common/common'
 import Vue from 'vue'
+import cManager from '@common/componentManager'
+import { fullscreen, exitFullscreen } from '@common/utils'
 
 export default {
   props: {
@@ -179,6 +181,7 @@ export default {
   data() {
     return {
       isActive: false,
+      isfullscreen: false,
       common,
       // 笔
       pencilColorArr: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
@@ -396,6 +399,12 @@ export default {
         layer,
       })
     },
+    back() {
+      cManager.back()
+    },
+    goAhead() {
+      cManager.goAhead()
+    },
     setLiStyle(ref) {
       const el = document.querySelector('.center .activeTool')
       el && el.classList.remove('activeTool')
@@ -472,6 +481,14 @@ export default {
     },
     handleBodyClick() {
       this.boxName = ''
+    },
+    handleFullscreen() {
+      this.isfullscreen = !this.isfullscreen
+      if (this.isfullscreen) {
+        fullscreen()
+      } else {
+        exitFullscreen()
+      }
     },
   },
 }

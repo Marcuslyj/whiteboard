@@ -22,7 +22,7 @@ export default Vue.observable({
     REMARK_LAYER: 'REMARK_LAYER',
   },
   layerManager: {},
-  // 组件管理，用于撤退还原
+  // 缓存队列管理，用于撤销还原,直接存toObject() 的数据,所以不用component 命名
   cacheGraphics: [],
   activeTool: 'pen',
   pencil: {
