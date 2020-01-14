@@ -302,17 +302,16 @@ export default {
       } else {
         // 添加特殊组件
         this.addSpecialComponent()
-        const params = {
-          meetingId: this.$globalConf.meetingId,
-          whiteboardId: this.$globalConf.whiteboardId,
-          documentId: this.$globalConf.documentId,
-        }
-        socketUtil.getComponent(params)
+        // const params = {
+        //   meetingId: this.$globalConf.meetingId,
+        //   whiteboardId: this.$globalConf.whiteboardId,
+        //   documentId: this.$globalConf.documentId,
+        // }
+        // socketUtil.getComponent(params)
       }
     },
     fortest() {
       // 下面只是为了测试,后续需要调整
-      console.log(this.$route)
       // 非主讲人
       if (this.$route.params.userId === '0') {
         this.$globalConf.isSpeaker = true
@@ -508,6 +507,8 @@ export default {
   },
   beforeDestroy() {
     this.$globalConf.mode = ''
+    // 销毁socket
+    getSocket().close()
   },
 }
 </script>
