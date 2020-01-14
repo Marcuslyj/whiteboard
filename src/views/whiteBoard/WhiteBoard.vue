@@ -13,7 +13,7 @@ Description
     <!-- 用于工具条menu 关闭遮罩 -->
     <div class="tool-box-mask" v-if="tbMask" @touchstart="clickTbMask" @mousedown="clickTbMask"></div>
     <!-- 绘制时的工具栏 -->
-    <MiniMenu class="mini-menu" :type="miniMenuType" :miniStyle="miniMenuStyle"></MiniMenu>
+    <MiniMenu class="mini-menu" :type="miniMenuType" :miniStyle="miniMenuStyle" :textColor="textColor"></MiniMenu>
     </section>
     <div class="tool-wrapper">
       <tool-bar
@@ -21,6 +21,7 @@ Description
         class="tool"
         @uploadSuccess="uploadSuccess"
         @clearBoard="clearBoard"
+        @gotoBoard="gotoBoard"
         :enable="enable"
       ></tool-bar>
     </div>
@@ -66,6 +67,7 @@ export default {
       enable: false,
       miniMenuType: '',
       miniMenuStyle: {},
+      textColor: null,
       renderComponent: [],
     }
   },
@@ -112,9 +114,10 @@ export default {
       this.tbMask = visible
     })
     Vue.eventBus.$on('setMiniMenu', (params) => {
-      const { miniMenuType = '', miniMenuStyle } = params
+      const { miniMenuType = '', miniMenuStyle, textColor } = params
       this.miniMenuType = miniMenuType
       this.miniMenuStyle = miniMenuStyle
+      this.textColor = textColor
     })
     this.fortest()
     this.initConvertCanvas()
@@ -511,6 +514,17 @@ export default {
         componentType,
       }
       socketUtil.clearBoard(params)
+    },
+    gotoBoard() {
+      const params = {
+        meetingId: this.$globalConf.meetingId,
+        syncAction: JSON.stringify({
+          whiteboardId: this.$globalConf.whiteboardId,
+          documentId: null,
+        }),
+      }
+      socketUtil.syncAction(params)
+      this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
     },
   },
   beforeDestroy() {

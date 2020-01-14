@@ -28,10 +28,10 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
                 </ul>
              </div>
         </Poptip>
-        <div class="menu-item">
+        <div class="menu-item" @click="del">
             <i class="iconfont icon-menu-delete"></i>
         </div>
-        <div class="menu-item">
+        <div class="menu-item" @click="copy">
             <i class="iconfont icon-copy"></i>
         </div>
     </Row>
@@ -58,16 +58,22 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
 
 <script>
 import config from '@common/config'
+import textTool from '@common/tool/text'
 
 export default {
-  props: ['type', 'miniStyle'],
+  props: ['type', 'miniStyle', 'textColor'],
   data() {
     return {
+      activeColor: '',
       menuname: '',
-      activeColor: '#333333',
       colors: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
       fontSizes: [8, 10, 12, 16, 22],
     }
+  },
+  watch: {
+    textColor(val) {
+      this.activeColor = val || '#333333'
+    },
   },
   methods: {
     changeColor(color) {
@@ -80,6 +86,12 @@ export default {
       config.text.fontSize = size
       document.querySelector('.editor-textarea').style.fontSize = `${size}px`
       document.querySelector('.editor-textarea').focus()
+    },
+    copy() {
+      textTool.copy()
+    },
+    del() {
+      textTool.del()
     },
   },
 }
