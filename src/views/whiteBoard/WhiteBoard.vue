@@ -124,12 +124,9 @@ export default {
   },
   methods: {
     onRefresh() {
-      this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      // this.$nextTick(() => {
-      // // 重新初始化
-      //   console.log(this.$globalConf, this.$globalConf.documentPath)
-      //   initDoc(this.$globalConf.documentId, this.$globalConf.documentPath)
-      // })
+      setTimeout(() => {
+        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+      }, 300)
     },
     // 更新stage
     updateStageInfo() {

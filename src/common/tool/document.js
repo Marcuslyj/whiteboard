@@ -296,6 +296,8 @@ export async function addCoverImage(options, broadcast = false) {
       })
       // 2.主讲先跳转,添加必要特殊组件
       config.toggleRouter = !config.toggleRouter
+      // 3.广播
+      socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
     })
     konvaImage.on('dragend', () => {
       let params = {
