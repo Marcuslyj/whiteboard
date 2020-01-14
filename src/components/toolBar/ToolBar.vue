@@ -131,8 +131,8 @@ Description
         <li v-if="$globalConf.isSpeaker">
           <Upload
             :action="common.api.upload"
-            accept="application/pdf,application/msword"
-            :format="['pdf','doc','docx']"
+            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            :format="['pdf','doc','docx','ppt','pptx']"
             :before-upload="beforeUpload"
             :on-success="uploadSuccess"
             :data="{ fbId: common.fbId.upload }"

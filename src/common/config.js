@@ -43,4 +43,5 @@ export default Vue.observable({
   // board 和 document两种模式
   mode: 'board',
   toggleRouter: false,
+  syncAction: null,
 })

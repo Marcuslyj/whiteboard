@@ -57,12 +57,11 @@ function getElWrapper() {
 export function init(documentId, documentPath) {
   // stage y
   let stage = getStage()
-  stage.setAttrs({ y: 0 })
+  stage.setAttrs({ x: 0 })
 
   config.documentId = documentId
   config.documentPath = documentPath
   config.mode = 'document'
-
 
   // 初始化前清掉相关数据
   destroy()
@@ -81,7 +80,6 @@ export function init(documentId, documentPath) {
       return config.activeTool
     },
     function () {
-      let stage = getStage()
       if (stage) {
         stage.setAttrs({
           draggable: config.activeTool === toolCanDrag,
@@ -272,9 +270,24 @@ export async function addCoverImage(options, broadcast = false) {
     //   layer.draw()
     // })
     konvaImage.on('click tap', () => {
-      // 传文档id
-      init(options.documentId, options.documentPath)
       // 获取白板批注
+
+      // 同步动作
+      // // 1.syncAction， 设置documentId documentPath
+      // let syncAction = config.syncAction || {}
+      // syncAction.documentId = konvaImage.getAttr('documentId')
+      // syncAction.documentPath = konvaImage.getAttr('documentPath')
+
+      // socketUtil.syncAction({
+      //   meetingId: config.meetingId,
+      //   syncAction: JSON.stringify(syncAction),
+      // }, function (res) {
+      //   console.log(res)
+      // })
+      // // 2.通知副屏重新初始化
+      // socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
+      // 3.主讲跳转
+      config.toggleRouter = !config.toggleRouter
     })
     konvaImage.on('dragend', () => {
       let params = {

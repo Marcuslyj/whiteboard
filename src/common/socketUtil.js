@@ -72,6 +72,11 @@ function clearBoard(params) {
   socket.emit(socketEvent.clearBoard, params)
 }
 
+// 单纯广播
+function broadcast(params) {
+  socket.emit(socketEvent.broadcast, params)
+}
+
 
 export default {
   getSocket,
@@ -86,4 +91,5 @@ export default {
   updateComponentState,
   deleteComponents,
   clearBoard,
+  broadcast,
 }
