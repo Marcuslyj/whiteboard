@@ -124,12 +124,9 @@ export default {
   },
   methods: {
     onRefresh() {
-      this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      // this.$nextTick(() => {
-      // // 重新初始化
-      //   console.log(this.$globalConf, this.$globalConf.documentPath)
-      //   initDoc(this.$globalConf.documentId, this.$globalConf.documentPath)
-      // })
+      setTimeout(() => {
+        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+      }, 300)
     },
     // 更新stage
     updateStageInfo() {
@@ -451,8 +448,10 @@ export default {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
       } else if (component.type === sComponentId.stageXY) {
         this.$globalConf.stageXY = {
-          x: component.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
-          y: component.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+          // x: component.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
+          // y: component.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+          x: component.stageXY.x * this.$globalConf.scale,
+          y: component.stageXY.y * this.$globalConf.scale,
         }
         syncArea.setStageXY()
       } else if (component.type === 'cover') {
