@@ -5,7 +5,7 @@ Description
 @version 1.0.0
 -->
 <template>
-  <div class="toolbar"  @mousedown.stop="" @touchstar.stop="">
+  <div class="toolbar"  @mousedown.stop="" @touchstart.stop="">
     <!-- 工具条能否起作用的遮罩 -->
     <div
       class="mask"
@@ -151,6 +151,7 @@ Description
       </ul>
     </div>
     <div class="right part">
+      <span v-show="$globalConf.mode==='document'" @click="gotoBoard"><i class="iconfont icon-shangyiye1"></i></span>
       <span @click="handleFullscreen"><i :class="['iconfont',`icon-${isfullscreen?'normalscreen':'fullscreen'}`]"></i></span>
     </div>
   </div>
@@ -386,7 +387,7 @@ export default {
     },
     clickTextTool() {
       this.setLiStyle('text-tool')
-      this.setBoxName('')
+      this.setBoxName('text')
       const stage = this.$globalConf.board
       const layer = this.$globalConf.layerManager[
         this.$globalConf.layerIds.TEXT_LAYER
@@ -481,6 +482,9 @@ export default {
     },
     handleBodyClick() {
       this.boxName = ''
+    },
+    gotoBoard() {
+      this.$emit('gotoBoard')
     },
     handleFullscreen() {
       this.isfullscreen = !this.isfullscreen

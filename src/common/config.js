@@ -27,7 +27,7 @@ export default Vue.observable({
   activeTool: 'pen',
   pencil: {
     activePencilTool: 'pen',
-    color: '#000',
+    color: '#333333',
     lineWidth: 14,
   },
   eraser: {
@@ -36,7 +36,7 @@ export default Vue.observable({
     color: '#fff',
   },
   text: {
-    color: '#f00',
+    color: '#333333',
     fontSize: 14,
   },
   convertCanvas: null,
