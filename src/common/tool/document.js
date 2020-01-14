@@ -286,7 +286,15 @@ export async function addCoverImage(options, broadcast = false) {
       // })
       // // 2.通知副屏重新初始化
       // socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
-      // 3.主讲跳转
+      // 1.设置全局信息
+      let syncAction = config.syncAction || {}
+      syncAction.documentId = konvaImage.getAttr('documentId')
+      syncAction.documentPath = konvaImage.getAttr('documentPath')
+      socketUtil.syncAction({
+        meetingId: config.meetingId,
+        syncAction: JSON.stringify(syncAction),
+      })
+      // 2.主讲先跳转,添加必要特殊组件
       config.toggleRouter = !config.toggleRouter
     })
     konvaImage.on('dragend', () => {

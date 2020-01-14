@@ -37,7 +37,7 @@ import { Message } from 'view-design'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
 import {
-  addCover, loadPdf, addCoverImage, init as initDoc,
+  addCover, loadPdf, addCoverImage, init as initDocument,
 } from '@common/tool/document'
 import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
@@ -260,6 +260,11 @@ export default {
       let hasSpecial
       // 有特殊组件
       cManager.clearLayer(bgLayer, textLayer, remarkLayer)
+      // 初始化文档
+      if (this.$globalConf.documentPath && `${this.$globalConf.documentId}`) {
+        initDocument(this.$globalConf.documentId, this.$globalConf.documentPath)
+      }
+      // 初始化画笔数据
       this.renderComponent = []
       let shape
       components.map((component) => {
@@ -302,6 +307,7 @@ export default {
       } else {
         // 添加特殊组件
         this.addSpecialComponent()
+        console.log('add special component')
         // const params = {
         //   meetingId: this.$globalConf.meetingId,
         //   whiteboardId: this.$globalConf.whiteboardId,
@@ -370,11 +376,12 @@ export default {
       if (this.whiteboards) {
         // 取出指定的board(whiteboardId+documentId)
         if (!isEmpty(res.syncAction)) {
-          const { whiteboardId, documentId } = this.$globalConf.syncAction = JSON.parse(res.syncAction)
+          const { whiteboardId, documentId, documentPath } = this.$globalConf.syncAction = JSON.parse(res.syncAction)
           this.$globalConf.mode = documentId == null ? 'board' : 'document'
 
           this.$globalConf.whiteboardId = whiteboardId
           this.$globalConf.documentId = documentId
+          this.$globalConf.documentPath = documentPath
           const params = {
             meetingId: this.$globalConf.meetingId,
             whiteboardId,
@@ -390,6 +397,7 @@ export default {
           }
           this.$globalConf.whiteboardId = this.whiteboards[0].whiteboardId
           this.$globalConf.documentId = null
+          this.$globalConf.documentPath = null
           socketUtil.getComponent(params)
         }
       } else {
