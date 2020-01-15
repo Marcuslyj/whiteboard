@@ -283,6 +283,7 @@ export default {
             state: 0,
             componentTypes: [0],
           }
+          this.$globalConf.hasValidComponent = this.renderComponent.length > 0
           // 删除掉之前的软删除（此时不再需要撤回了）
           socketUtil.deleteComponentsTypesState(formateComponent(params))
 

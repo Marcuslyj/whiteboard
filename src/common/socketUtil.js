@@ -1,5 +1,6 @@
 //  eslint-disable-next-line
 import io from 'socket.io-client'
+import Vue from 'vue'
 import { socketUrl, socketEvent } from './common'
 
 let socket
@@ -11,11 +12,12 @@ function initSocket() {
     reconnectionAttempts: 2, // 重连次数
     transports: ['websocket'],
   })
-  socket.on('connect_error', (error) => {
-    console.error(`连接错误${error}`)
-  })
   socket.on('reconnect_failed', () => {
-    console.error('重连失败')
+    Vue.$Message.info({
+      content: '连接失败',
+      duration: 10,
+      closable: true,
+    })
   })
 }
 

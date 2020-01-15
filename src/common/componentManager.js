@@ -22,7 +22,7 @@ let positionIndex = -1
  */
 function addComponent(graphic, componentType = 0, type = 'remark') {
   let params
-  if (config.baseWidth !== config.board.getAttr('width')) {
+  if (!config.hasValidComponent) {
     syncArea.updateBaseWidth(config.board.getAttr('width'))
   }
   params = {
