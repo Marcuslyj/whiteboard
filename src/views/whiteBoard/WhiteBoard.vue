@@ -373,7 +373,9 @@ export default {
         let { event } = JSON.parse(msg)
         switch (event) {
         case 'refresh':
-          this.onRefresh()
+          if (!this.$globalConf.isSpeaker) {
+            this.onRefresh()
+          }
           break
         default:
           break
