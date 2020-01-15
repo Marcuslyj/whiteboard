@@ -23,7 +23,7 @@ import socketUtil from '@/common/socketUtil'
  */
 let docOpened
 let pageSigned
-let rendering = false
+// let rendering = false
 let showCount = 1
 let wacherDrag
 let toolCanDrag = 'pan'
@@ -126,7 +126,7 @@ export function destroy({ all = false } = {}) {
   if (docOpened) {
     let stage = getStage()
     docOpened = pageSigned = elWrapper = null
-    rendering = false
+    // rendering = false
     showCount = 1
 
     stage.off('wheel dragmove')
@@ -455,8 +455,8 @@ async function getViewport() {
 
 // 按需添加页面
 export function renderPages() {
-  if (rendering) return
-  rendering = true
+  // if (rendering) return
+  // rendering = true
 
   let {
     pdf, viewport,
@@ -492,7 +492,7 @@ async function renderPage({
   from, to, first,
 }) {
   if (from > to) {
-    rendering = false
+    // rendering = false
     return
   }
   if (pageSigned[from]) {
@@ -540,7 +540,7 @@ async function renderPage({
       layer.draw()
 
       from++
-      renderPage({ renderContext, from, to })
+      renderPage({ from, to })
 
       imgUrl = img = pdf = viewport = renderContext = null
     }

@@ -31,7 +31,7 @@ Description
       class="convertCanvas"
     ></div> -->
     <div class="convertCanvas-wrapper">
-      <div v-for="(item,index) in Array.from({length:3})" :key="index" ref="convertCanvas" class="convertCanvas"></div>
+      <div v-for="(item,index) in Array.from({length:5})" :key="index" ref="convertCanvas" class="convertCanvas"></div>
     </div>
   </div>
 </template>
@@ -136,6 +136,9 @@ export default {
             x: 0,
             y: 0,
           }
+          // 更新基准宽度和基准stage xy
+          syncArea.updateBaseWidth(this.stage.getAttr('width'))
+          syncArea.updateStageXY(this.$globalConf.stageXY)
         } else {
           this.$globalConf.scale = this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
           this.$globalConf.stageXY = {
@@ -167,18 +170,18 @@ export default {
             height: wrapper.clientHeight,
           })
         }
-        if (this.renderComponent.length === 0) {
-          this.$globalConf.scale = 1
-          this.$globalConf.stageXY = {
-            x: 0,
-            y: 0,
-          }
-        } else {
-          this.$globalConf.scale = this.stage.getAttr('width') / this.$globalConf.baseWidth
-          this.$globalConf.stageXY = {
-            x: this.$globalConf.stageXY.x * this.$globalConf.scale,
-            y: this.$globalConf.stageXY.y * this.$globalConf.scale,
-          }
+        // if (this.renderComponent.length === 0) {
+        //   this.$globalConf.scale = 1
+        //   this.$globalConf.stageXY = {
+        //     x: 0,
+        //     y: 0,
+        //   }
+        // } else {
+        this.$globalConf.scale = this.stage.getAttr('width') / this.$globalConf.baseWidth
+        this.$globalConf.stageXY = {
+          x: this.$globalConf.stageXY.x * this.$globalConf.scale,
+          y: this.$globalConf.stageXY.y * this.$globalConf.scale,
+          // }
         }
       }
       syncArea.setLayerScale()
@@ -272,7 +275,6 @@ export default {
           }
         }
       })
-      socketUtil
       if (hasSpecial) {
         this.updateStageInfo()
         // 主讲屏
@@ -370,9 +372,7 @@ export default {
         let { event } = JSON.parse(msg)
         switch (event) {
         case 'refresh':
-          if (!this.$globalConf.isSpeaker) {
-            this.onRefresh()
-          }
+          if (!this.$globalConf.isSpeaker) this.onRefresh()
           break
         default:
           break
