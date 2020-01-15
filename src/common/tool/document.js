@@ -39,9 +39,9 @@ let timerScroll
  * 防抖
  */
 let resizeDebounce = function () {
-  if (config.mode !== 'document') return
-  getElWrapper().classList.add('invisible')
-  _resizeDebounce()
+  // if (config.mode !== 'document') return
+  // getElWrapper().classList.add('invisible')
+  // _resizeDebounce()
 }
 let _resizeDebounce = debounce(500, () => {
   onResize()
