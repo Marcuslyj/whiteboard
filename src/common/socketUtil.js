@@ -18,6 +18,13 @@ function initSocket() {
   })
   socket.on('reconnect_failed', () => {
     Vue.prototype.$Message.error({
+      content: '重连失败',
+      duration: 10,
+      closable: true,
+    })
+  })
+  socket.on('connect_error', () => {
+    Vue.prototype.$Message.error({
       content: '连接失败',
       duration: 10,
       closable: true,

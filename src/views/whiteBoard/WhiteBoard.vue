@@ -275,7 +275,6 @@ export default {
       })
       socketUtil
       if (hasSpecial) {
-        console.log('updateS')
         this.updateStageInfo()
         // 主讲屏
         if (this.$globalConf.isSpeaker) {
