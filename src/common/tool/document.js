@@ -211,8 +211,9 @@ export async function addCover(pdf, {
   }
 
   // 还原缩放和偏移的处理
-  const widthSafe = Math.floor((config.baseWidth - viewport.width) - stage.getAttr('x') / config.scale)
-  const heightSafe = Math.floor((stage.height() / config.scale - viewport.height) - stage.getAttr('y') / config.scale)
+  // 封面宽度是baseWidth/10
+  const widthSafe = Math.floor(0.9 * config.baseWidth - stage.getAttr('x') / config.scale)
+  const heightSafe = Math.floor((stage.height() / config.scale - (0.1 * config.baseWidth * viewport.height) / viewport.width) - stage.getAttr('y') / config.scale)
   const x = Math.floor(Math.random() * widthSafe)
   const y = Math.floor(Math.random() * heightSafe)
 
@@ -422,7 +423,7 @@ function getCoverViewport(page) {
   })
   // const stage = getStage()
   // 封面宽度，屏宽1600对应160,即画布宽度十分之一
-  // baseWidth的十分之一,最小宽度暂定200
+  // baseWidth的十分之一,最小宽度暂定300
   const width = Math.max(Math.floor(config.baseWidth / 10), 300)
   if (viewport.width !== width) {
     viewport = page.getViewport({
