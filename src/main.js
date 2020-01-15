@@ -3,7 +3,9 @@ import 'view-design/dist/styles/iview.css'
 import './styles/index.scss'
 import '@common/konvaPolyfill'
 
-import { Modal, Poptip, Row } from 'view-design'
+import {
+  Modal, Poptip, Row, Message,
+} from 'view-design'
 
 import base from '@common/base'
 import globalConf from '@/common/config'
@@ -16,7 +18,9 @@ Vue.config.productionTip = false
 Vue.component('Modal', Modal)
 Vue.component('Poptip', Poptip)
 Vue.component('Row', Row)
+Vue.component('Message', Message)
 Vue.prototype.$Modal = Modal
+Vue.prototype.$Message = Message
 
 Vue.use(base)
 

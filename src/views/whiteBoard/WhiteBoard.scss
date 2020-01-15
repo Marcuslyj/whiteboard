@@ -51,13 +51,20 @@
     margin: 10px;
     z-index:12;
   }
-  .convertCanvas {
-    width: 10px;
-    height: 10px;
-    overflow: hidden;
+  .convertCanvas-wrapper{
     position: absolute;
     z-index: -10;
     top: 0;
     left: 0;
+    overflow: hidden;
+    .convertCanvas {
+      width: 10px;
+      height: 10px;
+      overflow: hidden;
+      position: absolute;
+      z-index: -10;
+      top: 0;
+      left: 0;
+    }
   }
 }
