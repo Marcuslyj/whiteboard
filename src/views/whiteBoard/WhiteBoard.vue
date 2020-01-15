@@ -25,11 +25,14 @@ Description
         :enable="enable"
       ></tool-bar>
     </div>
-    <!-- 用于转换图片 -->
-    <div
+    <!-- 用于转换图片,创建多个转换板，防止同时操作一个 -->
+    <!-- <div
       ref="convertCanvas"
       class="convertCanvas"
-    ></div>
+    ></div> -->
+    <div class="convertCanvas-wrapper">
+      <div v-for="(item,index) in Array.from({length:3})" :key="index" ref="convertCanvas" class="convertCanvas"></div>
+    </div>
   </div>
 </template>
 
@@ -201,14 +204,15 @@ export default {
     },
     // 初始化转换画板
     initConvertCanvas() {
-      if (this.$globalConf.convertCanvas) {
-        return
-      }
-      this.$globalConf.convertCanvas = new Konva.Stage({
-        container: this.$refs.convertCanvas,
+      this.$globalConf.convertCanvas = []
+      this.$refs.convertCanvas.map((canvas, index) => {
+        let convertCanvas = new Konva.Stage({
+          container: this.$refs.convertCanvas[index],
+        })
+        convertCanvas.layer = new Konva.Layer()
+        convertCanvas.add(convertCanvas.layer)
+        this.$globalConf.convertCanvas.push(convertCanvas)
       })
-      this.$globalConf.convertCanvas.layer = new Konva.Layer()
-      this.$globalConf.convertCanvas.add(this.$globalConf.convertCanvas.layer)
     },
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
@@ -449,8 +453,6 @@ export default {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
       } else if (component.type === sComponentId.stageXY) {
         this.$globalConf.stageXY = {
-          // x: component.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
-          // y: component.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
           x: component.stageXY.x * this.$globalConf.scale,
           y: component.stageXY.y * this.$globalConf.scale,
         }
