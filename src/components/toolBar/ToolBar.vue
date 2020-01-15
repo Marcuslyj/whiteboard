@@ -9,7 +9,7 @@ Description
     <!-- 工具条能否起作用的遮罩 -->
     <div
       class="mask"
-      v-show="!enable"
+      v-show="!$globalConf.isSpeaker"
     ></div>
     <div
       class="left part"
@@ -168,10 +168,6 @@ export default {
   props: {
     // 简单模式，没有左边的工具
     isHome: {
-      type: Boolean,
-      default: true,
-    },
-    enable: {
       type: Boolean,
       default: true,
     },
