@@ -43,7 +43,7 @@ let resizeDebounce = function () {
   getElWrapper().classList.add('invisible')
   _resizeDebounce()
 }
-let _resizeDebounce = debounce(300, () => {
+let _resizeDebounce = debounce(500, () => {
   onResize()
 })
 
@@ -85,7 +85,8 @@ export function init(documentId, documentPath) {
     function () {
       if (stage) {
         stage.setAttrs({
-          draggable: config.activeTool === toolCanDrag,
+          // 可拖动：是主讲且工具是'pan'
+          draggable: config.activeTool === toolCanDrag && config.isSpeaker,
         })
       }
     },
@@ -356,7 +357,7 @@ export function enableScroll(enable = true) {
     stage.setAttrs({
       // select tool fired，stage set draggable true
       // draggable: this.toolConfig.currentTool === 'select',
-      draggable: toolCanDrag === config.activeTool,
+      draggable: toolCanDrag === config.activeTool && config.isSpeaker,
       dragBoundFunc(pos) {
         return {
           x: this.absolutePosition().x,
@@ -365,30 +366,32 @@ export function enableScroll(enable = true) {
       },
     })
 
+    if (config.isSpeaker) {
     // 滚轮滚动
-    stage.on('wheel dragmove', (ev) => {
-      let { type } = ev
-      if (type === 'wheel') {
-        let { deltaY } = ev.evt
-        // 火狐浏览器兼容
-        deltaY *= firefox ? -30 : -1
+      stage.on('wheel dragmove', (ev) => {
+        let { type } = ev
+        if (type === 'wheel') {
+          let { deltaY } = ev.evt
+          // 火狐浏览器兼容
+          deltaY *= firefox ? -30 : -1
 
-        let y = stage.getAttr('y') + deltaY
-        if (y > maxScrollY) {
-          y = maxScrollY
-        } else if (y < minScrollY) {
-          y = minScrollY
+          let y = stage.getAttr('y') + deltaY
+          if (y > maxScrollY) {
+            y = maxScrollY
+          } else if (y < minScrollY) {
+            y = minScrollY
+          }
+          stage.setAttrs({ y })
+          // 绘制
+          stage.draw()
         }
-        stage.setAttrs({ y })
-        // 绘制
-        stage.draw()
-      }
-      // 加载页面
-      renderPages()
+        // 加载页面
+        renderPages()
 
-      // 触发副屏滚动
-      broadcastScroll()
-    })
+        // 触发副屏滚动
+        broadcastScroll()
+      })
+    }
   } else {
     stage.off('wheel dragmove')
   }
@@ -447,7 +450,7 @@ async function getViewport() {
 }
 
 // 按需添加页面
-function renderPages() {
+export function renderPages() {
   if (rendering) return
   rendering = true
 

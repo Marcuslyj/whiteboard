@@ -38,7 +38,7 @@ import { Message } from 'view-design'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
 import {
-  addCover, loadPdf, addCoverImage, init as initDocument,
+  addCover, loadPdf, addCoverImage, init as initDocument, renderPages,
 } from '@common/tool/document'
 import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
@@ -124,7 +124,8 @@ export default {
   },
   methods: {
     onRefresh() {
-      setTimeout(() => {
+      clearTimeout(this.timerRefresh)
+      this.timerRefresh = setTimeout(() => {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
       }, 300)
     },
@@ -269,7 +270,7 @@ export default {
       let shape
       components.map((component) => {
         if (component) {
-          component = JSON.parse(component)
+          component = JSON.parse(component.component)
           // 特殊组件
           if (specialType.includes(component.type)) {
             this.$globalConf[component.type] = component[component.type]
@@ -454,6 +455,11 @@ export default {
           y: component.stageXY.y * this.$globalConf.scale,
         }
         syncArea.setStageXY()
+        // 文档滚动
+        if (this.$globalConf.mode === 'document') {
+          clearTimeout(this.timerRenderPages)
+          this.timerRenderPages = setTimeout(renderPages, 300)
+        }
       } else if (component.type === 'cover') {
         let node = this.stage.find(`#${component.attrs.id}`)[0]
         if (node) node.setAttrs({ x: component.attrs.x, y: component.attrs.y })
