@@ -38,7 +38,7 @@ import { Message } from 'view-design'
 import Konva from 'konva'
 import { initTool } from '@common/tool'
 import {
-  addCover, loadPdf, addCoverImage, init as initDocument,
+  addCover, loadPdf, addCoverImage, init as initDocument, renderPages,
 } from '@common/tool/document'
 import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
@@ -109,19 +109,12 @@ export default {
   },
   methods: {
     onRefresh() {
-<<<<<<< Updated upstream
       setTimeout(() => {
-        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 300)
-=======
-      debugger
-      this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      // this.$nextTick(() => {
-      // // 重新初始化
-      //   console.log(this.$globalConf, this.$globalConf.documentPath)
-      //   initDoc(this.$globalConf.documentId, this.$globalConf.documentPath)
-      // })
->>>>>>> Stashed changes
+        clearTimeout(this.timerRefresh)
+        this.timerRefresh = setTimeout(() => {
+          this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+        }, 300)
+      })
     },
     // 更新stage
     updateStageInfo() {
@@ -468,6 +461,11 @@ export default {
           y: component.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
         }
         syncArea.setStageXY()
+        // 文档滚动
+        if (this.$globalConf.mode === 'document') {
+          clearTimeout(this.timerRenderPages)
+          this.timerRenderPages = setTimeout(renderPages, 300)
+        }
       } else if (component.type === 'cover') {
         let node = this.stage.find(`#${component.attrs.id}`)[0]
         if (node) node.setAttrs({ x: component.attrs.x, y: component.attrs.y })

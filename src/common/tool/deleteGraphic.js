@@ -70,7 +70,6 @@ function create(params) {
     })
     label.on('click tap', (event) => {
       event.cancelBubble = true
-      evt.target.visible(false)
       cManager.updateComponentState(evt.target.getAttr('id'), 0, 0)
       label.destroy()
       tr.destroy()
