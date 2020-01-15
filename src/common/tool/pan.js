@@ -1,4 +1,5 @@
 import syncArea from '@common/syncArea'
+import config from '../config'
 
 let currentStage
 function create(params) {
@@ -6,7 +7,8 @@ function create(params) {
   currentStage = stage
   stage.draggable(true)
   stage.on('dragend', () => {
-    syncArea.updateStageXY(stage.absolutePosition())
+    const { x, y } = stage.absolutePosition()
+    syncArea.updateStageXY({ x: x / config.scale, y: y / config.scale })
   })
 }
 

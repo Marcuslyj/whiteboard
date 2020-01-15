@@ -22,7 +22,7 @@ let positionIndex = -1
  */
 function addComponent(graphic, componentType = 0, type = 'remark') {
   let params
-  if (config.baseWidth !== config.board.getAttr('width')) {
+  if (!config.hasValidComponent) {
     syncArea.updateBaseWidth(config.board.getAttr('width'))
   }
   params = {
@@ -83,7 +83,7 @@ function back() {
   const cache = config.cacheGraphics[positionIndex]
   switch (cache.opeType) {
   case 'addComponent':
-    updateVisible(cache.graphic.attrs.id, false)
+    // updateVisible(cache.graphic.attrs.id, false)
     updateComponentState(cache.graphic.attrs.id, 0, 0, false)
     break
   case 'updateComponent':
@@ -91,7 +91,7 @@ function back() {
     updateComponent(cache.oldGraphic, 0, cache.type, false)
     break
   case 'updateComponentState':
-    updateVisible(cache.graphic.attrs.id, cache.state === 0)
+    // updateVisible(cache.graphic.attrs.id, cache.state === 0)
     updateComponentState(cache.graphic.attrs.id, 0, cache.state === 0 ? 1 : 0, false)
     break
   default:
@@ -107,7 +107,7 @@ function goAhead() {
   console.log(`positionIndex:${positionIndex}`)
   switch (cache.opeType) {
   case 'addComponent':
-    updateVisible(cache.graphic.attrs.id, true)
+    // updateVisible(cache.graphic.attrs.id, true)
     updateComponentState(cache.graphic.attrs.id, 0, 1, false)
     break
   case 'updateComponent':
@@ -115,7 +115,7 @@ function goAhead() {
     updateComponent(cache.newGraphic, 0, cache.type, false)
     break
   case 'updateComponentState':
-    updateVisible(cache.graphic.attrs.id, cache.state === 1)
+    // updateVisible(cache.graphic.attrs.id, cache.state===1)
     updateComponentState(cache.graphic.attrs.id, 0, cache.state, false)
     break
   default:
@@ -126,7 +126,7 @@ function goAhead() {
 // 普通画笔进行界面更新
 function renderUpdateComponent(graphic, type) {
   const layer = type === 'remark' ? config.layerManager[config.layerIds.REMARK_LAYER] : config.layerManager[config.layerIds.REMARK_LAYER]
-  const node = layer.find(`#${graphic.attrs.id}`)
+  const node = layer.findOne(`#${graphic.attrs.id}`)
   if (node) {
     node.setAttrs(graphic.attrs)
     layer.draw()

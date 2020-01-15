@@ -49,7 +49,7 @@ import {
   socketEvent, api, sComponentId,
 } from '@common/common'
 import Vue from 'vue'
-import { formateUrl, isEmpty } from '@common/utils'
+import { formateUrl, isEmpty, formateComponent } from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
@@ -95,22 +95,7 @@ export default {
     })
 
     bus.$on('resize', () => {
-      const { meetingId, whiteboardId, documentId } = this.$globalConf
-      // const params = {
-      //   meetingId,
-      //   whiteboardId,
-      //   documentId,
-      // }
-      // if (this.$globalConf.isSpeaker) {
-      //   this.$globalConf.speakerSize = {
-      //     width: el.clientWidth,
-      //     height: el.clientHeight,
-      //   }
-      //   // 通知副屏speakerSize 发生改变
-      //   socketUtil.getComponent(params)
-      // } else {
-
-      // }
+      this.onRefresh()
     })
     initTool()
     Vue.eventBus.$on('setTbMask', (visible) => {
@@ -127,10 +112,12 @@ export default {
   },
   methods: {
     onRefresh() {
-      clearTimeout(this.timerRefresh)
-      this.timerRefresh = setTimeout(() => {
-        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 300)
+      setTimeout(() => {
+        clearTimeout(this.timerRefresh)
+        this.timerRefresh = setTimeout(() => {
+          this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+        }, 300)
+      })
     },
     // 更新stage
     updateStageInfo() {
@@ -269,28 +256,50 @@ export default {
       // 初始化画笔数据
       this.renderComponent = []
       let shape
+      let componentState
       components.map((component) => {
         if (component) {
+          componentState = component.state
           component = JSON.parse(component.component)
           // 特殊组件
           if (specialType.includes(component.type)) {
             this.$globalConf[component.type] = component[component.type]
             hasSpecial = true
+          } else if (this.$globalConf.isSpeaker) {
+            component.visible = true
+            componentState === 1 && this.renderComponent.push(component)
           } else {
+            // 非主讲屏都渲染,软删除的visible 为false
+            component.visible = componentState === 1
             this.renderComponent.push(component)
           }
         }
       })
-
+      socketUtil
       if (hasSpecial) {
         this.updateStageInfo()
+        // 主讲屏
+        if (this.$globalConf.isSpeaker) {
+          const params = {
+            state: 0,
+            componentTypes: [0],
+          }
+          this.$globalConf.hasValidComponent = this.renderComponent.length > 0
+          // 删除掉之前的软删除（此时不再需要撤回了）
+          socketUtil.deleteComponentsTypesState(formateComponent(params))
+
+          // 广播其他屏重新初始化
+          socketUtil.broadcast({ meetingId: this.$globalConf.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
+        }
         this.renderComponent.forEach((component) => {
           if (component.type === 'remark') {
             shape = new Konva[component.className](component.attrs)
+            shape.visible(component.visible)
             remarkLayer.add(shape)
             shape.cache()
           } else if (component.type === 'text') {
             shape = new Konva[component.className](component.attrs)
+            shape.visible(component.visible)
             textLayer.add(shape)
             shape.cache()
           } else if (component.type === 'cover') {
@@ -328,7 +337,7 @@ export default {
         this.$globalConf.isSpeaker = false
         console.log('副屏')
       }
-      this.$globalConf.meetingId = this.$route.params.meetingId || 74
+      this.$globalConf.meetingId = this.$route.params.meetingId || 78
 
       socketUtil.initSocket()
       this.startListener()

@@ -166,7 +166,7 @@ function copy() {
 function del() {
   if (mode === 'edit') {
   // 删除编辑组件
-    currentTarget.visible(false)
+    // currentTarget.visible(false)
     currentLayer.draw()
     cManager.updateComponentState(currentTarget.getAttr('id'), 0, 0)
   }

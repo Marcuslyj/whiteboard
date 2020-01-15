@@ -35,7 +35,25 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
             <i class="iconfont icon-copy"></i>
         </div>
     </Row>
-    <Row v-show="type==='select'" class="mini-menu-inner">
+    <Row v-show="type==='select-text'" class="mini-menu-inner">
+        <div class="menu-item">
+          <i class="iconfont icon-menu-delete"></i>
+        </div>
+         <Poptip placement="top" class="poptip-body menu-item">
+             <i class="iconfont icon-circle" :style="{'color':activeColor}"></i>
+             <div slot="content">
+                 <ul class="color hor">
+                    <li v-for="(item,index) in colors" :key="index" @click="changeSize(item)">
+                        <span><i class="iconfont icon-circle" :style="{color:item}"></i></span>
+                    </li>
+                 </ul>
+             </div>
+        </Poptip>
+        <div class="menu-item">
+            <i class="iconfont icon-copy"></i>
+        </div>
+    </Row>
+     <Row v-show="type==='select-others'" class="mini-menu-inner">
         <div class="menu-item">
           <i class="iconfont icon-menu-delete"></i>
         </div>

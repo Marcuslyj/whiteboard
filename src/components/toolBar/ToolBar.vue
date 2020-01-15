@@ -205,7 +205,7 @@ export default {
         },
         {
           width: 1.6,
-          lineWidth: 26,
+          lineWidth: 22,
         },
       ],
       pencilToolArr: [

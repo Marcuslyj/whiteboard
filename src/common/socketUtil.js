@@ -1,5 +1,6 @@
 //  eslint-disable-next-line
 import io from 'socket.io-client'
+import Vue from 'vue'
 import { socketUrl, socketEvent } from './common'
 
 let socket
@@ -7,15 +8,16 @@ let socket
 function initSocket() {
   socket = io(`${socketUrl}`, {
     reconnectionDelay: 100, // Make the xhr connections as fast as possible
-    timeout: 1000 * 60 * 3, // Timeout after 20 minutes
+    timeout: 1000 * 60 * 3, // Timeout after 3 minutes
     reconnectionAttempts: 2, // 重连次数
     transports: ['websocket'],
   })
-  socket.on('connect_error', (error) => {
-    console.error(`连接错误${error}`)
-  })
   socket.on('reconnect_failed', () => {
-    console.error('重连失败')
+    Vue.$Message.info({
+      content: '连接失败',
+      duration: 10,
+      closable: true,
+    })
   })
 }
 
@@ -77,6 +79,10 @@ function broadcast(params) {
   socket.emit(socketEvent.broadcast, params)
 }
 
+// 真删除指定 componentType 和state 的组件
+function deleteComponentsTypesState(params) {
+  socket.emit(socketEvent.deleteComponentsTypesState, params)
+}
 
 export default {
   getSocket,
@@ -92,4 +98,5 @@ export default {
   deleteComponents,
   clearBoard,
   broadcast,
+  deleteComponentsTypesState,
 }

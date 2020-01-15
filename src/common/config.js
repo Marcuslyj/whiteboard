@@ -15,6 +15,8 @@ export default Vue.observable({
   stageXy: {},
   // 跟基准值的缩放比
   scale: 1,
+  // 是否有有效组件
+  hasValidComponent: false,
   board: null,
   layerIds: {
     BG_LAYER: 'BG_LAYER',
