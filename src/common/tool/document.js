@@ -29,7 +29,22 @@ let wacherDrag
 let toolCanDrag = 'pan'
 let elWrapper
 const getStage = () => config.board
-const getConvertCanvas = () => config.convertCanvas
+// 多个转换板切换用，防止同时操作一个
+const getConvertCanvas = (() => {
+  let index = -1
+  return (width, height) => {
+    index++
+    if (index >= config.convertCanvas.length) index = 0
+    // 设置尺寸
+    let canvas = config.convertCanvas[index]
+    if (canvas.$$width !== width || canvas.$$height !== height) {
+      canvas.size({ width, height })
+      canvas.$$width = width
+      canvas.$$height = height
+    }
+    return canvas
+  }
+})()
 const getLayer = () => config.layerManager[config.layerIds.BG_LAYER]
 // const getDocumentId = () => config.documentId
 const getDocumentPath = () => config.documentPath
@@ -187,14 +202,9 @@ export async function addCover(pdf, {
   const viewport = getCoverViewport(page)
   const { width } = viewport
   const { height } = viewport
-  const convertCanvas = getConvertCanvas()
+  // 获取转换画板，设置转换画板尺寸
+  const convertCanvas = getConvertCanvas(width, height)
 
-
-  // 设置转换画板尺寸
-  convertCanvas.size({
-    width,
-    height,
-  })
   const renderContext = {
     canvasContext: convertCanvas.layer.getContext(),
     viewport,
@@ -312,7 +322,6 @@ export async function addCoverImage(options, broadcast = false) {
 export async function open() {
   let documentPath = getDocumentPath()
   let stage = getStage()
-  let convertCanvas = getConvertCanvas()
 
   // 参数暂时是文档地址
   let pdf = await loadPdf({
@@ -324,12 +333,6 @@ export async function open() {
   docOpened.viewport = viewport
 
   enableScroll()
-
-  // 按图片大小设置
-  convertCanvas.size({
-    width: viewport.width,
-    height: viewport.height,
-  })
 
   // 加载文档
   pageSigned = {}
@@ -467,25 +470,25 @@ export function renderPages() {
 
 // 加载所有页面
 function loopRender({ from, to }) {
-  let {
-    viewport,
-  } = docOpened
-  let convertCanvas = getConvertCanvas()
+  // let {
+  //   viewport,
+  // } = docOpened
+  // let convertCanvas = getConvertCanvas(viewport.width, viewport.height)
 
-  const context = convertCanvas.layer.getContext()
-  let renderContext = {
-    canvasContext: context,
-    viewport,
-  }
+  // const context = convertCanvas.layer.getContext()
+  // let renderContext = {
+  //   canvasContext: context,
+  //   viewport,
+  // }
 
   renderPage({
-    renderContext, from, to, first: true,
+    from, to, first: true,
   })
-  renderContext = viewport = null
+  // viewport = null
 }
 // 加载一页
 async function renderPage({
-  renderContext, from, to, first,
+  from, to, first,
 }) {
   if (from > to) {
     rendering = false
@@ -494,13 +497,18 @@ async function renderPage({
   if (pageSigned[from]) {
     from++
     renderPage({
-      renderContext, from, to,
+      from, to,
     })
   } else {
     let {
       pdf, viewport,
     } = docOpened
-    let convertCanvas = getConvertCanvas()
+    let convertCanvas = getConvertCanvas(viewport.width, viewport.height)
+    const context = convertCanvas.layer.getContext()
+    let renderContext = {
+      canvasContext: context,
+      viewport,
+    }
     let layer = getLayer()
 
     const y = (from - 1) * viewport.height

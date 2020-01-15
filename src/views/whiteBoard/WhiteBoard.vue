@@ -25,11 +25,14 @@ Description
         :enable="enable"
       ></tool-bar>
     </div>
-    <!-- 用于转换图片 -->
-    <div
+    <!-- 用于转换图片,创建多个转换板，防止同时操作一个 -->
+    <!-- <div
       ref="convertCanvas"
       class="convertCanvas"
-    ></div>
+    ></div> -->
+    <div class="convertCanvas-wrapper">
+      <div v-for="(item,index) in Array.from({length:3})" :key="index" ref="convertCanvas" class="convertCanvas"></div>
+    </div>
   </div>
 </template>
 
@@ -136,14 +139,12 @@ export default {
         // 主讲屏
         this.enable = true
         // 先记录
-        const lastSpeakerSize = this.$globalConf.speakerSize
-        const lastStageXY = this.$globalConf.stageXY
+        const baseStageXY = this.$globalConf.stageXY
         syncArea.updateSpeakerSize({
           width: wrapper.clientWidth,
           height: wrapper.clientHeight,
         })
         this.stage.size(this.$globalConf.speakerSize)
-        this.$globalConf.scale = (this.renderComponent.length === 0) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
         if (this.renderComponent.length === 0) {
           this.$globalConf.scale = 1
           this.$globalConf.stageXY = {
@@ -153,11 +154,10 @@ export default {
         } else {
           this.$globalConf.scale = this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
           this.$globalConf.stageXY = {
-            x: lastStageXY.x * (this.$globalConf.speakerSize.width / lastSpeakerSize.width),
-            y: lastStageXY.y * (this.$globalConf.speakerSize.height / lastSpeakerSize.height),
+            x: baseStageXY.x * this.$globalConf.scale,
+            y: baseStageXY.y * this.$globalConf.scale,
           }
         }
-        syncArea.updateStageXY(this.$globalConf.stageXY)
         this.$refs['tool-bar'].active()
       } else {
         // 非主讲屏
@@ -191,8 +191,8 @@ export default {
         } else {
           this.$globalConf.scale = this.stage.getAttr('width') / this.$globalConf.baseWidth
           this.$globalConf.stageXY = {
-            x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
-            y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+            x: this.$globalConf.stageXY.x * this.$globalConf.scale,
+            y: this.$globalConf.stageXY.y * this.$globalConf.scale,
           }
         }
       }
@@ -201,14 +201,15 @@ export default {
     },
     // 初始化转换画板
     initConvertCanvas() {
-      if (this.$globalConf.convertCanvas) {
-        return
-      }
-      this.$globalConf.convertCanvas = new Konva.Stage({
-        container: this.$refs.convertCanvas,
+      this.$globalConf.convertCanvas = []
+      this.$refs.convertCanvas.map((canvas, index) => {
+        let convertCanvas = new Konva.Stage({
+          container: this.$refs.convertCanvas[index],
+        })
+        convertCanvas.layer = new Konva.Layer()
+        convertCanvas.add(convertCanvas.layer)
+        this.$globalConf.convertCanvas.push(convertCanvas)
       })
-      this.$globalConf.convertCanvas.layer = new Konva.Layer()
-      this.$globalConf.convertCanvas.add(this.$globalConf.convertCanvas.layer)
     },
     // 文档上传成功
     async uploadSuccess({ data, ret }) {
@@ -449,8 +450,6 @@ export default {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
       } else if (component.type === sComponentId.stageXY) {
         this.$globalConf.stageXY = {
-          // x: component.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
-          // y: component.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
           x: component.stageXY.x * this.$globalConf.scale,
           y: component.stageXY.y * this.$globalConf.scale,
         }
