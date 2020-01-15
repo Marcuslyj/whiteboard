@@ -221,7 +221,6 @@ export default {
             (err) => reject(err),
           )
         })
-        console.log(result)
         if (this.Msgloading.length) this.Msgloading.pop()()
         if (Number(result.ret.retCode) === 0) {
           this.Msgloading.push(Message.loading({
