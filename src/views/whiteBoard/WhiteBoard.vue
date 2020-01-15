@@ -494,6 +494,8 @@ export default {
         textLayer.add(shape)
         textLayer.batchDraw()
         shape.cache()
+      } else if (component.type === 'cover') {
+        shape = addCoverImage(component.attrs)
       } else {
         shape = new Konva.Image(component.attrs)
         bgLayer.add(shape)
