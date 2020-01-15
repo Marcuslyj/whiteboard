@@ -139,14 +139,14 @@ export default {
         // 主讲屏
         this.enable = true
         // 先记录
-        const lastSpeakerSize = this.$globalConf.speakerSize
-        const lastStageXY = this.$globalConf.stageXY
+        // const lastSpeakerSize = this.$globalConf.speakerSize
+        const baseStageXY = this.$globalConf.stageXY
         syncArea.updateSpeakerSize({
           width: wrapper.clientWidth,
           height: wrapper.clientHeight,
         })
         this.stage.size(this.$globalConf.speakerSize)
-        this.$globalConf.scale = (this.renderComponent.length === 0) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
+        // this.$globalConf.scale = (this.renderComponent.length === 0) ? 1 : this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
         if (this.renderComponent.length === 0) {
           this.$globalConf.scale = 1
           this.$globalConf.stageXY = {
@@ -156,8 +156,10 @@ export default {
         } else {
           this.$globalConf.scale = this.$globalConf.speakerSize.width / this.$globalConf.baseWidth
           this.$globalConf.stageXY = {
-            x: lastStageXY.x * (this.$globalConf.speakerSize.width / lastSpeakerSize.width),
-            y: lastStageXY.y * (this.$globalConf.speakerSize.height / lastSpeakerSize.height),
+            // x: lastStageXY.x * (this.$globalConf.speakerSize.width / lastSpeakerSize.width),
+            // y: lastStageXY.y * (this.$globalConf.speakerSize.height / lastSpeakerSize.height),
+            x: baseStageXY.x * this.$globalConf.scale,
+            y: baseStageXY.y * this.$globalConf.scale,
           }
         }
         syncArea.updateStageXY(this.$globalConf.stageXY)
@@ -194,8 +196,10 @@ export default {
         } else {
           this.$globalConf.scale = this.stage.getAttr('width') / this.$globalConf.baseWidth
           this.$globalConf.stageXY = {
-            x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
-            y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+            // x: this.$globalConf.stageXY.x * (this.stage.getAttr('width') / this.$globalConf.speakerSize.width),
+            // y: this.$globalConf.stageXY.y * (this.stage.getAttr('height') / this.$globalConf.speakerSize.height),
+            x: this.$globalConf.stageXY.x * this.$globalConf.scale,
+            y: this.$globalConf.stageXY.y * this.$globalConf.scale,
           }
         }
       }
