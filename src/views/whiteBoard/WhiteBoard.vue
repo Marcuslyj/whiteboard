@@ -112,12 +112,10 @@ export default {
   },
   methods: {
     onRefresh() {
-      setTimeout(() => {
-        clearTimeout(this.timerRefresh)
-        this.timerRefresh = setTimeout(() => {
-          this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-        }, 300)
-      })
+      clearTimeout(this.timerRefresh)
+      this.timerRefresh = setTimeout(() => {
+        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+      }, 300)
     },
     // 更新stage
     updateStageInfo() {
