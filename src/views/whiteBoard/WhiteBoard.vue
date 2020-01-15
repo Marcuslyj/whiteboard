@@ -92,7 +92,7 @@ export default {
     })
 
     bus.$on('resize', () => {
-      // this.onRefresh()
+      this.onRefresh()
     })
     initTool()
     Vue.eventBus.$on('setTbMask', (visible) => {
