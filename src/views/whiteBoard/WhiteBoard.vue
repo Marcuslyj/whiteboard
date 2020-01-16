@@ -108,11 +108,12 @@ export default {
     this.initConvertCanvas()
   },
   methods: {
+    // 接受刷新广播
     onRefresh() {
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 800)
+      }, 600)
     },
     // 更新stage
     updateStageInfo() {
@@ -142,7 +143,11 @@ export default {
             y: baseStageXY.y * this.$globalConf.scale,
           }
         }
-        this.$refs['tool-bar'] && this.$refs['tool-bar'].active()
+
+        this.$nextTick(() => {
+          this.$refs['tool-bar'].active()
+          // this.$parent.$children[0].$refs['tool-bar'].active()
+        })
       } else {
         // 非主讲屏
         const el = document.querySelector('#board-container')
@@ -363,6 +368,7 @@ export default {
           })
         })
       } else {
+        this.startListener()
         socketUtil.getMeet({
           meetingId: this.$globalConf.meetingId,
         })
@@ -386,6 +392,15 @@ export default {
         default:
           break
         }
+      })
+    },
+    stopListener() {
+      let socket = getSocket()
+      let events = [socketEvent.getComponent, socketEvent.getMeet,
+        socketEvent.updateComponent, socketEvent.clearBoard,
+        socketEvent.addComponent, socketEvent.updateComponentState, socketEvent.broadcast]
+      events.map((event) => {
+        if (socket) socket.off(event)
       })
     },
     handleGetMeet(res) {
@@ -554,6 +569,10 @@ export default {
   beforeDestroy() {
     this.$globalConf.mode = ''
     destroyTool()
+
+    this.stopListener()
+    Vue.eventBus.$off('setTbMask')
+    Vue.eventBus.$off('setMiniMenu')
   },
 }
 </script>

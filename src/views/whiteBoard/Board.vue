@@ -19,7 +19,6 @@ export default {
   },
   mounted() {
     bus.$on('resize', () => {
-      // this.onRefresh()
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
         this.$nextTick(() => {
