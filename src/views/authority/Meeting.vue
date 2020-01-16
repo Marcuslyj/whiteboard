@@ -555,7 +555,12 @@
 			}
 	    },
 	    created() {
-            if (!this.getCookie('sid')) {
+        	const visitor = this.getCookie('visitor');
+            if (!this.getCookie('sid')
+	            || visitor === ''
+	            || visitor === undefined
+	            || visitor === null
+	            || visitor === false) {
                 this.$router.push({name: 'login'});
             } else {
                 const active = this.getCookie('meeting-active-type');

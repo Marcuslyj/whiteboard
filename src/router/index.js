@@ -32,7 +32,7 @@ export default new Router({
         path: '/',
         redirect: '/auth/login',
       }, {
-        path: 'login',
+        path: 'login/:mid?/:link?',
         name: 'login',
         component: AuthorityLogin,
       }, {
