@@ -39,8 +39,8 @@ export default {
   data() {
     return {
       theme: '',
-      userId: '1',
       meetingId: '78',
+      userId: '2',
     }
   },
   methods: {
