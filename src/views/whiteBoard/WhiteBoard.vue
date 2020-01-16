@@ -145,10 +145,8 @@ export default {
         }
 
         this.$nextTick(() => {
-          console.log(this)
-          console.log(this.$parent)
-          // this.$refs['tool-bar'].active()
-          this.$parent.$children[0].$refs['tool-bar'].active()
+          this.$refs['tool-bar'].active()
+          // this.$parent.$children[0].$refs['tool-bar'].active()
         })
       } else {
         // 非主讲屏
@@ -370,6 +368,7 @@ export default {
           })
         })
       } else {
+        this.startListener()
         socketUtil.getMeet({
           meetingId: this.$globalConf.meetingId,
         })
@@ -393,6 +392,15 @@ export default {
         default:
           break
         }
+      })
+    },
+    stopListener() {
+      let socket = getSocket()
+      let events = [socketEvent.getComponent, socketEvent.getMeet,
+        socketEvent.updateComponent, socketEvent.clearBoard,
+        socketEvent.addComponent, socketEvent.updateComponentState, socketEvent.broadcast]
+      events.map((event) => {
+        if (socket) socket.off(event)
       })
     },
     handleGetMeet(res) {
@@ -561,6 +569,10 @@ export default {
   beforeDestroy() {
     this.$globalConf.mode = ''
     destroyTool()
+
+    this.stopListener()
+    Vue.eventBus.$off('setTbMask')
+    Vue.eventBus.$off('setMiniMenu')
   },
 }
 </script>
