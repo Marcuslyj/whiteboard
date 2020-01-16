@@ -21,10 +21,7 @@ export default {
     bus.$on('resize', () => {
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
-        let former = this.$refs.board1 || this.$refs.board2
-        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
         this.$nextTick(() => {
-          former && former.$destroy()
           let board = this.$refs.board1 || this.$refs.board2
           board && board.onRefresh()
         })
