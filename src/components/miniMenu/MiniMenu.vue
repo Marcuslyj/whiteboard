@@ -12,7 +12,7 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
              <i class="iconfont icon-circle" :style="{'color':activeColor}"></i>
              <div slot="content">
                  <ul class="color hor">
-                    <li v-for="(item,index) in colors" :key="index" @click="changeColor(item)">
+                    <li v-for="(item,index) in colors" :key="index" @click="type==='select-text'?changeSelectColor(item):changeColor(item)">
                         <span><i class="iconfont icon-circle" :style="{color:item}"></i></span>
                     </li>
                  </ul>
@@ -22,52 +22,35 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
              <i class="iconfont icon-text-size" ></i>
              <div slot="content">
                 <ul class="hor fontSize-list">
-                   <li v-for="(item,index) in fontSizes" :key="index" @click="changeSize(item)">
+                   <li v-for="(item,index) in fontSizes" :key="index" @click="type==='select-text'?changeSelectSize(item):changeSize(item)">
                         {{item}}
                     </li>
                 </ul>
              </div>
         </Poptip>
-        <div class="menu-item" @click="del">
+        <div class="menu-item" @click="type==='select-text'?selectDel():del()">
             <i class="iconfont icon-menu-delete"></i>
         </div>
-        <div class="menu-item" @click="copy">
+        <div class="menu-item" @click="type==='select-text'?selectCopy():copy()">
             <i class="iconfont icon-copy"></i>
         </div>
     </Row>
-    <Row v-show="type==='select-text'" class="mini-menu-inner">
-        <div class="menu-item">
-          <i class="iconfont icon-menu-delete"></i>
-        </div>
-         <Poptip placement="top" class="poptip-body menu-item">
-             <i class="iconfont icon-circle" :style="{'color':activeColor}"></i>
-             <div slot="content">
-                 <ul class="color hor">
-                    <li v-for="(item,index) in colors" :key="index" @click="changeSize(item)">
-                        <span><i class="iconfont icon-circle" :style="{color:item}"></i></span>
-                    </li>
-                 </ul>
-             </div>
-        </Poptip>
-        <div class="menu-item">
-            <i class="iconfont icon-copy"></i>
-        </div>
-    </Row>
+    <!-- 选中时其他 -->
      <Row v-show="type==='select-others'" class="mini-menu-inner">
-        <div class="menu-item">
+        <div class="menu-item" @click="selectDel">
           <i class="iconfont icon-menu-delete"></i>
         </div>
          <Poptip placement="top" class="poptip-body menu-item">
              <i class="iconfont icon-circle" :style="{'color':activeColor}"></i>
              <div slot="content">
                  <ul class="color hor">
-                    <li v-for="(item,index) in colors" :key="index" @click="changeSize(item)">
+                    <li v-for="(item,index) in colors" :key="index" @click="changeSelectColor(item)">
                         <span><i class="iconfont icon-circle" :style="{color:item}"></i></span>
                     </li>
                  </ul>
              </div>
         </Poptip>
-        <div class="menu-item">
+        <div class="menu-item" @click="selectCopy">
             <i class="iconfont icon-copy"></i>
         </div>
     </Row>
@@ -77,6 +60,7 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
 <script>
 import config from '@common/config'
 import textTool from '@common/tool/text'
+import selectTool from '@common/tool/select'
 
 export default {
   props: ['type', 'miniStyle', 'textColor'],
@@ -94,6 +78,7 @@ export default {
     },
   },
   methods: {
+    // 文字绘制
     changeColor(color) {
       this.activeColor = color
       config.text.color = color
@@ -111,6 +96,23 @@ export default {
     del() {
       textTool.del()
     },
+
+    // 选中
+    changeSelectColor(color) {
+      this.activeColor = color
+      selectTool.changeColor(color)
+    },
+    changeSelectSize(size) {
+      selectTool.changeFontsize(size)
+    },
+    selectDel() {
+      selectTool.del()
+    },
+    selectCopy() {
+      selectTool.copy()
+    },
+
+
   },
 }
 </script>

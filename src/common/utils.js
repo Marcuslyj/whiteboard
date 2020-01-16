@@ -93,3 +93,10 @@ export function exitFullscreen() {
     document.msExitFullscreen()
   }
 }
+
+// cache node
+export function cache(node) {
+  if (node.className === 'Arrow') {
+    node.cache({ offset: 5 })
+  } else node.cache()
+}
