@@ -108,11 +108,12 @@ export default {
     this.initConvertCanvas()
   },
   methods: {
+    // 接受刷新广播
     onRefresh() {
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 800)
+      }, 600)
     },
     // 更新stage
     updateStageInfo() {
@@ -142,7 +143,13 @@ export default {
             y: baseStageXY.y * this.$globalConf.scale,
           }
         }
-        this.$refs['tool-bar'] && this.$refs['tool-bar'].active()
+
+        this.$nextTick(() => {
+          console.log(this)
+          console.log(this.$parent)
+          // this.$refs['tool-bar'].active()
+          this.$parent.$children[0].$refs['tool-bar'].active()
+        })
       } else {
         // 非主讲屏
         const el = document.querySelector('#board-container')
