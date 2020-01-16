@@ -328,7 +328,7 @@ export default {
     fortest() {
       // 下面只是为了测试,后续需要调整
       // 非主讲人
-      if (this.$route.params.userId === '0') {
+      if (this.$route.params.userId === '1') {
         this.$globalConf.isSpeaker = true
         console.log('主屏')
       } else {
@@ -469,6 +469,8 @@ export default {
         let node = this.stage.find(`#${component.attrs.id}`)[0]
         if (node) node.setAttrs({ x: component.attrs.x, y: component.attrs.y })
         this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER].draw()
+      } else if (component.type === 'text' || component.type === 'remark') {
+        cManager.renderUpdateComponent(component, component.type)
       }
     },
     // 接收到新增组件消息
