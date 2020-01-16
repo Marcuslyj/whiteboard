@@ -32,8 +32,9 @@ function initSocket() {
   })
 }
 
-function destroySocket() {
+export function destroySocket() {
   socket.close()
+  socket = null
 }
 
 export function getSocket() {
