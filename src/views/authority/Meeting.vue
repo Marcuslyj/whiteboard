@@ -11,7 +11,7 @@
 					<div id="mi-meeting-mine">
 						<div class="mi-meeting-list">
 							<div class="mi-meeting-search">
-								<Input type="text" suffix="ios-search" placeholder="搜索会议主题 / 地点" size="large" :max-length="64" v-model="search.subject" @enter="searchMeeting" @on-change="searchMeeting" />
+								<Input type="text" suffix="ios-search" placeholder="搜索会议主题 / 地点" size="large" :max-length="64" v-model="search.subject" @on-enter="searchMeeting" @on-change="searchMeeting" />
 								<Tooltip content="创建会议" placement="top-end">
 									<icon type="ios-add-circle-outline" size="30" style="margin-left: 16px;cursor: pointer;" @click="setMeetingModal()" />
 								</Tooltip>
@@ -62,7 +62,7 @@
 					<div id="mi-meeting-soon">
 						<div class="mi-meeting-list">
 							<div class="mi-meeting-search">
-								<Input type="text" suffix="ios-search" placeholder="搜索会议主题 / 地点" size="large" :max-length="64" v-model="search.subject" @enter="searchMeeting" @on-change="searchMeeting" />
+								<Input type="text" suffix="ios-search" placeholder="搜索会议主题 / 地点" size="large" :max-length="64" v-model="search.subject" @on-enter="searchMeeting" @on-change="searchMeeting" />
 							</div>
 							<div class="mi-meeting-item" v-for="(meet, index) in meeting.soon" :key="index">
 								<div class="mi-meeting-item-title">
@@ -89,9 +89,9 @@
 					<div id="mi-meeting-history">
 						<div class="mi-meeting-list">
 							<div class="mi-meeting-search">
-								<Input type="text" suffix="ios-search" placeholder="搜索会议主题 / 地点" size="large" :max-length="64" v-model="search.subject" @enter="searchMeeting" @on-change="searchMeeting" />
+								<Input type="text" suffix="ios-search" placeholder="搜索会议主题 / 地点" size="large" :max-length="64" v-model="search.subject" @on-enter="searchMeeting" @on-change="searchMeeting" />
 							</div>
-							<div class="mi-meeting-item" v-for="(meet, index) in meeting.soon" :key="index">
+							<div class="mi-meeting-item" v-for="(meet, index) in meeting.history" :key="index">
 								<div class="mi-meeting-item-title">
 									<span>会议主题：{{ meet.theme }}</span>
 								</div>
@@ -99,6 +99,9 @@
 									<span>会议时间：{{ meet.meetingTimeText }}</span>
 									<span>会议地点：{{ meet.address || '-' }}</span>
 								</div>
+							</div>
+							<div class="mi-meeting-item-none" v-if="meeting.history.length <= 0">
+								暂无会议
 							</div>
 						</div>
 						<div class="mi-pagination">
@@ -157,7 +160,12 @@
 				<div class="mi-modal-item-title">会议链接</div>
 				<div class="mi-modal-item-content">
 					<Input type="text" v-model="share.link"></Input>
-					<Button type="primary">复制</Button>
+					<Button type="primary"
+					        v-clipboard:copy="share.link"
+					        v-clipboard:success="copyShareLinkSuccess"
+					        v-clipboard:error="copyShareLinkFailed">
+						复制
+					</Button>
 				</div>
 			</div>
 		</Modal>
@@ -176,6 +184,8 @@
 
 <script>
 	import Vue from 'vue';
+	import VueClipboard from 'vue-clipboard2';
+	Vue.use(VueClipboard);
 	import {
 	    Row, Col, Input, Table, Tabs, TabPane, Page, Icon, DatePicker, TimePicker, Tree, Form, FormItem, Button, Message, RadioGroup, Radio, Tooltip
 	} from 'view-design';
@@ -470,8 +480,14 @@
                     this.$Message.error('会议ID有误，分享链接生成失败');
                     this.setMeetingModal();
                 } else {
-                
+                	this.share.link = `${process.env.VUE_APP_baseUrl}index.html/#/whiteboard/${id}`;
                 }
+		    },
+		    copyShareLinkSuccess() {
+            	this.$Message.success('复制成功');
+		    },
+		    copyShareLinkFailed() {
+            	this.$Message.error('复制失败');
 		    },
 		    setHeight() {
                 for (let i in this.cates) {
@@ -498,7 +514,7 @@
 		    },
 		    setShareModal(id) {
                 this.share.modal = !this.share.modal;
-                if (!this.share.modal) {
+                if (this.share.modal) {
                     this.createShareLink(id);
                 } else {
                     this.share.link = null;
