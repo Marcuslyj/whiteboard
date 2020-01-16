@@ -48,7 +48,9 @@ import {
   socketEvent, api, sComponentId,
 } from '@common/common'
 import Vue from 'vue'
-import { formateUrl, isEmpty, formateComponent } from '@common/utils'
+import {
+  formateUrl, isEmpty, formateComponent, cache,
+} from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
@@ -92,10 +94,6 @@ export default {
       this.$globalConf.layerManager.BG_LAYER.listening(false)
       this.stage.add(layer)
     })
-
-    bus.$on('resize', () => {
-      this.onRefresh()
-    })
     initTool()
     Vue.eventBus.$on('setTbMask', (visible) => {
       this.tbMask = visible
@@ -114,7 +112,7 @@ export default {
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 300)
+      }, 800)
     },
     // 更新stage
     updateStageInfo() {
@@ -144,30 +142,36 @@ export default {
             y: baseStageXY.y * this.$globalConf.scale,
           }
         }
-        this.$refs['tool-bar'].active()
+        this.$refs['tool-bar'] && this.$refs['tool-bar'].active()
       } else {
         // 非主讲屏
         const el = document.querySelector('#board-container')
+        let width
+        let height
         if (this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height > wrapper.clientWidth / wrapper.clientHeight) {
           // 副屏初始化宽高($)，主讲屏等比缩放宽高
           // 被宽度限制
           const scale = this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height
-          el.style.width = `${wrapper.clientWidth}px`
-          el.style.height = `${wrapper.clientWidth / scale}px`
-          this.stage.size({
-            width: wrapper.clientWidth,
-            height: wrapper.clientWidth / scale,
-          })
+          width = wrapper.clientWidth
+          height = wrapper.clientWidth / scale
         } else {
           // 被高度限制
           const scale = this.$globalConf.speakerSize.width / this.$globalConf.speakerSize.height
-          el.style.height = `${wrapper.clientHeight}px`
-          el.style.width = `${wrapper.clientHeight * scale}px`
-          this.stage.size({
-            width: wrapper.clientHeight * scale,
-            height: wrapper.clientHeight,
-          })
+          width = wrapper.clientHeight * scale
+          height = wrapper.clientHeight
         }
+        // 更新画布尺寸
+        el.style.height = `${height}px`
+        el.style.width = `${width}px`
+        this.stage.size({
+          width,
+          height,
+        })
+        Object.keys(this.$globalConf.layerIds).map((layerId) => {
+          this.$globalConf.layerManager[layerId].size({
+            width, height,
+          })
+        })
         // if (this.renderComponent.length === 0) {
         //   this.$globalConf.scale = 1
         //   this.$globalConf.stageXY = {
@@ -175,6 +179,7 @@ export default {
         //     y: 0,
         //   }
         // } else {
+        // 副屏任何时候都是同步数据
         this.$globalConf.scale = this.stage.getAttr('width') / this.$globalConf.baseWidth
         this.$globalConf.stageXY = {
           x: this.$globalConf.stageXY.x * this.$globalConf.scale,
@@ -293,12 +298,12 @@ export default {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             remarkLayer.add(shape)
-            shape.cache()
+            cache(shape)
           } else if (component.type === 'text') {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             textLayer.add(shape)
-            shape.cache()
+            cache(shape)
           } else if (component.type === 'cover') {
             shape = addCoverImage(component.attrs)
           } else {
@@ -327,7 +332,7 @@ export default {
     fortest() {
       // 下面只是为了测试,后续需要调整
       // 非主讲人
-      if (this.$route.params.userId === '0') {
+      if (this.$route.params.userId === '1') {
         this.$globalConf.isSpeaker = true
         console.log('主屏')
       } else {
@@ -336,26 +341,32 @@ export default {
       }
       this.$globalConf.meetingId = this.$route.params.meetingId || 78
 
-      socketUtil.initSocket()
-      this.startListener()
-      getSocket().on('connect', () => {
+      if (!getSocket()) {
+        socketUtil.initSocket()
+        this.startListener()
+        getSocket().on('connect', () => {
         // console.log(getSocket().connected) // true
         // console.log(`meetingId:${this.$globalConf.meetingId}`)
         // socket 连接,加入会议房间
-        const p1 = {
-          theme: 'xxx',
-          meetingId: this.$globalConf.meetingId,
-          nickName: '张三',
-          userId: this.$route.params.userId || '2',
-        }
-        socketUtil.joinMeet(p1)
-        // 获取会议
-        getSocket().on(socketEvent.joinMeet, () => {
-          socketUtil.getMeet({
+          const p1 = {
+            theme: 'xxx',
             meetingId: this.$globalConf.meetingId,
+            nickName: '张三',
+            userId: this.$route.params.userId || '2',
+          }
+          socketUtil.joinMeet(p1)
+          // 获取会议
+          getSocket().on(socketEvent.joinMeet, () => {
+            socketUtil.getMeet({
+              meetingId: this.$globalConf.meetingId,
+            })
           })
         })
-      })
+      } else {
+        socketUtil.getMeet({
+          meetingId: this.$globalConf.meetingId,
+        })
+      }
     },
     startListener() {
       getSocket().on(socketEvent.getComponent, ({ components }) => {
@@ -468,6 +479,8 @@ export default {
         let node = this.stage.find(`#${component.attrs.id}`)[0]
         if (node) node.setAttrs({ x: component.attrs.x, y: component.attrs.y })
         this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER].draw()
+      } else if (component.type === 'text' || component.type === 'remark') {
+        cManager.renderUpdateComponent(component, component.type)
       }
     },
     // 接收到新增组件消息
@@ -482,7 +495,7 @@ export default {
         shape = new Konva[component.className](component.attrs)
         remarkLayer.add(shape)
         remarkLayer.batchDraw()
-        shape.cache()
+        cache(shape)
       } else if (component.type === 'text') {
         shape = new Konva[component.className](component.attrs)
         textLayer.add(shape)
@@ -540,8 +553,6 @@ export default {
   },
   beforeDestroy() {
     this.$globalConf.mode = ''
-    // 销毁socket
-    getSocket().close()
     destroyTool()
   },
 }

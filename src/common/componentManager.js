@@ -125,11 +125,13 @@ function goAhead() {
 
 // 普通画笔进行界面更新
 function renderUpdateComponent(graphic, type) {
-  const layer = type === 'remark' ? config.layerManager[config.layerIds.REMARK_LAYER] : config.layerManager[config.layerIds.REMARK_LAYER]
+  const layer = type === 'remark' ? config.layerManager[config.layerIds.REMARK_LAYER] : config.layerManager[config.layerIds.TEXT_LAYER]
   const node = layer.findOne(`#${graphic.attrs.id}`)
   if (node) {
     node.setAttrs(graphic.attrs)
+    node.clearCache()
     layer.draw()
+    node.className === 'Arrow' ? node.cache({ offset: 5 }) : node.cache()
   }
 }
 
@@ -168,4 +170,5 @@ export default {
   goAhead,
   clearLayer,
   updateVisible,
+  renderUpdateComponent,
 }
