@@ -2,6 +2,7 @@
 import io from 'socket.io-client'
 import Vue from 'vue'
 import { socketUrl, socketEvent } from './common'
+import config from './config'
 
 let socket
 
@@ -11,9 +12,19 @@ function initSocket() {
     timeout: 1000 * 60 * 3, // Timeout after 3 minutes
     reconnectionAttempts: 2, // 重连次数
     transports: ['websocket'],
+    query: {
+      meetingId: config.meetingId,
+    },
   })
   socket.on('reconnect_failed', () => {
-    Vue.$Message.info({
+    Vue.prototype.$Message.error({
+      content: '重连失败',
+      duration: 10,
+      closable: true,
+    })
+  })
+  socket.on('connect_error', () => {
+    Vue.prototype.$Message.error({
       content: '连接失败',
       duration: 10,
       closable: true,

@@ -22,7 +22,6 @@ Description
         @uploadSuccess="uploadSuccess"
         @clearBoard="clearBoard"
         @gotoBoard="gotoBoard"
-        :enable="enable"
       ></tool-bar>
     </div>
     <!-- 用于转换图片,创建多个转换板，防止同时操作一个 -->
@@ -39,7 +38,7 @@ Description
 <script>
 import { Message } from 'view-design'
 import Konva from 'konva'
-import { initTool } from '@common/tool'
+import { initTool, destroyTool } from '@common/tool'
 import {
   addCover, loadPdf, addCoverImage, init as initDocument, renderPages,
 } from '@common/tool/document'
@@ -122,7 +121,6 @@ export default {
       const wrapper = document.querySelector('.board-container-wrapper')
       if (this.$globalConf.isSpeaker) {
         // 主讲屏
-        this.enable = true
         // 先记录
         const baseStageXY = this.$globalConf.stageXY
         syncArea.updateSpeakerSize({
@@ -381,7 +379,6 @@ export default {
     },
     handleGetMeet(res) {
       this.$globalConf.mode = 'board'
-      // debugger
       this.whiteboards = res.whiteboards
       if (this.whiteboards) {
         // 取出指定的board(whiteboardId+documentId)
@@ -545,6 +542,7 @@ export default {
     this.$globalConf.mode = ''
     // 销毁socket
     getSocket().close()
+    destroyTool()
   },
 }
 </script>

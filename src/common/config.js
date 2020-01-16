@@ -46,4 +46,5 @@ export default Vue.observable({
   mode: 'board',
   toggleRouter: false,
   syncAction: null,
+  isFullscreen: false,
 })

@@ -9,7 +9,7 @@ Description
     <!-- 工具条能否起作用的遮罩 -->
     <div
       class="mask"
-      v-show="!enable"
+      v-show="!$globalConf.isSpeaker"
     ></div>
     <div
       class="left part"
@@ -152,7 +152,7 @@ Description
     </div>
     <div class="right part">
       <span v-show="$globalConf.mode==='document'" @click="gotoBoard"><i class="iconfont icon-shangyiye1"></i></span>
-      <span @click="handleFullscreen"><i :class="['iconfont',`icon-${isfullscreen?'normalscreen':'fullscreen'}`]"></i></span>
+      <span @click="handleFullscreen"><i :class="['iconfont',`icon-${$globalConf.isFullscreen?'normalscreen':'fullscreen'}`]"></i></span>
     </div>
   </div>
 </template>
@@ -171,10 +171,6 @@ export default {
       type: Boolean,
       default: true,
     },
-    enable: {
-      type: Boolean,
-      default: true,
-    },
   },
   components: {
     Upload,
@@ -182,7 +178,6 @@ export default {
   data() {
     return {
       isActive: false,
-      isfullscreen: false,
       common,
       // 笔
       pencilColorArr: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
@@ -487,8 +482,8 @@ export default {
       this.$emit('gotoBoard')
     },
     handleFullscreen() {
-      this.isfullscreen = !this.isfullscreen
-      if (this.isfullscreen) {
+      this.$globalConf.isFullscreen = !this.$globalConf.isFullscreen
+      if (this.$globalConf.isFullscreen) {
         fullscreen()
       } else {
         exitFullscreen()

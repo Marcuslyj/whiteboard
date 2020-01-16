@@ -33,3 +33,8 @@ export const initTool = () => {
     console.log(`destroyTool:${toolName}`)
   })
 }
+
+export const destroyTool = () => {
+  Vue.eventBus.$off('active-tool')
+  Vue.eventBus.$off('deactive-tool')
+}
