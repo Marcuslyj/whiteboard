@@ -349,6 +349,8 @@ export default {
         // 添加特殊组件
         this.addSpecialComponent()
         console.log('add special component')
+        // 重新进入
+        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
         // const params = {
         //   meetingId: this.$globalConf.meetingId,
         //   whiteboardId: this.$globalConf.whiteboardId,
