@@ -33,7 +33,7 @@ function initSocket() {
 }
 
 export function destroySocket() {
-  socket.close()
+  socket && socket.close()
   socket = null
 }
 
