@@ -1,7 +1,7 @@
 <template>
 	<Row type="flex" justify="center" align="middle" class="mi-login">
 		<Col span="8" class="mi-login-box" v-if="!tourist">
-			<div class="mi-login-box-tourist" @click="tourist = !tourist">
+			<div class="mi-login-box-tourist" @click="setTourist" v-if="showTourist">
 				<span>游客</span>
 			</div>
 			<Input prefix="ios-contact"
@@ -25,15 +25,16 @@
 			</span>
 		</Col>
 		<Col span="8" class="mi-login-box" v-else>
-			<div class="mi-login-box-tourist" @click="tourist = !tourist">
+			<div class="mi-login-box-tourist" @click="setTourist" v-if="showTourist">
 				<span>账号</span>
 			</div>
 			<Input prefix="ios-contact"
 			       placeholder="请输入名称"
 			       v-model="account"
+			       @on-enter="touristLogin"
 			       size="large" />
 			<Button type="primary"
-			        @click="login"
+			        @click="touristLogin"
 			        style="width: 100%;margin-top: 16px;margin-bottom: 8px;">进入
 			</Button>
 			<span class="mi-login-tip" v-if="message">
@@ -56,7 +57,10 @@
                 account: null,
 	            password: null,
 	            message: null,
-	            tourist: false
+	            tourist: false,
+	            showTourist: false,
+	            link: null,
+	            mid: 0
             }
         },
         methods: {
@@ -80,7 +84,8 @@
 	                    password: this.password
                     }, (res) => {
                         if (res['ret']['retCode'] === '0') {
-                            this.$router.push({name: 'meeting'});
+                            if (this.mid && this.link) this.auth();
+                            else this.$router.push({name: 'meeting'});
                         } else {
                             this.message = res['ret']['retMsg'];
                         }
@@ -88,10 +93,65 @@
                         this.message = err.message;
                     });
                 }
-            }
+            },
+	        setTourist() {
+            	this.tourist = !this.tourist;
+            	this.account = null;
+            	this.password = null;
+            	this.message = null;
+	        },
+	        async touristLogin() {
+            	if (!this.account) {
+            		this.message = '请输入名称';
+	            } else if (!this.link) {
+            		this.$Message.error('会议链接有误，请稍候再试');
+	            } else {
+            		this.$api.post('user-manager/visitor-login', {realName: this.account}, (res) => {
+            			if (res['ret']['retCode'] === '0') {
+            				this.auth(true);
+			            } else {
+            				this.$Message.error(res['ret']['retMsg']);
+			            }
+		            }, (err) => {
+            			this.$Message.error(err.message);
+		            });
+	            }
+	        },
+	        async auth(tourist = false) {
+            	await this.$api.get(`meeting-manager/meeting/${this.mid}/auth`, {}, (res) => {
+            		if (res['ret']['retCode'] === '0') {
+            			if (res.data.type === 1 && tourist) {
+            				this.$Message.error({
+					            content: '很抱歉，游客无权限访问该内容',
+					            duration: 0
+				            });
+			            } else {
+            				window.location.href = this.link;
+			            }
+		            } else {
+            			this.$Message.error(res['ret']['retMsg']);
+		            }
+	            }, (err) => {
+            		this.$Message.error(err.message);
+	            });
+	        }
         },
 	    created() {
-            if (this.getCookie('sid')) this.$router.push({name: 'meeting'});
+        	const params = this.$route.params;
+        	if (params.mid) this.mid = params.mid;
+        	if (params.link) {
+        		this.link = decodeURIComponent(params.link);
+        		this.tourist = true;
+	        }
+        	if (this.mid && this.link) this.showTourist = true;
+        	const visitor = this.getCookie('visitor');
+            if (this.getCookie('sid')
+	            && visitor !== ''
+	            && visitor !== undefined
+	            && visitor !== null
+	            && !visitor) {
+            	this.$router.push({name: 'meeting'});
+            }
 	    }
     };
     export default AuthorityLoginComponent;
