@@ -1,6 +1,9 @@
 <template>
 	<Row type="flex" justify="center" align="middle" class="mi-login">
-		<Col span="8" class="mi-login-box">
+		<Col span="8" class="mi-login-box" v-if="!tourist">
+			<div class="mi-login-box-tourist" @click="tourist = !tourist">
+				<span>游客</span>
+			</div>
 			<Input prefix="ios-contact"
 			       placeholder="请输入工号"
 			       v-model="account"
@@ -10,12 +13,28 @@
 			       placeholder="请输入密码"
 			       size="large"
 			       v-model="password"
-			       @enter="login"
+			       @on-enter="login"
 			       password
 			       style="margin-top: 16px" />
 			<Button type="primary"
 			        @click="login"
 			        style="width: 100%;margin-top: 16px;margin-bottom: 8px;">登录
+			</Button>
+			<span class="mi-login-tip" v-if="message">
+				<icon type="md-alert" />{{ message }}
+			</span>
+		</Col>
+		<Col span="8" class="mi-login-box" v-else>
+			<div class="mi-login-box-tourist" @click="tourist = !tourist">
+				<span>账号</span>
+			</div>
+			<Input prefix="ios-contact"
+			       placeholder="请输入名称"
+			       v-model="account"
+			       size="large" />
+			<Button type="primary"
+			        @click="login"
+			        style="width: 100%;margin-top: 16px;margin-bottom: 8px;">进入
 			</Button>
 			<span class="mi-login-tip" v-if="message">
 				<icon type="md-alert" />{{ message }}
@@ -36,7 +55,8 @@
             return {
                 account: null,
 	            password: null,
-	            message: null
+	            message: null,
+	            tourist: false
             }
         },
         methods: {
@@ -91,6 +111,24 @@
 			padding: 32px;
 	        border: 1px solid #E4E4E4;
 	        border-radius: 8px;
+			overflow: hidden;
+			&-tourist {
+				width: 100px;
+				height: 100px;
+				top: -55px;
+                right: -55px;
+				position: absolute;
+				transform: rotate(45deg);
+				font-size: 12px;
+				display: flex;
+			    align-items: flex-end;
+			    justify-content: center;
+				background: #F3F3F3;
+				cursor: pointer;
+				span {
+					margin-bottom: 8px;
+				}
+			}
 		}
 		&-tip {
 			display: flex;

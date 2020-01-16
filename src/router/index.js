@@ -13,7 +13,7 @@ export default new Router({
   routes: [
     {
       path: '/',
-      redirect: '/welcome',
+      redirect: '/auth',
     },
     {
       path: '/welcome',
@@ -26,12 +26,11 @@ export default new Router({
       component: Whiteboard,
     },
     {
-      path: '/authority',
-      name: 'authority',
+      path: '/auth',
       component: Authority,
       children: [{
         path: '/',
-        redirect: '/authority/login',
+        redirect: '/auth/login',
       }, {
         path: 'login',
         name: 'login',
