@@ -10,6 +10,7 @@ export const api = {
   docToPdf: `${'https://dev-whiteboard.tvflnet.com/'}/meeting-manager/meeting/{meetingId}/whiteboard/{whiteboardId}/doc-to-pdf`,
   createMeet: '/meeting-manager/meeting',
   createBoard: '/meeting-manager/meeting/{meetingId}/whiteboard',
+  auth: '/meeting-manager/meeting/{meetingId}/auth',
 }
 
 export const fbId = {

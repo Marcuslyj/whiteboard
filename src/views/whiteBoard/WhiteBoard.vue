@@ -75,6 +75,30 @@ export default {
       renderComponent: [],
     }
   },
+  // 权限以及是否登录判断
+  created() {
+    const { meetingId } = this.$route.params
+    if (!meetingId) {
+      return
+    }
+    this.$globalConf.meetingId = meetingId
+    const url = formateUrl(api.auth, { meetingId })
+    this.$api.get(url, {}, (res) => {
+      if (res.ret.retCode === '0') {
+        const { hasMeetingAuth } = res.data
+        if (hasMeetingAuth) {
+          this.$globalConf.user = res.data.user
+          this.startMeeting()
+        } else if (res.data.hasLogin) {
+          this.$Message.error('用户没有此会议的权限!')
+        } else {
+          this.$router.push(`/auth/login/${meetingId}/${window.btoa(window.location.href)}`)
+        }
+      } else {
+        this.$Message.error(res.ret.retMsg)
+      }
+    })
+  },
   mounted() {
     console.log('mounted')
     this.$globalConf.mode = 'board'
@@ -104,7 +128,6 @@ export default {
       this.miniMenuStyle = miniMenuStyle
       this.textColor = textColor
     })
-    this.fortest()
     this.initConvertCanvas()
   },
   methods: {
@@ -336,18 +359,8 @@ export default {
         // socketUtil.getComponent(params)
       }
     },
-    fortest() {
-      // 下面只是为了测试,后续需要调整
-      // 非主讲人
-      if (this.$route.params.userId === '1') {
-        this.$globalConf.isSpeaker = true
-        console.log('主屏')
-      } else {
-        this.$globalConf.isSpeaker = false
-        console.log('副屏')
-      }
-      this.$globalConf.meetingId = this.$route.params.meetingId || 78
-
+    // 开始初始化
+    startMeeting() {
       if (!getSocket()) {
         socketUtil.initSocket()
         this.startListener()
@@ -355,15 +368,17 @@ export default {
         // console.log(getSocket().connected) // true
         // console.log(`meetingId:${this.$globalConf.meetingId}`)
         // socket 连接,加入会议房间
-          const p1 = {
-            theme: 'xxx',
+          const meetingInfo = {
+            theme: '',
             meetingId: this.$globalConf.meetingId,
-            nickName: '张三',
-            userId: this.$route.params.userId || '2',
+            nickName: this.$globalConf.user.username,
+            userId: this.$globalConf.user.userId,
           }
-          socketUtil.joinMeet(p1)
+          socketUtil.joinMeet(meetingInfo)
           // 获取会议
-          getSocket().on(socketEvent.joinMeet, () => {
+          getSocket().on(socketEvent.joinMeet, (res) => {
+            this.$globalConf.isSpeaker = res.isSpeaker
+            console.log(`isSpeaker:${res.isSpeaker}`)
             socketUtil.getMeet({
               meetingId: this.$globalConf.meetingId,
             })
@@ -380,7 +395,11 @@ export default {
       getSocket().on(socketEvent.getComponent, ({ components }) => {
         this.initComponents(components)
       })
-      getSocket().on(socketEvent.getMeet, this.handleGetMeet)
+      getSocket().on(socketEvent.getMeet, (res) => {
+        this.$nextTick(
+          () => this.handleGetMeet(res),
+        )
+      })
       getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
       getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
       getSocket().on(socketEvent.addComponent, this.handleAddComponent)
@@ -424,6 +443,9 @@ export default {
           }
           socketUtil.getComponent(params)
         } else {
+          if (!this.$globalConf.isSpeaker) {
+            return
+          }
           // 没有就默认首个板
           const params = {
             meetingId: this.$globalConf.meetingId,

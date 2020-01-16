@@ -1,6 +1,7 @@
 import Vue from 'vue'
 
 export default Vue.observable({
+  user: {},
   meetingId: null,
   whiteboardId: null,
   documentId: null,
