@@ -48,7 +48,9 @@ import {
   socketEvent, api, sComponentId,
 } from '@common/common'
 import Vue from 'vue'
-import { formateUrl, isEmpty, formateComponent } from '@common/utils'
+import {
+  formateUrl, isEmpty, formateComponent, cache,
+} from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
@@ -293,12 +295,12 @@ export default {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             remarkLayer.add(shape)
-            shape.cache()
+            cache(shape)
           } else if (component.type === 'text') {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             textLayer.add(shape)
-            shape.cache()
+            cache(shape)
           } else if (component.type === 'cover') {
             shape = addCoverImage(component.attrs)
           } else {
@@ -484,7 +486,7 @@ export default {
         shape = new Konva[component.className](component.attrs)
         remarkLayer.add(shape)
         remarkLayer.batchDraw()
-        shape.cache()
+        cache(shape)
       } else if (component.type === 'text') {
         shape = new Konva[component.className](component.attrs)
         textLayer.add(shape)

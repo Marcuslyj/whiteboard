@@ -131,7 +131,7 @@ function renderUpdateComponent(graphic, type) {
     node.setAttrs(graphic.attrs)
     node.clearCache()
     layer.draw()
-    node.cache()
+    node.className === 'Arrow' ? node.cache({ offset: 5 }) : node.cache()
   }
 }
 
