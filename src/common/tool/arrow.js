@@ -38,9 +38,11 @@ function create(params) {
   stage.on('mouseup touchend', () => {
     if (isDrawing) {
       isDrawing = false
-      arrow.cache()
-      cManager.addComponent(arrow)
-      arrow = null
+      if (arrow) {
+        arrow && arrow.cache({ offset: 5 })
+        cManager.addComponent(arrow)
+        arrow = null
+      }
     }
   })
 }

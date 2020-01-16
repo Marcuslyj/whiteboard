@@ -1,108 +1,147 @@
 import Konva from 'konva'
-
-/**
- * 1. 了解 x,y stage.x  stage.y  特殊 shape.x()  shape.y() 相对于原本文档位置的偏移。类似relative,
- *    常规shape 圆形，矩形等是相对于canvas左上角坐标， shape自己拖动会修改shape.x，shape.y  stage，layer 同理改变自己
- * 2. 点击stage.pointerPosition() 是相对于canvas左上角（不考虑stage transform）
- * 3. 理解getClientRect transform 包含了 (position, rotation, scale, offset, etc) 旋转时获取的值不对，放弃此种做法
- * 4. getSelfRect width，height,x,y 不会随着scale 缩放
-*/
+import cManager from '@common/componentManager'
+import Vue from 'vue'
+import { generateUID } from '@common/utils'
 
 let currentLayer
 let currentStage
-// 拖动时存储上个矩形的位置
-let lastbgRectPoi
-let bgRect
+let origin
+let opeTarget
 function create(params) {
   const { stage } = params
   currentStage = stage
   stage.on('click tap', function ({ target }) {
     // stage 非目标
     if (target === stage) {
-      stage.find('Transformer').destroy()
-      bgRect && bgRect.destroy()
-      currentLayer && currentLayer.draw()
+      save()
       return
     }
-    // 重复点击背景矩形
-    if (target === bgRect) {
+    if (target === opeTarget) {
       return
     }
-    console.log(target)
+    if (opeTarget) {
+      save()
+    }
+    // 初始化边框
     currentLayer = target.getLayer()
     stage.find('Transformer').destroy()
+    origin = { attrs: target.getAttrs(), className: target.className }
+    opeTarget = target
+    opeTarget.draggable(true)
     const tr = new Konva.Transformer({
-      // centeredScaling: true,
+      node: target,
       borderStrokeWidth: 2,
       anchorStrokeWidth: 2,
       // padding: 40,
-      // enabledAnchors: ['bottom-right'],
+    //   enabledAnchors: ['bottom-right'],
     })
-
-    bgRect = new Konva.Rect({
-      fill: 'red',
-      opacity: 0.5,
-      scale: target.scale(),
-      rotation: target.rotation(),
+    tr.on('transform', () => {
+      setMenu()
     })
-    updateBgRect()
-    currentLayer.add(tr, bgRect)
-    tr.attachTo(target)
-    bgRect.draggable(true)
+    opeTarget.on('dragend', () => {
+      setMenu()
+    })
+    currentLayer.add(tr)
     currentLayer.draw()
-
-    // 图形缩放监听处理
-    target.on('transform', function () {
-      updateBgRect()
-      currentLayer.draw()
-    })
-
-    function updateBgRect() {
-      // rect 是transfrome 之前的数据
-      let rect = target.getSelfRect()
-      const width = rect.width * target.scaleX()
-      const height = rect.height * target.scaleY()
-      const { x, y } = target.position()
-      console.log(`${target.x()}  ${target.y()}`)
-      // 注意：线的到时的计算方式可能跟常规图形的 x,y 存在不同
-      bgRect.setAttrs({
-        x: rect.x,
-        y: rect.y,
-        width,
-        height,
-        rotation: target.rotation(),
-      })
-    }
-    bgRect.on('dragstart', function () {
-      lastbgRectPoi = bgRect.position()
-    })
-    // 矩形拖动时更新线的位置
-    bgRect.on('dragmove', function () {
-      // 如何确定线的偏移位置，尤其是线缩放了之后。x,y 中途就变化了
-      // 每次在上一次的x,y 基础上重新计算拖动偏差
-      const dx = bgRect.x() - lastbgRectPoi.x
-      const dy = bgRect.y() - lastbgRectPoi.y
-      target.setAttrs(
-        {
-          x: target.x() + dx,
-          y: target.y() + dy,
-        },
-      )
-      lastbgRectPoi = bgRect.position()
-      currentLayer.draw()
-    })
+    // 增加便捷工具条
+    setMenu()
   })
+}
+
+// 对上一次做收尾保存
+function save() {
+  currentStage.find('Transformer').destroy()
+  currentLayer && currentLayer.draw()
+  if (opeTarget) {
+    add()
+  }
+}
+function setMenu() {
+  const clientRect = opeTarget.getClientRect()
+  const style = {
+    display: 'block',
+    position: 'absolute',
+    left: clientRect.x > 0 ? `${clientRect.x}px` : 0,
+    top: clientRect.y > 0 ? `${clientRect.y - 80}px` : 0,
+  }
+  let miniMenuType
+  let color
+  if (opeTarget.className === 'Text') {
+    miniMenuType = 'select-text'
+    color = opeTarget.getAttr('fill')
+  } else if (opeTarget.className === 'Line' || opeTarget.className === 'Arrow') {
+    miniMenuType = 'select-others'
+    color = opeTarget.stroke()
+  }
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType, miniMenuStyle: style, textColor: color })
 }
 
 function destroy() {
   const stage = currentStage
-  stage.find('Transformer').destroy()
-  bgRect && bgRect.destroy()
-  currentLayer && currentLayer.draw()
+  save()
   stage.off('click tap')
+}
+
+// 正在操作的对象更新到layer 中
+function add() {
+  if (opeTarget.className === 'Text') {
+    cManager.updateComponent(opeTarget, 0, 'text', true, origin)
+  } else if (opeTarget.className === 'Line') {
+    cManager.updateComponent(opeTarget, 0, 'remark', true, origin)
+  }
+  // 关闭2个可能4存在的工具
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
+  opeTarget.draggable(false)
+  origin = opeTarget = null
+}
+
+// 对外抛出的删除方法
+function del() {
+  cManager.updateComponentState(opeTarget.getAttr('id'), 0, 0)
+  currentStage.find('Transformer').destroy()
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
+}
+
+// 对外抛出的copy方法
+function copy() {
+  let poi = opeTarget.position()
+  const newAttrs = Object.assign(opeTarget.getAttrs(), { id: generateUID(), x: poi.x - 100, y: poi.y - 100 })
+  const copyShape = new Konva[opeTarget.className](newAttrs)
+  currentLayer.add(copyShape)
+  currentLayer.draw()
+  cManager.addComponent(copyShape, 0, opeTarget.className === 'Text' ? 'text' : 'remark')
+}
+
+function changeColor(color) {
+  if (opeTarget.className === 'Text') {
+    opeTarget.fill(color)
+  } else if (opeTarget.className === 'Line') {
+    opeTarget.stroke(color)
+  } else if (opeTarget.className === 'arrow') {
+    opeTarget.stroke(color)
+    opeTarget.fill(color)
+  }
+  opeTarget.clearCache()
+  currentLayer.draw()
+  opeTarget.cache()
+}
+
+function changeFontsize(size) {
+  opeTarget.setAttrs({
+    fontSize: size,
+  })
+  opeTarget.clearCache()
+  currentLayer.draw()
+  opeTarget.cache()
 }
 
 export default {
   create,
   destroy,
+  del,
+  copy,
+  changeColor,
+  changeFontsize,
 }

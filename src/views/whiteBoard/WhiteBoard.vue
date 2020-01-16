@@ -48,7 +48,9 @@ import {
   socketEvent, api, sComponentId,
 } from '@common/common'
 import Vue from 'vue'
-import { formateUrl, isEmpty, formateComponent } from '@common/utils'
+import {
+  formateUrl, isEmpty, formateComponent, cache,
+} from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
@@ -296,12 +298,12 @@ export default {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             remarkLayer.add(shape)
-            shape.cache()
+            cache(shape)
           } else if (component.type === 'text') {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             textLayer.add(shape)
-            shape.cache()
+            cache(shape)
           } else if (component.type === 'cover') {
             shape = addCoverImage(component.attrs)
           } else {
@@ -330,7 +332,7 @@ export default {
     fortest() {
       // 下面只是为了测试,后续需要调整
       // 非主讲人
-      if (this.$route.params.userId === '0') {
+      if (this.$route.params.userId === '1') {
         this.$globalConf.isSpeaker = true
         console.log('主屏')
       } else {
@@ -477,6 +479,8 @@ export default {
         let node = this.stage.find(`#${component.attrs.id}`)[0]
         if (node) node.setAttrs({ x: component.attrs.x, y: component.attrs.y })
         this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER].draw()
+      } else if (component.type === 'text' || component.type === 'remark') {
+        cManager.renderUpdateComponent(component, component.type)
       }
     },
     // 接收到新增组件消息
@@ -491,7 +495,7 @@ export default {
         shape = new Konva[component.className](component.attrs)
         remarkLayer.add(shape)
         remarkLayer.batchDraw()
-        shape.cache()
+        cache(shape)
       } else if (component.type === 'text') {
         shape = new Konva[component.className](component.attrs)
         textLayer.add(shape)

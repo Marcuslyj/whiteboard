@@ -107,7 +107,7 @@ function create(params) {
       left: offsetX > 0 ? `${offsetX}px` : 0,
       top: offsetY > 0 ? `${offsetY - 80}px` : 0,
     }
-    Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, textColor: color })
+    Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, color })
   })
 }
 
@@ -150,6 +150,7 @@ function destroy() {
   if (editorDom.style.display === 'block') {
     editorDom.style.display = 'none'
   }
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: { display: 'none' } })
   mode = ''
 }
 
@@ -167,7 +168,7 @@ function del() {
   if (mode === 'edit') {
   // 删除编辑组件
     // currentTarget.visible(false)
-    currentLayer.draw()
+    // currentLayer.draw()
     cManager.updateComponentState(currentTarget.getAttr('id'), 0, 0)
   }
   editorDom.style.display = 'none'
