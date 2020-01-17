@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper" v-if="showBoard">
         <whiteboard v-if="$globalConf.toggleRouter" key='0' ref="board1"></whiteboard>
         <whiteboard v-if="!$globalConf.toggleRouter" key='1' ref="board2"></whiteboard>
   </div>
@@ -15,6 +15,11 @@ import whiteboard from './WhiteBoard'
 export default {
   name: '',
   components: { whiteboard },
+  data() {
+    return {
+      showBoard: false,
+    }
+  },
   beforeDestroy() {
     // 销毁socket
     destroySocket()
@@ -32,10 +37,7 @@ export default {
         const { hasMeetingAuth } = res.data
         if (hasMeetingAuth) {
           this.$globalConf.user = res.data.user
-          this.$nextTick(() => {
-            let board = this.$refs.board1 || this.$refs.board2
-            board && board.startMeeting()
-          })
+          this.showBoard = true
         } else if (res.data.hasLogin) {
           this.$Message.error('用户没有此会议的权限!')
         } else {

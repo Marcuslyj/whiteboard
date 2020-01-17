@@ -105,6 +105,7 @@ export default {
       this.textColor = textColor
     })
     this.initConvertCanvas()
+    this.startMeeting()
   },
   methods: {
     // 接受刷新广播
