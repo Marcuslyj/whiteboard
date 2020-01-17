@@ -73,8 +73,8 @@ Object.keys(components).forEach((key) => {
 const AuthorityLoginComponent = {
   data() {
     return {
-      account: 'G1621194',
-      password: '123456',
+      account: '',
+      password: '',
       message: null,
       tourist: false,
       showTourist: false,
@@ -124,7 +124,7 @@ const AuthorityLoginComponent = {
       this.password = null
       this.message = null
     },
-    async touristLogin() {
+    touristLogin() {
       if (!this.account) {
         this.message = '请输入名称'
       } else if (!this.link) {
@@ -174,7 +174,7 @@ const AuthorityLoginComponent = {
     const { params } = this.$route
     if (params.mid) this.mid = params.mid
     if (params.link) {
-      this.link = decodeURIComponent(params.link)
+      this.link = window.atob(params.link)
       this.tourist = true
     }
     if (this.mid && this.link) this.showTourist = true
