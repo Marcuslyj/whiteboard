@@ -154,8 +154,7 @@ const AuthorityLoginComponent = {
           if (res.ret.retCode === '0') {
             if (res.data.type === 1 && tourist) {
               this.$Message.error({
-                content: '很抱歉，游客无权限访问该内容',
-                duration: 0,
+                content: '很抱歉，游客无权限访问该内容,请切换账号登录',
               })
             } else {
               window.location.href = this.link
