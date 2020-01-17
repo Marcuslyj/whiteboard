@@ -122,6 +122,7 @@ function add(newPoi) {
     y: newPoi.y + 5,
     hitStrokeWidth: 40,
     dash: [10, 5],
+    keepRatio: true,
   })
   currentLayer.add(shape)
   shape.cache()

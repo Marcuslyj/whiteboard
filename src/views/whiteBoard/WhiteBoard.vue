@@ -75,30 +75,6 @@ export default {
       renderComponent: [],
     }
   },
-  // 权限以及是否登录判断
-  created() {
-    const { meetingId } = this.$route.params
-    if (!meetingId) {
-      return
-    }
-    this.$globalConf.meetingId = meetingId
-    const url = formateUrl(api.auth, { meetingId })
-    this.$api.get(url, {}, (res) => {
-      if (res.ret.retCode === '0') {
-        const { hasMeetingAuth } = res.data
-        if (hasMeetingAuth) {
-          this.$globalConf.user = res.data.user
-          this.startMeeting()
-        } else if (res.data.hasLogin) {
-          this.$Message.error('用户没有此会议的权限!')
-        } else {
-          this.$router.push(`/auth/login/${meetingId}/${window.btoa(window.location.href)}`)
-        }
-      } else {
-        this.$Message.error(res.ret.retMsg)
-      }
-    })
-  },
   mounted() {
     console.log('mounted')
     this.$globalConf.mode = 'board'

@@ -8,6 +8,8 @@
 <script>
 import { destroySocket } from '@common/socketUtil'
 import bus from '@common/eventBus'
+import { formateUrl } from '@common/utils'
+import { api } from '@common/common'
 import whiteboard from './WhiteBoard'
 
 export default {
@@ -16,6 +18,33 @@ export default {
   beforeDestroy() {
     // 销毁socket
     destroySocket()
+  },
+  created() {
+    // 权限以及是否登录判断
+    const { meetingId } = this.$route.params
+    if (!meetingId) {
+      return
+    }
+    this.$globalConf.meetingId = meetingId
+    const url = formateUrl(api.auth, { meetingId })
+    this.$api.get(url, {}, (res) => {
+      if (res.ret.retCode === '0') {
+        const { hasMeetingAuth } = res.data
+        if (hasMeetingAuth) {
+          this.$globalConf.user = res.data.user
+          this.$nextTick(() => {
+            let board = this.$refs.board1 || this.$refs.board2
+            board && board.startMeeting()
+          })
+        } else if (res.data.hasLogin) {
+          this.$Message.error('用户没有此会议的权限!')
+        } else {
+          this.$router.push(`/auth/login/${meetingId}/${window.btoa(window.location.href)}`)
+        }
+      } else {
+        this.$Message.error(res.ret.retMsg)
+      }
+    })
   },
   mounted() {
     bus.$on('resize', () => {
