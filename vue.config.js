@@ -29,7 +29,7 @@ module.exports = {
           },
         },
         '/api': {
-          target: 'http://10.180.170.131:10047',
+          target: 'https://dev-whiteboard.tvflnet.com',
           changeOrigin: true,
           pathRewrite: {
             '^/api': '/',

@@ -1,4 +1,6 @@
 import config from './config'
+import {salt} from './common';
+import md5 from 'js-md5';
 // 深冻结
 export function deepFreeze(obj) {
   obj = isObject(obj) ? obj : {}
@@ -99,4 +101,9 @@ export function cache(node) {
   if (node.className === 'Arrow') {
     node.cache({ offset: 5 })
   } else node.cache()
+}
+
+export function encrypt(mid = 0, sid = null) {
+  if (!sid) return false;
+  return md5(sid + salt + mid);
 }
