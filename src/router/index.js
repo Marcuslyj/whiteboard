@@ -21,7 +21,7 @@ export default new Router({
       component: Welcome,
     },
     {
-      path: '/whiteboard/:meetingId',
+      path: '/whiteboard/:meetingId/:key?',
       name: 'whiteboard',
       component: Whiteboard,
     },
