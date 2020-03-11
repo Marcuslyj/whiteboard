@@ -4,7 +4,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
   publicPath: './',
-  lintOnSave: process.env.NODE_ENV !== 'production',
+  lintOnSave: true,
   configureWebpack: {
     resolve: {
       alias: {
@@ -20,6 +20,8 @@ module.exports = {
     devtool: process.env.NODE_ENV === 'production' ? 'none' : 'eval-source-map',
     plugins: getPlugins(),
     devServer: process.env.NODE_ENV === 'development' ? {
+      https: true,
+      disableHostCheck: false,
       proxy: {
         '/file': {
           target: 'https://dev-file.tvflnet.com',
@@ -29,7 +31,7 @@ module.exports = {
           },
         },
         '/api': {
-          target: 'https://dev-whiteboard.tvflnet.com',
+          target: 'https://dev-whiteboard.tvflnet.com/',
           changeOrigin: true,
           pathRewrite: {
             '^/api': '/',
@@ -37,6 +39,13 @@ module.exports = {
         },
       },
     } : {},
+    performance: {
+      hints: 'warning',
+      // 入口起点的最大体积
+      maxEntrypointSize: 500 * 1024,
+      // 生成文件的最大体积
+      maxAssetSize: 300 * 1024,
+    },
   },
 }
 
