@@ -42,7 +42,6 @@ import { initTool, destroyTool } from '@common/tool'
 import {
   addCover, loadPdf, addCoverImage, init as initDocument, renderPages,
 } from '@common/tool/document'
-import bus from '@common/eventBus'
 import socketUtil, { getSocket } from '@common/socketUtil'
 import {
   socketEvent, api, sComponentId,
@@ -122,11 +121,13 @@ export default {
         // 主讲屏
         // 先记录
         const baseStageXY = this.$globalConf.stageXY
-        syncArea.updateSpeakerSize({
+        this.$globalConf.speakerSize = {
           width: wrapper.clientWidth,
           height: wrapper.clientHeight,
-        })
+        }
+        syncArea.updateSpeakerSize(this.$globalConf.speakerSize)
         this.stage.size(this.$globalConf.speakerSize)
+        console.log(`需要渲染的画板组件数量：${this.renderComponent.length}`)
         if (this.renderComponent.length === 0) {
           this.$globalConf.scale = 1
           this.$globalConf.stageXY = {
@@ -370,7 +371,11 @@ export default {
     },
     startListener() {
       getSocket().on(socketEvent.getComponent, ({ components }) => {
-        this.initComponents(components)
+        this.$nextTick(
+          () => {
+            this.initComponents(components)
+          },
+        )
       })
       getSocket().on(socketEvent.getMeet, (res) => {
         this.$nextTick(
