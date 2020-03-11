@@ -106,8 +106,3 @@ export function cache(node) {
     node.cache({ offset: 5 })
   } else node.cache()
 }
-
-export function encrypt(mid = 0, sid = null) {
-  if (!sid) return false;
-  return md5(sid + salt + mid);
-}

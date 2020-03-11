@@ -370,9 +370,8 @@
                 }, (res) => {
                     if (res['ret']['retCode'] === '0') {
                     	for (let i = 0, len = res.data.meetings.length; i < len; i++) {
-                    		const cur = res.data.meetings[i],
-			                    key = encrypt(cur.meetingId, this.sid);
-                    		cur['link'] = `${process.env.VUE_APP_baseUrl.replace('/api', '')}index.html#/whiteboard/${cur.meetingId}${cur.type === 1 ? `/${key}` : ''}`;
+                    		const cur = res.data.meetings[i];
+                    		cur['link'] = `${process.env.VUE_APP_baseUrl.replace('/api', '')}index.html#/whiteboard/${cur.meetingId}`;
 	                    }
                         this.total[this.active] = res.data.pagination.count;
                         this.meeting[this.active] = res.data.meetings;
