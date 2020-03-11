@@ -99,15 +99,18 @@ const AuthorityLoginComponent = {
     login() {
       if (this.check()) {
         this.$api.post(
-          'user-manager/login',
+          '/user-manager/login',
           {
             account: this.account,
             password: this.password,
           },
           (res) => {
             if (res.ret.retCode === '0') {
-              if (this.mid && this.link) this.auth()
-              else this.$router.push({ name: 'meeting' })
+              if (this.mid && this.link) {
+                this.auth()
+              } else {
+                this.$router.push({ name: 'meeting' })
+              }
             } else {
               this.message = res.ret.retMsg
             }

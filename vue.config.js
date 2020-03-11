@@ -20,6 +20,8 @@ module.exports = {
     devtool: process.env.NODE_ENV === 'production' ? 'none' : 'eval-source-map',
     plugins: getPlugins(),
     devServer: process.env.NODE_ENV === 'development' ? {
+      https: true,
+      disableHostCheck: false,
       proxy: {
         '/file': {
           target: 'https://dev-file.tvflnet.com',
@@ -29,7 +31,7 @@ module.exports = {
           },
         },
         '/api': {
-          target: 'http://10.180.170.131:10047',
+          target: 'https://dev-whiteboard.tvflnet.com/',
           changeOrigin: true,
           pathRewrite: {
             '^/api': '/',
