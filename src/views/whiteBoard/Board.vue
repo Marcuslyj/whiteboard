@@ -39,7 +39,9 @@ export default {
           this.$globalConf.user = res.data.user
           this.showBoard = true
         } else if (res.data.hasLogin) {
-          this.$Message.error('用户没有此会议的权限!')
+          this.$confirm('用户没有此会议的权限!,是否重新登录', () => {
+            this.$router.push('/auth/login')
+          })
         } else {
           this.$router.push(`/auth/login/${meetingId}/${window.btoa(window.location.href)}`)
         }

@@ -73,8 +73,8 @@ Object.keys(components).forEach((key) => {
 const AuthorityLoginComponent = {
   data() {
     return {
-      account: 'G1621194',
-      password: '123456',
+      account: '',
+      password: '',
       message: null,
       tourist: false,
       showTourist: false,
@@ -127,7 +127,7 @@ const AuthorityLoginComponent = {
       this.password = null
       this.message = null
     },
-    async touristLogin() {
+    touristLogin() {
       if (!this.account) {
         this.message = '请输入名称'
       } else if (!this.link) {
@@ -157,8 +157,7 @@ const AuthorityLoginComponent = {
           if (res.ret.retCode === '0') {
             if (res.data.type === 1 && tourist) {
               this.$Message.error({
-                content: '很抱歉，游客无权限访问该内容',
-                duration: 0,
+                content: '很抱歉，游客无权限访问该内容,请切换账号登录',
               })
             } else {
               window.location.href = this.link
@@ -177,7 +176,7 @@ const AuthorityLoginComponent = {
     const { params } = this.$route
     if (params.mid) this.mid = params.mid
     if (params.link) {
-      this.link = decodeURIComponent(params.link)
+      this.link = window.atob(params.link)
       this.tourist = true
     }
     if (this.mid && this.link) this.showTourist = true
