@@ -33,8 +33,6 @@ export const socketEvent = {
   deleteComponentsTypesState: 'delete-components-types-state',
 }
 
-export const salt = 'l%x7*^(rx(!3t!$m';
-
 /**
  * 特殊组件id
  */
@@ -56,6 +54,5 @@ export default deepFreeze({
   api,
   fbId,
   socketEvent,
-  salt,
   sComponentId,
 })
