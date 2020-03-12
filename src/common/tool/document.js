@@ -481,28 +481,15 @@ export function renderPages() {
 
 // 加载所有页面
 function loopRender({ from, to }) {
-  // let {
-  //   viewport,
-  // } = docOpened
-  // let convertCanvas = getConvertCanvas(viewport.width, viewport.height)
-
-  // const context = convertCanvas.layer.getContext()
-  // let renderContext = {
-  //   canvasContext: context,
-  //   viewport,
-  // }
-
   renderPage({
     from, to, first: true,
   })
-  // viewport = null
 }
 // 加载一页
 async function renderPage({
   from, to, first,
 }) {
   if (from > to) {
-    // rendering = false
     return
   }
   if (pageSigned[from]) {
@@ -515,7 +502,7 @@ async function renderPage({
       pdf, viewport,
     } = docOpened
     let convertCanvas = await getConvertCanvas(viewport.width, viewport.height)
-    // debugger
+
     convertCanvas.rendering = true
     const context = convertCanvas.layer.getContext()
     let renderContext = {
@@ -538,28 +525,31 @@ async function renderPage({
     let img = new Image()
     img.src = imgUrl
     img.onload = () => {
-      const imgK = new Konva.Image({
-        x: 0,
-        y,
-        image: img,
-        width: viewport.width,
-        height: viewport.height,
-        // 白底,防止透明背景
-        fill: '#fff',
-        stroke: '#ccc',
-      })
-      layer.add(imgK)
+      // 防止渲染到首页
+      if (config.mode === 'document') {
+        const imgK = new Konva.Image({
+          x: 0,
+          y,
+          image: img,
+          width: viewport.width,
+          height: viewport.height,
+          // 白底,防止透明背景
+          fill: '#fff',
+          stroke: '#ccc',
+        })
+        layer.add(imgK)
 
-      // 防止已经destroy
-      if (!pageSigned) return
-      pageSigned[from] = true
+        // 防止已经destroy
+        if (!pageSigned) return
+        pageSigned[from] = true
 
-      layer.draw()
+        layer.draw()
 
-      from++
-      renderPage({ from, to })
+        from++
+        renderPage({ from, to })
 
-      imgUrl = img = pdf = viewport = renderContext = null
+        imgUrl = img = pdf = viewport = renderContext = null
+      }
     }
   }
   // 显示
