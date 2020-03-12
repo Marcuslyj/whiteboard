@@ -11,13 +11,13 @@ Description
       class="mask"
       v-show="!$globalConf.isSpeaker"
     ></div>
-    <div
+    <!-- <div
       class="left part"
       v-if="isHome"
     >
       <span><i class="iconfont icon-add"></i></span>
       <span><i class="iconfont icon-boards"></i></span>
-    </div>
+    </div> -->
     <div class="center">
       <ul class="group draw-tool">
         <li ref="pan-tool" @click.stop.prevent="clickPanTool">
@@ -141,9 +141,9 @@ Description
             <i class="iconfont icon-upload"></i>
           </Upload>
         </li>
-        <li class="data-li"><i class="iconfont icon-download"></i></li>
+        <!-- <li class="data-li"><i class="iconfont icon-download"></i></li>
         <li><i class="iconfont icon-file"></i></li>
-        <li><i class="iconfont icon-clip"></i></li>
+        <li><i class="iconfont icon-clip"></i></li> -->
       </ul>
       <ul class="group other-tool">
         <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
