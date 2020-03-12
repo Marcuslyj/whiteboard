@@ -30,8 +30,39 @@ function create(params) {
       padding: 0,
     })
     const konvaContent = stage.content
+    // 增加到当前面板
     konvaContent.insertBefore(editorDom, konvaContent.firstElementChild)
   }
+  const start = function () {
+    // 点击文字编辑时默认在页面中间初始化文字编辑
+    mode = 'add'
+    editorDom.value = ''
+    editorDom.style.display = 'block'
+    editorDom.focus()
+    const boundingClientRect = stage.content.getBoundingClientRect()
+    let offsetX = document.documentElement.clientWidth / 2 - boundingClientRect.left
+    let offsetY = document.documentElement.clientHeight / 2 - boundingClientRect.top
+    startPoi = { x: document.documentElement.clientWidth / 2, y: document.documentElement.clientHeight / 2 }
+    let { color, fontSize } = config.text
+
+    setStyle(editorDom, {
+      left: `${offsetX}px`,
+      top: `${offsetY}px`,
+      width: `${boundingClientRect.width - offsetX}px`,
+      height: `${boundingClientRect.height - offsetY}px`,
+      color,
+      fontSize: `${fontSize}px`,
+    })
+    // 启动miniMenu
+    const style = {
+      display: 'block',
+      position: 'absolute',
+      left: offsetX > 0 ? `${offsetX}px` : 0,
+      top: offsetY > 0 ? `${offsetY - 80}px` : 0,
+    }
+    Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, color })
+  }
+  start()
   stage.on('click tap', function ({ evt, target }) {
     // 右键不处理
     if (evt.button === 2) {
@@ -124,6 +155,7 @@ function add(newPoi) {
     dash: [10, 5],
     keepRatio: true,
   })
+  console.log(shape)
   currentLayer.add(shape)
   shape.cache()
   currentLayer.draw()

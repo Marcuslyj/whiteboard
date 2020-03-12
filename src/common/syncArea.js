@@ -3,7 +3,7 @@
 import { sComponentId } from '@common/common'
 import config from './config'
 import socketUtil from './socketUtil'
-import { formateComponent } from './utils'
+import { formateComponent, isEmpty } from './utils'
 
 // 设置scale
 function setLayerScale() {
@@ -91,6 +91,9 @@ function updateStageXY(obj) {
     }),
   }
   config.stageXy = obj
+  if (isEmpty(obj.x) || isEmpty(obj.y)) {
+    alert('警告！产生了以外的偏移值，会导致应用异常！')
+  }
   socketUtil.updateComponent(formateComponent(params))
 }
 
