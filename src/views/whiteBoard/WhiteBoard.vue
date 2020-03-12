@@ -366,13 +366,6 @@ export default {
         socketUtil.initSocket()
         this.startListener()
         getSocket().on('connect', () => {
-          // 防止多个主讲屏，通知其他的主讲屏断连
-          if (this.$globalConf.isSpeaker) {
-            socketUtil.broadcast({
-              meetingId: this.$globalConf.meetingId,
-              msg: JSON.stringify({ event: 'speakerOnline' }),
-            })
-          }
           // console.log(getSocket().connected) // true
           // console.log(`meetingId:${this.$globalConf.meetingId}`)
           // socket 连接,加入会议房间
@@ -387,6 +380,13 @@ export default {
           getSocket().on(socketEvent.joinMeet, (res) => {
             this.$globalConf.isSpeaker = res.isSpeaker
             console.log(`isSpeaker:${res.isSpeaker}`)
+            // 防止多个主讲屏，通知其他的主讲屏断连
+            if (this.$globalConf.isSpeaker) {
+              socketUtil.broadcast({
+                meetingId: this.$globalConf.meetingId,
+                msg: JSON.stringify({ event: 'speakerOnline' }),
+              })
+            }
             socketUtil.getMeet({
               meetingId: this.$globalConf.meetingId,
             })
@@ -401,7 +401,6 @@ export default {
     },
     startListener() {
       getSocket().on(socketEvent.getComponent, ({ components }) => {
-        this.initComponents(components)
         this.$nextTick(
           () => {
             this.initComponents(components)
