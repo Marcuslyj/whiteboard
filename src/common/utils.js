@@ -1,4 +1,6 @@
 import config from './config'
+import {salt} from './common';
+import md5 from 'js-md5';
 // 深冻结
 export function deepFreeze(obj) {
   obj = isObject(obj) ? obj : {}
@@ -33,6 +35,10 @@ export const getPoiWithOffset = (poi, stage) => {
   if (!stage || !poi) { return null }
   const aPoi = stage.absolutePosition()
   let scale = isEmpty(config.scale) ? 1 : config.scale
+  if (isEmpty(aPoi.x) || isEmpty(poi.x) || isEmpty(poi.y) || isEmpty(aPoi.y)) {
+    console.log('坐标异常值，此时同步参数：')
+    console.log(`scale:${config.scale},stage:${config.stageXy.x} ${config.stageXy.y},speakerSize:${config.speakerSize.width}`)
+  }
   return {
     x: (poi.x - aPoi.x) / scale,
     y: (poi.y - aPoi.y) / scale,
@@ -47,7 +53,7 @@ export const formateUrl = (url, props) => {
   return url
 }
 
-export const isEmpty = (obj) => obj == null || obj === ''
+export const isEmpty = (obj) => obj == null || obj === '' || isNaN(obj)
 
 
 /**

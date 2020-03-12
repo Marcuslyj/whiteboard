@@ -77,7 +77,7 @@ const AuthorityLoginComponent = {
       password: '',
       message: null,
       tourist: false,
-      showTourist: false,
+      showTourist: true,
       link: null,
       mid: 0,
     }

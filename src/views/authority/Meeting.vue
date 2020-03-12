@@ -19,7 +19,7 @@
 							<div class="mi-meeting-item" v-for="(meet, index) in meeting.mine" :key="index">
 								<div class="mi-meeting-item-title">
 									<div class="subject">
-										<span>会议主题：{{ meet.theme }}</span>
+										<a :href="meet.link" target="_blank" style="color: #515a6e;"><span>会议主题：{{ meet.theme }}</span></a>
 										<span class="status state" v-html="meet.type === 1 ? '私密' : '公开'" :class="meet.type === 1 ? 'primary' : null"></span>
 										<span class="status waiting" v-if="meet.startTime > Date.now()">待参加</span>
 										<span class="status being" v-else-if="meet.startTime < Date.now() && Date.now() < meet.endTime">进行中</span>
@@ -66,7 +66,7 @@
 							</div>
 							<div class="mi-meeting-item" v-for="(meet, index) in meeting.soon" :key="index">
 								<div class="mi-meeting-item-title">
-									<span>会议主题：{{ meet.theme }}</span>
+									<a :href="meet.link" target="_blank" style="color: #515a6e;"><span>会议主题：{{ meet.theme }}</span></a>
 								</div>
 								<div class="mi-meeting-item-info">
 									<span>会议时间：{{ meet.meetingTimeText }}</span>
@@ -93,7 +93,7 @@
 							</div>
 							<div class="mi-meeting-item" v-for="(meet, index) in meeting.history" :key="index">
 								<div class="mi-meeting-item-title">
-									<span>会议主题：{{ meet.theme }}</span>
+									<a :href="meet.link" target="_blank" style="color: #515a6e;"><span>会议主题：{{ meet.theme }}</span></a>
 								</div>
 								<div class="mi-meeting-item-info">
 									<span>会议时间：{{ meet.meetingTimeText }}</span>
@@ -186,9 +186,11 @@
 	import Vue from 'vue';
 	import VueClipboard from 'vue-clipboard2';
 	Vue.use(VueClipboard);
+	import {salt} from '../../common/common';
 	import {
 	    Row, Col, Input, Table, Tabs, TabPane, Page, Icon, DatePicker, TimePicker, Tree, Form, FormItem, Button, Message, RadioGroup, Radio, Tooltip
 	} from 'view-design';
+	import {encrypt} from '../../common/utils';
 	const components = {
 	    Row, Col, Input, Table, Tabs, TabPane, Page, Icon, DatePicker, TimePicker, Tree, Form, FormItem, Button, Message, RadioGroup, Radio, Tooltip
 	};
@@ -226,6 +228,7 @@
                 callback();
             };
             return {
+            	sid: null,
                 salt: 'LOlKxO0wSRrnxgSA',
                 active: 'mine',
 	            height: 'auto',
@@ -366,6 +369,10 @@
 	                ...this.pagination.mine
                 }, (res) => {
                     if (res['ret']['retCode'] === '0') {
+                    	for (let i = 0, len = res.data.meetings.length; i < len; i++) {
+                    		const cur = res.data.meetings[i];
+                    		cur['link'] = `${process.env.VUE_APP_baseUrl.replace('/api', '')}index.html#/whiteboard/${cur.meetingId}`;
+	                    }
                         this.total[this.active] = res.data.pagination.count;
                         this.meeting[this.active] = res.data.meetings;
                         this.$nextTick(() => {this.setHeight();});
@@ -480,7 +487,7 @@
                     this.$Message.error('会议ID有误，分享链接生成失败');
                     this.setMeetingModal();
                 } else {
-                	this.share.link = `${process.env.VUE_APP_baseUrl}index.html/#/whiteboard/${id}`;
+                	this.share.link = `${process.env.VUE_APP_baseUrl.replace('/api', '')}index.html#/whiteboard/${id}`;
                 }
 		    },
 		    copyShareLinkSuccess() {
@@ -556,7 +563,8 @@
 	    },
 	    created() {
         	const visitor = this.getCookie('visitor');
-            if (!this.getCookie('sid')
+        	this.sid = this.getCookie('sid');
+            if (!this.sid
 	            || visitor === ''
 	            || visitor === undefined
 	            || visitor === null

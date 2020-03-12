@@ -4,7 +4,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
   publicPath: './',
-  lintOnSave: process.env.NODE_ENV !== 'production',
+  lintOnSave: true,
   configureWebpack: {
     resolve: {
       alias: {
@@ -39,6 +39,13 @@ module.exports = {
         },
       },
     } : {},
+    performance: {
+      hints: 'warning',
+      // 入口起点的最大体积
+      maxEntrypointSize: 500 * 1024,
+      // 生成文件的最大体积
+      maxAssetSize: 300 * 1024,
+    },
   },
 }
 
