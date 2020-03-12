@@ -43,7 +43,7 @@ import {
   addCover, loadPdf, addCoverImage, init as initDocument, renderPages,
 } from '@common/tool/document'
 import bus from '@common/eventBus'
-import socketUtil, { getSocket } from '@common/socketUtil'
+import socketUtil, { getSocket, destroySocket } from '@common/socketUtil'
 import {
   socketEvent, api, sComponentId,
 } from '@common/common'
@@ -342,9 +342,16 @@ export default {
         socketUtil.initSocket()
         this.startListener()
         getSocket().on('connect', () => {
-        // console.log(getSocket().connected) // true
-        // console.log(`meetingId:${this.$globalConf.meetingId}`)
-        // socket 连接,加入会议房间
+          // 防止多个主讲屏，通知其他的主讲屏断连
+          if (this.$globalConf.isSpeaker) {
+            socketUtil.broadcast({
+              meetingId: this.$globalConf.meetingId,
+              msg: JSON.stringify({ event: 'speakerOnline' }),
+            })
+          }
+          // console.log(getSocket().connected) // true
+          // console.log(`meetingId:${this.$globalConf.meetingId}`)
+          // socket 连接,加入会议房间
           const meetingInfo = {
             theme: '',
             meetingId: this.$globalConf.meetingId,
@@ -386,6 +393,9 @@ export default {
         switch (event) {
         case 'refresh':
           if (!this.$globalConf.isSpeaker) this.onRefresh()
+          break
+        case 'speakerOnline':
+          if (this.$globalConf.isSpeaker) destroySocket()
           break
         default:
           break
