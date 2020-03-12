@@ -48,4 +48,8 @@ export default Vue.observable({
   toggleRouter: false,
   syncAction: null,
   isFullscreen: false,
+  // 转换画板数量
+  convertCanvasCount: 5,
+  // 当前whiteboard vue实例
+  whiteboard: null,
 })
