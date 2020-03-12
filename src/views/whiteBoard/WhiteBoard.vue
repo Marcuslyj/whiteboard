@@ -30,7 +30,7 @@ Description
       class="convertCanvas"
     ></div> -->
     <div class="convertCanvas-wrapper">
-      <div v-for="(item,index) in Array.from({length:5})" :key="index" ref="convertCanvas" class="convertCanvas"></div>
+      <div v-for="item in convertCanvas" :key="item.id" ref="convertCanvas" class="convertCanvas"></div>
     </div>
   </div>
 </template>
@@ -48,7 +48,7 @@ import {
 } from '@common/common'
 import Vue from 'vue'
 import {
-  formateUrl, isEmpty, formateComponent, cache,
+  formateUrl, isEmpty, formateComponent, cache, generateUID,
 } from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
@@ -72,7 +72,12 @@ export default {
       miniMenuStyle: {},
       textColor: null,
       renderComponent: [],
+      convertCanvas: [],
     }
+  },
+  created() {
+    // 缓存whiteboard实例
+    this.$globalConf.whiteboard = this
   },
   mounted() {
     console.log('mounted')
@@ -121,11 +126,9 @@ export default {
         // 主讲屏
         // 先记录
         const baseStageXY = this.$globalConf.stageXY
-        syncArea.updateSpeakerSize({
         this.$globalConf.speakerSize = {
           width: wrapper.clientWidth,
           height: wrapper.clientHeight,
-        })
         }
         syncArea.updateSpeakerSize(this.$globalConf.speakerSize)
         this.stage.size(this.$globalConf.speakerSize)
@@ -201,13 +204,31 @@ export default {
     // 初始化转换画板
     initConvertCanvas() {
       this.$globalConf.convertCanvas = []
-      this.$refs.convertCanvas.map((canvas, index) => {
-        let convertCanvas = new Konva.Stage({
-          container: this.$refs.convertCanvas[index],
+      this.convertCanvas = Array.from({ length: this.$globalConf.convertCanvasCount }).map(() => ({ id: generateUID() }))
+      this.$nextTick(() => {
+        this.$refs.convertCanvas.map((canvas, index) => {
+          let convertCanvas = new Konva.Stage({
+            container: this.$refs.convertCanvas[index],
+          })
+          convertCanvas.layer = new Konva.Layer()
+          convertCanvas.add(convertCanvas.layer)
+          this.$globalConf.convertCanvas.push(convertCanvas)
         })
-        convertCanvas.layer = new Konva.Layer()
-        convertCanvas.add(convertCanvas.layer)
-        this.$globalConf.convertCanvas.push(convertCanvas)
+      })
+    },
+    addConvertCanvas(index) {
+      return new Promise((resolve, reject) => {
+        let count = ++this.$globalConf.convertCanvasCount
+        this.convertCanvas.push({ id: generateUID() })
+        this.$nextTick(() => {
+          let convertCanvas = new Konva.Stage({
+            container: this.$refs.convertCanvas[count - 1],
+          })
+          convertCanvas.layer = new Konva.Layer()
+          convertCanvas.add(convertCanvas.layer)
+          this.$globalConf.convertCanvas.splice(index, 0, convertCanvas)
+          resolve(convertCanvas)
+        })
       })
     },
     // 文档上传成功
@@ -586,6 +607,8 @@ export default {
     },
   },
   beforeDestroy() {
+    // 清缓存
+    this.$globalConf.whiteboard = null
     this.$globalConf.mode = ''
     destroyTool()
 

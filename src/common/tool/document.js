@@ -32,11 +32,16 @@ const getStage = () => config.board
 // 多个转换板切换用，防止同时操作一个
 const getConvertCanvas = (() => {
   let index = -1
-  return (width, height) => {
+  return async (width, height) => {
     index++
     if (index >= config.convertCanvas.length) index = 0
     // 设置尺寸
     let canvas = config.convertCanvas[index]
+    // 都在使用中，添加新的
+    if (canvas.rendering && config.whiteboard) {
+      canvas = await config.whiteboard.addConvertCanvas(index)
+    }
+
     if (canvas.$$width !== width || canvas.$$height !== height) {
       canvas.size({ width, height })
       canvas.$$width = width
@@ -48,8 +53,8 @@ const getConvertCanvas = (() => {
 const getLayer = () => config.layerManager[config.layerIds.BG_LAYER]
 // const getDocumentId = () => config.documentId
 const getDocumentPath = () => config.documentPath
+let timerBroadcast
 let timerScroll
-
 /**
  * 防抖
  */
@@ -203,7 +208,7 @@ export async function addCover(pdf, {
   const { width } = viewport
   const { height } = viewport
   // 获取转换画板，设置转换画板尺寸
-  const convertCanvas = getConvertCanvas(width, height)
+  const convertCanvas = await getConvertCanvas(width, height)
 
   const renderContext = {
     canvasContext: convertCanvas.layer.getContext(),
@@ -373,6 +378,8 @@ export function enableScroll(enable = true) {
     if (config.isSpeaker) {
     // 滚轮滚动
       stage.on('wheel dragmove', (ev) => {
+        clearTimeout(timerScroll)
+
         let { type } = ev
         if (type === 'wheel') {
           let { deltaY } = ev.evt
@@ -389,11 +396,14 @@ export function enableScroll(enable = true) {
           // 绘制
           stage.draw()
         }
-        // 加载页面
-        renderPages()
 
-        // 触发副屏滚动
-        broadcastScroll()
+        timerScroll = setTimeout(() => {
+          // 加载页面
+          renderPages()
+
+          // 触发副屏滚动
+          broadcastScroll()
+        }, 300)
       })
     }
   } else {
@@ -402,8 +412,8 @@ export function enableScroll(enable = true) {
 }
 
 function broadcastScroll() {
-  clearTimeout(timerScroll)
-  timerScroll = setTimeout(() => {
+  clearTimeout(timerBroadcast)
+  timerBroadcast = setTimeout(() => {
     let stage = getStage()
     let stageXY = {
       x: stage.getAttr('x') / config.scale,
@@ -504,7 +514,9 @@ async function renderPage({
     let {
       pdf, viewport,
     } = docOpened
-    let convertCanvas = getConvertCanvas(viewport.width, viewport.height)
+    let convertCanvas = await getConvertCanvas(viewport.width, viewport.height)
+    // debugger
+    convertCanvas.rendering = true
     const context = convertCanvas.layer.getContext()
     let renderContext = {
       canvasContext: context,
@@ -515,6 +527,11 @@ async function renderPage({
     const y = (from - 1) * viewport.height
     let page = await pdf.getPage(from)
     await page.render(renderContext).promise
+    // 渲染完成后，rendering标志为false
+    convertCanvas.rendering = false
+    // 清图片
+    convertCanvas.destroyChildren()
+
     page = null
 
     let imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
