@@ -401,7 +401,6 @@ export default {
     },
     startListener() {
       getSocket().on(socketEvent.getComponent, ({ components }) => {
-        this.initComponents(components)
         this.$nextTick(
           () => {
             this.initComponents(components)
