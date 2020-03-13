@@ -31,7 +31,7 @@ Description
       class="convertCanvas"
     ></div> -->
     <div class="convertCanvas-wrapper">
-      <div v-for="(item,index) in Array.from({length:5})" :key="index" ref="convertCanvas" class="convertCanvas"></div>
+      <div v-for="item in convertCanvas" :key="item.id" ref="convertCanvas" class="convertCanvas"></div>
     </div>
     <!-- <Modal class="clipModal" v-model="clip.showClip" title="保存截图">
       <div class="form-group">
@@ -60,13 +60,13 @@ import { initTool, destroyTool } from '@common/tool'
 import {
   addCover, loadPdf, addCoverImage, init as initDocument, renderPages,
 } from '@common/tool/document'
-import socketUtil, { getSocket } from '@common/socketUtil'
+import socketUtil, { getSocket, destroySocket } from '@common/socketUtil'
 import {
   socketEvent, api, sComponentId,
 } from '@common/common'
 import Vue from 'vue'
 import {
-  formateUrl, isEmpty, formateComponent, cache,
+  formateUrl, isEmpty, formateComponent, cache, generateUID,
 } from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
@@ -97,7 +97,12 @@ export default {
         wrongTip: '',
       },
       tempLayer: null,
+      convertCanvas: [],
     }
+  },
+  created() {
+    // 缓存whiteboard实例
+    this.$globalConf.whiteboard = this
   },
   mounted() {
     console.log('mounted')
@@ -224,13 +229,31 @@ export default {
     // 初始化转换画板
     initConvertCanvas() {
       this.$globalConf.convertCanvas = []
-      this.$refs.convertCanvas.map((canvas, index) => {
-        let convertCanvas = new Konva.Stage({
-          container: this.$refs.convertCanvas[index],
+      this.convertCanvas = Array.from({ length: this.$globalConf.convertCanvasCount }).map(() => ({ id: generateUID() }))
+      this.$nextTick(() => {
+        this.$refs.convertCanvas.map((canvas, index) => {
+          let convertCanvas = new Konva.Stage({
+            container: this.$refs.convertCanvas[index],
+          })
+          convertCanvas.layer = new Konva.Layer()
+          convertCanvas.add(convertCanvas.layer)
+          this.$globalConf.convertCanvas.push(convertCanvas)
         })
-        convertCanvas.layer = new Konva.Layer()
-        convertCanvas.add(convertCanvas.layer)
-        this.$globalConf.convertCanvas.push(convertCanvas)
+      })
+    },
+    addConvertCanvas(index) {
+      return new Promise((resolve, reject) => {
+        let count = ++this.$globalConf.convertCanvasCount
+        this.convertCanvas.push({ id: generateUID() })
+        this.$nextTick(() => {
+          let convertCanvas = new Konva.Stage({
+            container: this.$refs.convertCanvas[count - 1],
+          })
+          convertCanvas.layer = new Konva.Layer()
+          convertCanvas.add(convertCanvas.layer)
+          this.$globalConf.convertCanvas.splice(index, 0, convertCanvas)
+          resolve(convertCanvas)
+        })
       })
     },
     // 文档上传成功
@@ -368,9 +391,9 @@ export default {
         socketUtil.initSocket()
         this.startListener()
         getSocket().on('connect', () => {
-        // console.log(getSocket().connected) // true
-        // console.log(`meetingId:${this.$globalConf.meetingId}`)
-        // socket 连接,加入会议房间
+          // console.log(getSocket().connected) // true
+          // console.log(`meetingId:${this.$globalConf.meetingId}`)
+          // socket 连接,加入会议房间
           const meetingInfo = {
             theme: '',
             meetingId: this.$globalConf.meetingId,
@@ -382,6 +405,13 @@ export default {
           getSocket().on(socketEvent.joinMeet, (res) => {
             this.$globalConf.isSpeaker = res.isSpeaker
             console.log(`isSpeaker:${res.isSpeaker}`)
+            // 防止多个主讲屏，通知其他的主讲屏断连
+            if (this.$globalConf.isSpeaker) {
+              socketUtil.broadcast({
+                meetingId: this.$globalConf.meetingId,
+                msg: JSON.stringify({ event: 'speakerOnline' }),
+              })
+            }
             socketUtil.getMeet({
               meetingId: this.$globalConf.meetingId,
             })
@@ -416,6 +446,9 @@ export default {
         switch (event) {
         case 'refresh':
           if (!this.$globalConf.isSpeaker) this.onRefresh()
+          break
+        case 'speakerOnline':
+          if (this.$globalConf.isSpeaker) destroySocket()
           break
         default:
           break
@@ -606,7 +639,7 @@ export default {
       if (isEmpty(this.tempLayer)) {
         this.tempLayer = new Konva.Layer()
         this.$globalConf.board.add(this.tempLayer)
-        this.tempLayer.zIndex(1)
+        this.tempLayer.zIndex(0)
         this.tempLayer.destroyChildren()
       }
       const { width, height } = this.$globalConf.board.size()
@@ -631,6 +664,8 @@ export default {
     },
   },
   beforeDestroy() {
+    // 清缓存
+    this.$globalConf.whiteboard = null
     this.$globalConf.mode = ''
     destroyTool()
 

@@ -1,6 +1,4 @@
-import md5 from 'js-md5'
 import config from './config'
-import { salt } from './common'
 // 深冻结
 export function deepFreeze(obj) {
   obj = isObject(obj) ? obj : {}
