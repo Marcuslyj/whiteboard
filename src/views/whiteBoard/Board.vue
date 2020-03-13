@@ -7,7 +7,7 @@
 
 <script>
 import { destroySocket } from '@common/socketUtil'
-import bus from '@common/eventBus'
+import Vue from 'vue'
 import { formateUrl } from '@common/utils'
 import { api } from '@common/common'
 import whiteboard from './WhiteBoard'
@@ -51,7 +51,7 @@ export default {
     })
   },
   mounted() {
-    bus.$on('resize', () => {
+    Vue.eventBus.$on('resize', () => {
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
         this.$nextTick(() => {

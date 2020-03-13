@@ -5,8 +5,7 @@ import {
   imageService, fileService, api, fbId,
 } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
-import bus from '@common/eventBus'
-import { debounce } from 'throttle-debounce'
+// import { debounce } from 'throttle-debounce'
 import image from '@common/tool/image'
 import Vue from 'vue'
 import syncArea from '@common/syncArea'
@@ -95,10 +94,8 @@ export function init(documentId, documentPath) {
   // 载入文档
   open()
 
-  // 画布大小改变
-  // bus.$on('resize', resizeDebounce)
   // 监听工具变化设置是否可拖动
-  wacherDrag = bus.$watch(
+  wacherDrag = Vue.eventBus.$watch(
     function () {
       return config.activeTool
     },
@@ -138,7 +135,6 @@ export function destroy({ all = false } = {}) {
     stage.setAttrs({
       y: 0,
     })
-    // bus.$off('resize', resizeDebounce)
     if (wacherDrag) wacherDrag()
     if (all) {
       getElWrapper().classList.remove('invisible')
@@ -515,11 +511,6 @@ async function renderPage({
     const y = (from - 1) * viewport.height
     let page = await pdf.getPage(from)
     await page.render(renderContext).promise
-    // 渲染完成后，rendering标志为false
-    convertCanvas.rendering = false
-    // 清图片
-    convertCanvas.destroyChildren()
-
     page = null
 
     let imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
@@ -528,6 +519,11 @@ async function renderPage({
     img.onload = () => {
       // 防止渲染到首页
       if (config.mode === 'document') {
+        // 渲染完成后，rendering标志为false
+        convertCanvas.rendering = false
+        // 清图片
+        convertCanvas.destroyChildren()
+
         const imgK = new Konva.Image({
           x: 0,
           y,

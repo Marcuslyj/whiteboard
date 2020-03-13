@@ -100,10 +100,6 @@ export default {
       convertCanvas: [],
     }
   },
-  created() {
-    // 缓存whiteboard实例
-    this.$globalConf.whiteboard = this
-  },
   mounted() {
     console.log('mounted')
     this.$globalConf.mode = 'board'
@@ -472,6 +468,8 @@ export default {
         if (!isEmpty(res.syncAction)) {
           const { whiteboardId, documentId, documentPath } = this.$globalConf.syncAction = JSON.parse(res.syncAction)
           this.$globalConf.mode = documentId == null ? 'board' : 'document'
+          // 缓存whiteboard实例
+          this.$globalConf.whiteboard = this.$globalConf.mode === 'document' ? this : null
 
           this.$globalConf.whiteboardId = whiteboardId
           this.$globalConf.documentId = documentId
@@ -665,7 +663,10 @@ export default {
   },
   beforeDestroy() {
     // 清缓存
-    this.$globalConf.whiteboard = null
+    if (this.$globalConf.whiteboard === this) {
+      this.$globalConf.whiteboard = null
+    }
+
     this.$globalConf.mode = ''
     destroyTool()
 
