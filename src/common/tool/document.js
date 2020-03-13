@@ -1,5 +1,5 @@
 import config from '@common/config'
-import { isFirefox, formateComponent } from '@common/utils'
+import { isFirefox, formateComponent, getURLBase64 } from '@common/utils'
 import Konva from 'konva'
 import {
   imageService, fileService, api, fbId,
@@ -11,6 +11,7 @@ import Vue from 'vue'
 import syncArea from '@common/syncArea'
 import cManager from '../componentManager'
 import socketUtil from '@/common/socketUtil'
+
 
 /**
  * 正在查阅的pdf
@@ -264,8 +265,7 @@ export async function addCoverImage(options, broadcast = false) {
   // 是否可拖动
   options.draggable = !!config.isSpeaker
   let img = new Image()
-  img.src = formatCoverUrl(options.imgUrl)
-
+  img.src = await getURLBase64(formatCoverUrl(options.imgUrl))
   await new Promise((resolve) => {
     img.onload = () => {
       options.height = (img.height * options.width) / img.width
@@ -287,6 +287,9 @@ export async function addCoverImage(options, broadcast = false) {
     // })
     konvaImage.on('click tap', () => {
       // 获取白板批注
+
+      // 清空缓存操作队列
+      cManager.clearCache()
 
       // 同步动作
       // 1.设置全局信息

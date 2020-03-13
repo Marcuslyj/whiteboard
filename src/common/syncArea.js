@@ -92,7 +92,7 @@ function updateStageXY(obj) {
   }
   config.stageXy = obj
   if (isEmpty(obj.x) || isEmpty(obj.y)) {
-    alert('警告！产生了以外的偏移值，会导致应用异常！')
+    alert('警告！产生了异常偏移值，会导致应用异常！')
   }
   socketUtil.updateComponent(formateComponent(params))
 }

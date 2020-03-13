@@ -122,12 +122,12 @@ export default {
   display: none;
   .mini-menu-inner{
     display:flex;
-    padding:10px;
+    padding:5px;
     border-radius:0.3vw;
     box-shadow: 0 0 6px #919191;
-    background:#f0f0f0;
+    background:#fff;
     .iconfont{
-      font-size:2vw;
+      font-size:18px;
     }
     .menu-item{
       cursor: pointer;

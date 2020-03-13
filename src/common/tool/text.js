@@ -14,6 +14,8 @@ function create(params) {
   const { stage, layer } = params
   currentStage = stage
   currentLayer = layer
+  // 只用内存editorDom 判断会出现 dom 销毁，而 内存仍存在的情况
+  editorDom = document.querySelector('.editor-textarea')
   if (!editorDom) {
     editorDom = document.createElement('textarea')
     editorDom.className = 'editor-textarea'
@@ -58,7 +60,7 @@ function create(params) {
       display: 'block',
       position: 'absolute',
       left: offsetX > 0 ? `${offsetX}px` : 0,
-      top: offsetY > 0 ? `${offsetY - 80}px` : 0,
+      top: offsetY > 0 ? `${offsetY - 40}px` : 0,
     }
     Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, color })
   }
@@ -136,7 +138,7 @@ function create(params) {
       display: 'block',
       position: 'absolute',
       left: offsetX > 0 ? `${offsetX}px` : 0,
-      top: offsetY > 0 ? `${offsetY - 80}px` : 0,
+      top: offsetY > 0 ? `${offsetY - 40}px` : 0,
     }
     Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, color })
   })

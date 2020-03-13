@@ -17,13 +17,13 @@ Description
     </div> -->
     <div class="center">
       <ul class="group draw-tool">
-        <li ref="pan-tool" @click.stop.prevent="clickPanTool">
+        <li ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
           <i class="iconfont icon-shou"></i>
         </li>
-        <li ref="select-tool" @click.stop.prevent="clickSelectTool">
+        <li ref="select-tool" @click.stop.prevent="clickSelectTool" :class="{'activeTool':isActive('select-tool')}">
           <i class="iconfont icon-select"></i>
         </li>
-        <li ref="pencil-tool" @click.stop.prevent="clickPencilTool">
+        <li ref="pencil-tool" @click.stop.prevent="clickPencilTool" :class="{'activeTool':isActive('pencil-tool')}">
           <i class="iconfont icon-pen"></i>
           <div class="menu pencil" v-show="boxName === 'pencil'">
             <div class="preview-wrapper">
@@ -80,7 +80,7 @@ Description
             </div>
           </div>
         </li>
-        <li ref="eraser-tool" @click.stop.prevent="clickEraserTool">
+        <li ref="eraser-tool" @click.stop.prevent="clickEraserTool" :class="{'activeTool':isActive('eraser-tool')}">
           <i class="iconfont icon-eraser"></i>
           <div class="menu eraser" v-if="boxName === 'eraser'">
             <div class="row">
@@ -120,7 +120,7 @@ Description
             </div>
           </div>
         </li>
-        <li ref="text-tool" @click.stop="clickTextTool">
+        <li ref="text-tool" @click.stop="clickTextTool" :class="{'activeTool':isActive('text-tool')}">
           <i class="iconfont icon-text"></i>
         </li>
       </ul>
@@ -202,7 +202,6 @@ export default {
   },
   data() {
     return {
-      isActive: false,
       common,
       // 笔
       pencilColorArr: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
@@ -260,8 +259,15 @@ export default {
       ],
       boxName: '',
       files: [{ name: '1号文件1号文件1号文件1号文件1号文件' }, { name: '2号文件2号文件2号文件2号文件2号文件2号文件' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }],
-      screenshots: [{ name: '截图1', url: '' }],
       // MsgUploading: []
+      // 关联一级菜单栏和实际工具的
+      menuRef: {
+        'pan-tool': ['pan'],
+        'select-tool': ['select'],
+        'pencil-tool': ['pen', 'markPencil', 'arrow'],
+        'eraser-tool': ['eraser', 'deleteGraphic', 'clearBoard'],
+        'text-tool': ['text'],
+      },
     }
   },
   mounted() {
@@ -286,6 +292,9 @@ export default {
     })
   },
   methods: {
+    isActive(classname) {
+      return this.menuRef[classname].indexOf(this.$globalConf.activeTool) >= 0
+    },
     beforeUpload() {
       this.MsgUploading = this.MsgUploading || []
       this.MsgUploading.push(
@@ -366,16 +375,27 @@ export default {
     changeEraserWidth(lineWidth) {
       this.$globalConf.eraser.lineWidth = lineWidth
     },
+    // 目前只限定激活钢笔事件，初始化时
     active() {
-      if (this.isActive) {
-        return
+      switch (this.$globalConf.activeTool) {
+      case 'pen':
+      case 'markPencil':
+      case 'arrow': this.changePencilTool(this.$globalConf.activeTool, true); break
+      case 'eraser':
+      case 'deleteGraphic':
+      case 'clearBoard':
+        this.changeEraserTool(this.$globalConf.activeTool); break
+      case 'pan':
+        this.clickPanTool(); break
+      case 'select':
+        this.clickPanTool(); break
+      case 'text':
+        this.clickTextTool(); break
+      default: break
       }
-      this.isActive = true
-      this.setLiStyle('pencil-tool')
-      this.changePencilTool(this.$globalConf.activeTool, true)
     },
     clickPanTool() {
-      this.setLiStyle('pan-tool')
+      // this.setLiStyle('pan-tool')
       this.setBoxName('')
       // 开启画板移动功能
       if (this.isHome) {
@@ -395,7 +415,7 @@ export default {
       }
     },
     clickSelectTool() {
-      this.setLiStyle('select-tool')
+      // this.setLiStyle('select-tool')
       this.setBoxName('')
       const stage = this.$globalConf.board
       Vue.eventBus.$emit('deactive-tool', {
@@ -408,12 +428,12 @@ export default {
       })
     },
     clickPencilTool() {
-      this.setLiStyle('pencil-tool')
+      // this.setLiStyle('pencil-tool')
       this.setBoxName('pencil')
       this.changePencilTool(this.$globalConf.pencil.activePencilTool)
     },
     clickEraserTool() {
-      this.setLiStyle('eraser-tool')
+      // this.setLiStyle('eraser-tool')
       this.setBoxName('eraser')
       // 清屏不能点击就促发
       if (this.$globalConf.eraser.activeEraserTool === 'clearBoard') {
@@ -422,7 +442,7 @@ export default {
       this.changeEraserTool(this.$globalConf.eraser.activeEraserTool)
     },
     clickTextTool() {
-      this.setLiStyle('text-tool')
+      // this.setLiStyle('text-tool')
       this.setBoxName('text')
       const stage = this.$globalConf.board
       const layer = this.$globalConf.layerManager[

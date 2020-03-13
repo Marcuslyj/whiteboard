@@ -353,13 +353,9 @@ export default {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             textLayer.add(shape)
-            cache(shape)
+            // cache(shape)
           } else if (component.type === 'cover') {
             shape = addCoverImage(component.attrs)
-          } else {
-            shape = new Konva.Image(component.attrs)
-            bgLayer.add(shape)
-            bgLayer.batchDraw()
           }
         })
 
@@ -617,6 +613,8 @@ export default {
       socketUtil.clearBoard(params)
     },
     gotoBoard() {
+      this.$globalConf.activeTool = 'pen'
+      cManager.clearCache()
       const params = {
         meetingId: this.$globalConf.meetingId,
         syncAction: JSON.stringify({
