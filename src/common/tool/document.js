@@ -515,11 +515,6 @@ async function renderPage({
     const y = (from - 1) * viewport.height
     let page = await pdf.getPage(from)
     await page.render(renderContext).promise
-    // 渲染完成后，rendering标志为false
-    convertCanvas.rendering = false
-    // 清图片
-    convertCanvas.destroyChildren()
-
     page = null
 
     let imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
@@ -528,6 +523,11 @@ async function renderPage({
     img.onload = () => {
       // 防止渲染到首页
       if (config.mode === 'document') {
+        // 渲染完成后，rendering标志为false
+        convertCanvas.rendering = false
+        // 清图片
+        convertCanvas.destroyChildren()
+
         const imgK = new Konva.Image({
           x: 0,
           y,

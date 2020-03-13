@@ -665,7 +665,10 @@ export default {
   },
   beforeDestroy() {
     // 清缓存
-    this.$globalConf.whiteboard = null
+    if (this.$globalConf.whiteboard === this) {
+      this.$globalConf.whiteboard = null
+    }
+
     this.$globalConf.mode = ''
     destroyTool()
 
