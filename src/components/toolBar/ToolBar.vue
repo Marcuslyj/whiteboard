@@ -5,12 +5,9 @@ Description
 @version 1.0.0
 -->
 <template>
-  <div class="toolbar"  @mousedown.stop="" @touchstart.stop="">
+  <div class="toolbar" @mousedown.stop="" @touchstart.stop="">
     <!-- 工具条能否起作用的遮罩 -->
-    <div
-      class="mask"
-      v-show="!$globalConf.isSpeaker"
-    ></div>
+    <div class="mask" v-show="!$globalConf.isSpeaker"></div>
     <!-- <div
       class="left part"
       v-if="isHome"
@@ -132,7 +129,7 @@ Description
           <Upload
             :action="common.api.upload"
             accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            :format="['pdf','doc','docx','ppt','pptx']"
+            :format="['pdf', 'doc', 'docx', 'ppt', 'pptx']"
             :before-upload="beforeUpload"
             :on-success="uploadSuccess"
             :data="{ fbId: common.fbId.upload }"
@@ -141,9 +138,28 @@ Description
             <i class="iconfont icon-upload"></i>
           </Upload>
         </li>
-        <!-- <li class="data-li"><i class="iconfont icon-download"></i></li>
-        <li><i class="iconfont icon-file"></i></li>
-        <li><i class="iconfont icon-clip"></i></li> -->
+        <li ref="file-tool" @click.stop.prevent="clickFile">
+          <i class="iconfont icon-file"></i>
+          <div class="menu file" v-show="boxName === 'file'">
+            <Tabs value="meeting">
+              <TabPane label="会议文档" name="meeting">
+                <div class="file-bd">
+                  <div class="nodata-tip" v-if="files.length===0">暂无文档</div>
+                  <div class="file-list" v-else>
+                     <div class="file-item" v-for="(file,index) in files" :key="index">
+                       <span class="title">{{file.name}}</span>
+                       <span class="btns">
+                          <Icon type="md-download" />
+                          <Icon type="ios-trash" />
+                       </span>
+                     </div>
+                  </div>
+                </div>
+              </TabPane>
+            </Tabs>
+          </div>
+        </li>
+        <li @click="clip"><i class="iconfont icon-clip"></i></li>
       </ul>
       <ul class="group other-tool">
         <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
@@ -151,8 +167,17 @@ Description
       </ul>
     </div>
     <div class="right part">
-      <span v-show="$globalConf.mode==='document'" @click="gotoBoard"><i class="iconfont icon-shangyiye1"></i></span>
-      <span @click="handleFullscreen"><i :class="['iconfont',`icon-${$globalConf.isFullscreen?'normalscreen':'fullscreen'}`]"></i></span>
+      <span v-show="$globalConf.mode === 'document'" @click="gotoBoard"
+        ><i class="iconfont icon-shangyiye1"></i
+      ></span>
+      <span @click="handleFullscreen"
+        ><i
+          :class="[
+            'iconfont',
+            `icon-${$globalConf.isFullscreen ? 'normalscreen' : 'fullscreen'}`
+          ]"
+        ></i
+      ></span>
     </div>
   </div>
 </template>
@@ -234,6 +259,8 @@ export default {
         },
       ],
       boxName: '',
+      files: [{ name: '1号文件1号文件1号文件1号文件1号文件' }, { name: '2号文件2号文件2号文件2号文件2号文件2号文件' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }],
+      screenshots: [{ name: '截图1', url: '' }],
       // MsgUploading: []
     }
   },
@@ -254,15 +281,19 @@ export default {
   beforeDestroy() {
     document.body.removeEventListener('mousedown', this.handleBodyClick)
     document.body.removeEventListener('touchstart', this.handleBodyClick)
-    Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+    Vue.eventBus.$emit('deactive-tool', {
+      toolName: this.$globalConf.activeTool,
+    })
   },
   methods: {
     beforeUpload() {
       this.MsgUploading = this.MsgUploading || []
-      this.MsgUploading.push(Message.loading({
-        content: '上传中...',
-        duration: 0,
-      }))
+      this.MsgUploading.push(
+        Message.loading({
+          content: '上传中...',
+          duration: 0,
+        }),
+      )
       return true
     },
     uploadSuccess(res) {
@@ -275,7 +306,9 @@ export default {
         this.$globalConf.layerIds.REMARK_LAYER
       ]
       if (name !== this.$globalConf.activeTool && !isFirst) {
-        Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+        Vue.eventBus.$emit('deactive-tool', {
+          toolName: this.$globalConf.activeTool,
+        })
         this.$globalConf.activeTool = this.$globalConf.pencil.activePencilTool = name
         Vue.eventBus.$emit('active-tool', {
           toolName: this.$globalConf.activeTool,
@@ -306,7 +339,9 @@ export default {
       const layer = this.$globalConf.layerManager[
         this.$globalConf.layerIds.REMARK_LAYER
       ]
-      Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+      Vue.eventBus.$emit('deactive-tool', {
+        toolName: this.$globalConf.activeTool,
+      })
       this.$globalConf.activeTool = this.$globalConf.eraser.activeEraserTool = name
       if (name === 'eraser' || name === 'deleteGraphic') {
         Vue.eventBus.$emit('active-tool', {
@@ -332,7 +367,9 @@ export default {
       this.$globalConf.eraser.lineWidth = lineWidth
     },
     active() {
-      if (this.isActive) { return }
+      if (this.isActive) {
+        return
+      }
       this.isActive = true
       this.setLiStyle('pencil-tool')
       this.changePencilTool(this.$globalConf.activeTool, true)
@@ -346,7 +383,9 @@ export default {
         const layer = this.$globalConf.layerManager[
           this.$globalConf.layerIds.REMARK_LAYER
         ]
-        Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+        Vue.eventBus.$emit('deactive-tool', {
+          toolName: this.$globalConf.activeTool,
+        })
         this.$globalConf.activeTool = 'pan'
         Vue.eventBus.$emit('active-tool', {
           toolName: this.$globalConf.activeTool,
@@ -359,7 +398,9 @@ export default {
       this.setLiStyle('select-tool')
       this.setBoxName('')
       const stage = this.$globalConf.board
-      Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+      Vue.eventBus.$emit('deactive-tool', {
+        toolName: this.$globalConf.activeTool,
+      })
       this.$globalConf.activeTool = 'select'
       Vue.eventBus.$emit('active-tool', {
         toolName: this.$globalConf.activeTool,
@@ -387,13 +428,27 @@ export default {
       const layer = this.$globalConf.layerManager[
         this.$globalConf.layerIds.TEXT_LAYER
       ]
-      Vue.eventBus.$emit('deactive-tool', { toolName: this.$globalConf.activeTool })
+      Vue.eventBus.$emit('deactive-tool', {
+        toolName: this.$globalConf.activeTool,
+      })
       this.$globalConf.activeTool = 'text'
       Vue.eventBus.$emit('active-tool', {
         toolName: this.$globalConf.activeTool,
         stage,
         layer,
       })
+    },
+    clickFile() {
+      this.setLiStyle('file-tool')
+      this.setBoxName('file')
+      this.getFiles()
+    },
+    getFiles() {
+
+    },
+    // 裁剪
+    clip() {
+      this.$emit('clip')
     },
     back() {
       cManager.back()
@@ -427,7 +482,9 @@ export default {
       let PI2
       let dx
       let dy
-      let radians; let length; let width
+      let radians
+      let length
+      let width
       switch (this.$globalConf.activeTool) {
       case 'markPencil':
         ctx.beginPath()

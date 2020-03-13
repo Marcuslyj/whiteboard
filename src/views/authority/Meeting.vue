@@ -373,8 +373,6 @@ import {
   Radio,
   Tooltip,
 } from 'view-design'
-import { salt } from '../../common/common'
-import { encrypt } from '../../common/utils'
 
 Vue.use(VueClipboard)
 
