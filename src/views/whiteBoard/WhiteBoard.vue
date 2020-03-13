@@ -22,6 +22,7 @@ Description
         @uploadSuccess="uploadSuccess"
         @clearBoard="clearBoard"
         @gotoBoard="gotoBoard"
+        @clip="saveClipImg"
       ></tool-bar>
     </div>
     <!-- 用于转换图片,创建多个转换板，防止同时操作一个 -->
@@ -32,6 +33,23 @@ Description
     <div class="convertCanvas-wrapper">
       <div v-for="(item,index) in Array.from({length:5})" :key="index" ref="convertCanvas" class="convertCanvas"></div>
     </div>
+    <!-- <Modal class="clipModal" v-model="clip.showClip" title="保存截图">
+      <div class="form-group">
+        <span class="label">图片名：</span>
+        <div>
+          <Input v-model="clip.clipName"></Input>
+          <span class="wrong-tip" v-show="clip.wrongTip!==''">{{clip.wrongTip}}</span>
+        </div>
+      </div>
+
+      <div class="img-wrapper">
+        <img :src="clip.clipImg" style="width:400px"/>
+      </div>
+       <div slot="footer">
+          <Button size="large"  @click="cancelClipImg">取消</Button>
+          <Button type="primary" size="large" @click="saveClipImg">保存</Button>
+        </div>
+    </Modal> -->
   </div>
 </template>
 
@@ -72,6 +90,13 @@ export default {
       miniMenuStyle: {},
       textColor: null,
       renderComponent: [],
+      clip: {
+        showClip: false,
+        clipImg: '',
+        clipName: '',
+        wrongTip: '',
+      },
+      tempLayer: null,
     }
   },
   mounted() {
@@ -571,6 +596,39 @@ export default {
       socketUtil.syncAction(params)
       this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
     },
+    // 裁剪
+    // clipImg() {
+    //   this.clip.wrongTip = ''
+    //   this.clip.showClip = true
+    //   this.clip.clipImg = this.$globalConf.board.toDataURL()
+    // },
+    saveClipImg() {
+      if (isEmpty(this.tempLayer)) {
+        this.tempLayer = new Konva.Layer()
+        this.$globalConf.board.add(this.tempLayer)
+        this.tempLayer.zIndex(1)
+        this.tempLayer.destroyChildren()
+      }
+      const { width, height } = this.$globalConf.board.size()
+      const { x, y } = this.$globalConf.board.getAbsoluteTransform()
+      const rect = new Konva.Rect({
+        fill: '#fff',
+        x: -x,
+        y: -y,
+        width,
+        height,
+      })
+      this.tempLayer.add(rect)
+      this.tempLayer.batchDraw()
+      const link = document.createElement('a')
+      link.href = this.$globalConf.board.toDataURL()
+      link.download = true
+      document.body.appendChild(link)
+      link.click()
+    },
+    cancelClipImg() {
+      this.clip.showClip = false
+    },
   },
   beforeDestroy() {
     this.$globalConf.mode = ''
@@ -583,3 +641,25 @@ export default {
 }
 </script>
 <style lang="scss" src="./WhiteBoard.scss" scoped></style>
+<style lang="scss">
+  .clipModal{
+    .form-group{
+      display: flex;
+      .label{
+        width:80px;
+        height:32px;
+        font-size:14px;
+        font-weight: 600;
+        line-height:32px;
+      }
+      .wrong-tip{
+        color:#f00
+      }
+    }
+    .img-wrapper{
+      margin-top:10px;
+      border-radius:5px;
+      border:1px solid #eee;
+    }
+  }
+</style>

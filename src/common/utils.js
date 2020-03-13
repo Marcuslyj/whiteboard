@@ -1,6 +1,6 @@
+import md5 from 'js-md5'
 import config from './config'
-import {salt} from './common';
-import md5 from 'js-md5';
+import { salt } from './common'
 // 深冻结
 export function deepFreeze(obj) {
   obj = isObject(obj) ? obj : {}
@@ -53,7 +53,7 @@ export const formateUrl = (url, props) => {
   return url
 }
 
-export const isEmpty = (obj) => obj == null || obj === '' || isNaN(obj)
+export const isEmpty = (obj) => obj == null || obj === '' || Number.isNaN(obj)
 
 
 /**

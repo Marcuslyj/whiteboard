@@ -4,7 +4,7 @@ import './styles/index.scss'
 import '@common/konvaPolyfill'
 
 import {
-  Modal, Poptip, Row, Message,
+  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input,
 } from 'view-design'
 
 import base from '@common/base'
@@ -14,13 +14,18 @@ import App from './App.vue'
 import router from './router'
 import api from '@/common/api'
 
+const compoenents = {
+  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input,
+}
+
+Object.keys(compoenents).forEach((e) => {
+  Vue.component(e, compoenents[e])
+})
+
 Vue.config.productionTip = false
-Vue.component('Modal', Modal)
-Vue.component('Poptip', Poptip)
-Vue.component('Row', Row)
-Vue.component('Message', Message)
 Vue.prototype.$Modal = Modal
 Vue.prototype.$Message = Message
+
 
 Vue.use(base)
 
