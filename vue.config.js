@@ -21,17 +21,17 @@ module.exports = {
     plugins: getPlugins(),
     devServer: process.env.NODE_ENV === 'development' ? {
       https: true,
-      disableHostCheck: false,
+      disableHostCheck: true,
       proxy: {
-        '/file': {
+        '/file/': {
           target: 'https://dev-file.tvflnet.com',
           changeOrigin: true,
           pathRewrite: {
             '^/file': '/',
           },
         },
-        '/api': {
-          target: 'https://dev-whiteboard.tvflnet.com/',
+        '/api/': {
+          target: 'https://dev-whiteboard.tvflnet.com',
           changeOrigin: true,
           pathRewrite: {
             '^/api': '/',

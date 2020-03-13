@@ -150,6 +150,68 @@
           background: #000;
         }
       }
+      .file{
+        width:340px;
+        background-color: #fff;
+        border:1px solid #eee;
+        padding:0;
+        /deep/ .ivu-tabs-bar{
+          margin-bottom: 0;
+        }
+        .ivu-icon{
+          font-size:20px;
+          &:hover{
+            color:#2d8cf0;
+          }
+        }
+        .file-hd{
+          display: flex;
+          flex-direction: row-reverse;
+          border-bottom:1px solid #eee;
+          height:35px;
+          align-items: center;
+          padding-right:10px;
+        }
+        .file-bd{
+          height:280px;
+          overflow-y: auto;
+          .nodata-tip{
+            font-size:14px;
+            height:50px;
+            line-height:50px;
+            text-align: center;
+          }
+          .file-list{
+            .file-item{
+              padding:5px 0px;
+              display: flex;
+              flex-flow: row nowrap;
+              height:35px;
+              &:not(:last-child){
+                border-bottom:1px solid #eee;
+              }
+              &:hover{
+                background-color: #eee;
+              }
+              .title{
+                flex:1;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                margin-right:10px;
+                padding-left:10px;
+                &:hover,&:active{
+                  color:#2d8cf0;
+                }
+              }
+              .btns{
+                display:inline-block;
+                width:50px;
+              }
+            }
+          }
+        }
+      }
       @media screen and(max-width:600px){
         li{
           height:6vw;
@@ -159,7 +221,7 @@
           }
           &:hover {
             overflow: visible;
-            background:#D6D6D6
+            background:rgb(14, 12, 12)
           }
         }
         .menu {
