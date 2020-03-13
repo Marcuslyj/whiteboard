@@ -6,13 +6,13 @@
 
 <script>
 import { throttle } from 'throttle-debounce'
-import bus from '@common/eventBus.js'
+import Vue from 'vue'
 
 export default {
   name: 'app',
   mounted() {
     window.onresize = throttle(300, () => {
-      bus.$emit('resize')
+      Vue.eventBus.$emit('resize')
     })
   },
 }

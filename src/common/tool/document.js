@@ -5,8 +5,7 @@ import {
   imageService, fileService, api, fbId,
 } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
-import bus from '@common/eventBus'
-import { debounce } from 'throttle-debounce'
+// import { debounce } from 'throttle-debounce'
 import image from '@common/tool/image'
 import Vue from 'vue'
 import syncArea from '@common/syncArea'
@@ -59,14 +58,14 @@ let timerScroll
 /**
  * 防抖
  */
-let resizeDebounce = function () {
-  // if (config.mode !== 'document') return
-  // getElWrapper().classList.add('invisible')
-  // _resizeDebounce()
-}
-let _resizeDebounce = debounce(500, () => {
-  onResize()
-})
+// let resizeDebounce = function () {
+//   // if (config.mode !== 'document') return
+//   // getElWrapper().classList.add('invisible')
+//   // _resizeDebounce()
+// }
+// let _resizeDebounce = debounce(500, () => {
+//   onResize()
+// })
 
 function getElWrapper() {
   return elWrapper || document.querySelector('#board-container>.konvajs-content')
@@ -96,10 +95,8 @@ export function init(documentId, documentPath) {
   // 载入文档
   open()
 
-  // 画布大小改变
-  bus.$on('resize', resizeDebounce)
   // 监听工具变化设置是否可拖动
-  wacherDrag = bus.$watch(
+  wacherDrag = Vue.eventBus.$watch(
     function () {
       return config.activeTool
     },
@@ -139,7 +136,6 @@ export function destroy({ all = false } = {}) {
     stage.setAttrs({
       y: 0,
     })
-    bus.$off('resize', resizeDebounce)
     if (wacherDrag) wacherDrag()
     if (all) {
       getElWrapper().classList.remove('invisible')
@@ -306,8 +302,9 @@ export async function addCoverImage(options, broadcast = false) {
       })
       // 2.主讲先跳转,添加必要特殊组件
       config.toggleRouter = !config.toggleRouter
-      // 3.广播
-      socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
+      // 不需要广播，主屏whiteboard重新初始化已经通知
+      // // 3.广播
+      // socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
     })
     konvaImage.on('dragend', () => {
       let params = {
@@ -484,28 +481,15 @@ export function renderPages() {
 
 // 加载所有页面
 function loopRender({ from, to }) {
-  // let {
-  //   viewport,
-  // } = docOpened
-  // let convertCanvas = getConvertCanvas(viewport.width, viewport.height)
-
-  // const context = convertCanvas.layer.getContext()
-  // let renderContext = {
-  //   canvasContext: context,
-  //   viewport,
-  // }
-
   renderPage({
     from, to, first: true,
   })
-  // viewport = null
 }
 // 加载一页
 async function renderPage({
   from, to, first,
 }) {
   if (from > to) {
-    // rendering = false
     return
   }
   if (pageSigned[from]) {
@@ -518,7 +502,7 @@ async function renderPage({
       pdf, viewport,
     } = docOpened
     let convertCanvas = await getConvertCanvas(viewport.width, viewport.height)
-    // debugger
+
     convertCanvas.rendering = true
     const context = convertCanvas.layer.getContext()
     let renderContext = {
@@ -530,39 +514,42 @@ async function renderPage({
     const y = (from - 1) * viewport.height
     let page = await pdf.getPage(from)
     await page.render(renderContext).promise
-    // 渲染完成后，rendering标志为false
-    convertCanvas.rendering = false
-    // 清图片
-    convertCanvas.destroyChildren()
-
     page = null
 
     let imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
     let img = new Image()
     img.src = imgUrl
     img.onload = () => {
-      const imgK = new Konva.Image({
-        x: 0,
-        y,
-        image: img,
-        width: viewport.width,
-        height: viewport.height,
-        // 白底,防止透明背景
-        fill: '#fff',
-        stroke: '#ccc',
-      })
-      layer.add(imgK)
+      // 防止渲染到首页
+      if (config.mode === 'document') {
+        // 渲染完成后，rendering标志为false
+        convertCanvas.rendering = false
+        // 清图片
+        convertCanvas.destroyChildren()
 
-      // 防止已经destroy
-      if (!pageSigned) return
-      pageSigned[from] = true
+        const imgK = new Konva.Image({
+          x: 0,
+          y,
+          image: img,
+          width: viewport.width,
+          height: viewport.height,
+          // 白底,防止透明背景
+          fill: '#fff',
+          stroke: '#ccc',
+        })
+        layer.add(imgK)
 
-      layer.draw()
+        // 防止已经destroy
+        if (!pageSigned) return
+        pageSigned[from] = true
 
-      from++
-      renderPage({ from, to })
+        layer.draw()
 
-      imgUrl = img = pdf = viewport = renderContext = null
+        from++
+        renderPage({ from, to })
+
+        imgUrl = img = pdf = viewport = renderContext = null
+      }
     }
   }
   // 显示
@@ -571,9 +558,9 @@ async function renderPage({
 /**
  * resize
  */
-function onResize() {
-  init(config.documentId, config.documentPath)
-}
+// function onResize() {
+// init(config.documentId, config.documentPath)
+// }
 
 export default {
   addCover,
