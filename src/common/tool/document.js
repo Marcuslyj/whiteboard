@@ -58,14 +58,14 @@ let timerScroll
 /**
  * 防抖
  */
-let resizeDebounce = function () {
-  // if (config.mode !== 'document') return
-  // getElWrapper().classList.add('invisible')
-  // _resizeDebounce()
-}
-let _resizeDebounce = debounce(500, () => {
-  onResize()
-})
+// let resizeDebounce = function () {
+//   // if (config.mode !== 'document') return
+//   // getElWrapper().classList.add('invisible')
+//   // _resizeDebounce()
+// }
+// let _resizeDebounce = debounce(500, () => {
+//   onResize()
+// })
 
 function getElWrapper() {
   return elWrapper || document.querySelector('#board-container>.konvajs-content')
@@ -96,7 +96,7 @@ export function init(documentId, documentPath) {
   open()
 
   // 画布大小改变
-  bus.$on('resize', resizeDebounce)
+  // bus.$on('resize', resizeDebounce)
   // 监听工具变化设置是否可拖动
   wacherDrag = bus.$watch(
     function () {
@@ -138,7 +138,7 @@ export function destroy({ all = false } = {}) {
     stage.setAttrs({
       y: 0,
     })
-    bus.$off('resize', resizeDebounce)
+    // bus.$off('resize', resizeDebounce)
     if (wacherDrag) wacherDrag()
     if (all) {
       getElWrapper().classList.remove('invisible')
@@ -303,8 +303,9 @@ export async function addCoverImage(options, broadcast = false) {
       })
       // 2.主讲先跳转,添加必要特殊组件
       config.toggleRouter = !config.toggleRouter
-      // 3.广播
-      socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
+      // 不需要广播，主屏whiteboard重新初始化已经通知
+      // // 3.广播
+      // socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
     })
     konvaImage.on('dragend', () => {
       let params = {
@@ -558,9 +559,9 @@ async function renderPage({
 /**
  * resize
  */
-function onResize() {
-  init(config.documentId, config.documentPath)
-}
+// function onResize() {
+// init(config.documentId, config.documentPath)
+// }
 
 export default {
   addCover,

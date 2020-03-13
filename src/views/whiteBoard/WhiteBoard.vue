@@ -320,7 +320,7 @@ export default {
           socketUtil.deleteComponentsTypesState(formateComponent(params))
 
           // 广播其他屏重新初始化
-          socketUtil.broadcast({ meetingId: this.$globalConf.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
+          // socketUtil.broadcast({ meetingId: this.$globalConf.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
         }
         this.renderComponent.forEach((component) => {
           if (component.type === 'remark') {
