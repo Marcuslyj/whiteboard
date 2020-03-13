@@ -1,12 +1,11 @@
 import syncArea from '@common/syncArea'
+import { Message } from 'view-design'
 import config from './config'
 import socketUtil from './socketUtil'
 import { formateComponent } from './utils'
 /**
  * 组件的加载移除等操作 (撤销，还原（需要一个队列管理。（新增，删除，组件缩放平移，组件复制，颜色更新））)
  */
-let positionIndex = -1
-
 /**
  * 组件传递到后台的格式是
  *  {
@@ -73,14 +72,17 @@ function updateComponent(graphic, componentType = 0, type = 'remark', isCache = 
 
 function clearCache() {
   config.cacheGraphics = []
-  positionIndex = -1
+  config.cPIndex = -1
 }
 
 // 撤销
 function back() {
-  if (config.cacheGraphics.length === 0 || positionIndex === -1) return
-  console.log(`positionIndex:${positionIndex}`)
-  const cache = config.cacheGraphics[positionIndex]
+  if (config.cacheGraphics.length === 0 || config.cPIndex === -1) {
+    Message.info('没有可撤销的')
+    return
+  }
+  console.log(`config.cPIndex:${config.cPIndex}`)
+  const cache = config.cacheGraphics[config.cPIndex]
   switch (cache.opeType) {
   case 'addComponent':
     // updateVisible(cache.graphic.attrs.id, false)
@@ -97,14 +99,17 @@ function back() {
   default:
     break
   }
-  positionIndex--
+  config.cPIndex--
 }
 
 // 还原，还原一个新增组件时如果另外一个端找不到就不还原了，新增会导致堆叠顺序不对
 function goAhead() {
-  if (positionIndex + 1 >= config.cacheGraphics.length) return
-  const cache = config.cacheGraphics[++positionIndex]
-  console.log(`positionIndex:${positionIndex}`)
+  if (config.cPIndex + 1 >= config.cacheGraphics.length) {
+    Message.info('已经是最新的操作了')
+    return
+  }
+  const cache = config.cacheGraphics[++config.cPIndex]
+  console.log(`config.cPIndex:${config.cPIndex}`)
   switch (cache.opeType) {
   case 'addComponent':
     // updateVisible(cache.graphic.attrs.id, true)
@@ -154,11 +159,11 @@ function updateVisible(componentId, visible) {
 // 推入缓存时，可能要做长度截断
 function pushCache(obj) {
   // 有游标在中间，执行过还原操作，丢弃游标后面的数据
-  if (positionIndex !== -1) {
-    config.cacheGraphics = config.cacheGraphics.slice(0, positionIndex + 1)
+  if (config.cPIndex !== -1) {
+    config.cacheGraphics = config.cacheGraphics.slice(0, config.cPIndex + 1)
   }
   config.cacheGraphics.push(obj)
-  positionIndex = config.cacheGraphics.length - 1
+  config.cPIndex = config.cacheGraphics.length - 1
 }
 
 export default {

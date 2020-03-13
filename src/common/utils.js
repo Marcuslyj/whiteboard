@@ -104,3 +104,26 @@ export function cache(node) {
     node.cache({ offset: 5 })
   } else node.cache()
 }
+
+export function getURLBase64(url) {
+  return new Promise((resolve, reject) => {
+    let xhr = new XMLHttpRequest()
+    xhr.open('get', url, true)
+    xhr.responseType = 'blob'
+    xhr.onload = function () {
+      if (this.status === 200) {
+        let blob = this.response
+        let fileReader = new FileReader()
+        fileReader.onloadend = function (e) {
+          let { result } = e.target
+          resolve(result)
+        }
+        fileReader.readAsDataURL(blob)
+      }
+    }
+    xhr.onerror = function () {
+      reject()
+    }
+    xhr.send()
+  })
+}

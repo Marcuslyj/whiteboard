@@ -62,7 +62,7 @@ function setMenu() {
     display: 'block',
     position: 'absolute',
     left: clientRect.x > 0 ? `${clientRect.x}px` : 0,
-    top: clientRect.y > 0 ? `${clientRect.y - 80}px` : 0,
+    top: clientRect.y > 0 ? `${clientRect.y - 40}px` : 0,
   }
   let miniMenuType
   let color

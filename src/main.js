@@ -14,12 +14,12 @@ import App from './App.vue'
 import router from './router'
 import api from '@/common/api'
 
-const compoenents = {
+const components = {
   Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input,
 }
 
-Object.keys(compoenents).forEach((e) => {
-  Vue.component(e, compoenents[e])
+Object.keys(components).forEach((e) => {
+  Vue.component(e, components[e])
 })
 
 Vue.config.productionTip = false

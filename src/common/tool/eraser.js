@@ -24,7 +24,6 @@ function create(params) {
     }
     line = new Konva.Line(eraserConfig)
     layer.add(line)
-    layer.batchDraw()
   })
   stage.on('mousemove touchmove', () => {
     if (!isDrawing) return
@@ -35,6 +34,19 @@ function create(params) {
   stage.on('mouseup touchend', () => {
     if (isDrawing) {
       isDrawing = false
+      if (line.points().length === 2) {
+        // 只有一个点，提交一个圆
+        const toolConfig = Vue.prototype.$globalConf.eraser
+        line = new Konva.Circle({
+          id: generateUID(),
+          fill: toolConfig.color,
+          x: line.points()[0],
+          y: line.points()[1],
+          radius: toolConfig.lineWidth / 2,
+        })
+        layer.add(line)
+        layer.draw()
+      }
       line.cache()
       cManager.addComponent(line)
       line = null

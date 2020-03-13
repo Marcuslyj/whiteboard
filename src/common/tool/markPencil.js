@@ -27,7 +27,6 @@ function create(params) {
     }
     line = new Konva.Line(lineConfig)
     layer.add(line)
-    layer.batchDraw()
   })
   stage.on('mousemove touchmove', () => {
     if (!isDrawing) {
@@ -41,6 +40,19 @@ function create(params) {
   stage.on('mouseup touchend', () => {
     if (isDrawing) {
       isDrawing = false
+      if (line.points().length === 2) {
+        const toolConfig = Vue.prototype.$globalConf.pencil
+        line = new Konva.Circle({
+          id: generateUID(),
+          fill: toolConfig.color,
+          x: line.points()[0],
+          y: line.points()[1],
+          radius: toolConfig.lineWidth / 2,
+          opacity: 0.5,
+        })
+        layer.add(line)
+        layer.draw()
+      }
       // 性能优化
       line.cache()
       cManager.addComponent(line)
