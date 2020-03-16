@@ -294,6 +294,8 @@ export default {
     },
     // 开始初始化组件到Canvas 中，有特殊组件和普通组件,对layer 进行缩放
     initComponents(components) {
+      // 初始化完成标记
+      this.$globalConf.initDone = false
       const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
       const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
@@ -376,6 +378,8 @@ export default {
         // }
         // socketUtil.getComponent(params)
       }
+      // 初始化完成
+      this.$globalConf.initDone = true
     },
     // 开始初始化
     startMeeting() {

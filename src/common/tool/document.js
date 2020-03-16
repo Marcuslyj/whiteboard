@@ -24,10 +24,11 @@ import socketUtil from '@/common/socketUtil'
 let docOpened
 let pageSigned
 // let rendering = false
-let showCount = 1
 let wacherDrag
 let toolCanDrag = 'pan'
 let elWrapper
+let postilsToUpdate = new Set()
+
 const getStage = () => config.board
 // 多个转换板切换用，防止同时操作一个
 const getConvertCanvas = (() => {
@@ -130,13 +131,13 @@ export function destroy({ all = false } = {}) {
     let stage = getStage()
     docOpened = pageSigned = elWrapper = null
     // rendering = false
-    showCount = 1
-
     stage.off('wheel dragmove')
     stage.setAttrs({
       y: 0,
     })
     if (wacherDrag) wacherDrag()
+    // 记录待更新页码
+    Vue.eventBus.$off('updatePostil')
     if (all) {
       getElWrapper().classList.remove('invisible')
     }
@@ -257,7 +258,6 @@ export async function addCover(pdf, {
 }
 
 export async function addCoverImage(options, broadcast = false) {
-  // debugger
   let layer = getLayer()
   // 屏幕宽度十分之一
   options.width = Math.floor(config.baseWidth / 10)
@@ -342,10 +342,79 @@ export async function open() {
 
   // 加载文档
   pageSigned = {}
-  // 可视区能展示几页
-  showCount = Math.ceil(stage.height() / viewport.height)
   // 渲染页面
   renderPages()
+
+  // 记录待更新页码
+  cachePostils(stage, viewport, pdf)
+}
+
+// 获取可视区中涉及页面
+function getRangeToRender(stage, viewport, pdf) {
+  const y = Math.abs(stage.getAttr('y'))
+  const from = Math.floor(y / viewport.height) + 1
+  let to = from
+  let stageHeight = stage.height()
+  let leftPageHeight
+  let leftHeight
+  // 页高度大于stage高度
+  if (stageHeight <= viewport.height) {
+    // 展示页剩余的高度小于窗口高度
+    leftPageHeight = y > 0 ? viewport.height - (y % viewport.height) : viewport.height
+    if (leftPageHeight < stageHeight) {
+      to = from + 1
+    }
+  } else {
+    leftPageHeight = y >= viewport.height ? viewport.height - (y % viewport.height) : viewport.height - y
+    leftHeight = stageHeight - leftPageHeight
+    let leftCount = Math.ceil(leftHeight / viewport.height)
+    to = from + leftCount
+  }
+
+  to = Math.min(to, pdf.numPages)
+  return { from, to }
+}
+
+// 缓存待更新批注页面
+function cachePostils(stage, viewport, pdf) {
+  Vue.eventBus.$on('updatePostil', () => {
+    let { from, to } = getRangeToRender(stage, viewport, pdf)
+
+    // 中等粒度记录当前可视区的页码
+    for (let i = from; i <= to; i++) {
+      postilsToUpdate.add(i)
+    }
+
+    // 截图
+
+    // if (postilsToUpdate.size > 0) {
+    //   Array.from(postilsToUpdate).forEach(async (index) => {
+    //     await renderPage({ from: index, to: index })
+    //     // 截图
+    //     let scrollTop = Math.abs(stage.getAttr('y'))
+    //     let top = (index - 1) * viewport.height
+    //     let y
+
+    //     y = top - scrollTop
+
+    //     setTimeout((function (_index, _y) {
+    //       return async () => {
+    //         await stage.toImage({
+    //           callback(img) {
+    //             console.log(_index, _y, viewport.height)
+    //             console.log(img.src)
+    //             let ii = new Image()
+    //             ii.src = img.src
+    //             document.querySelector('body').append(ii)
+    //           },
+    //           y: _y,
+    //           height: viewport.height,
+    //         })
+    //       }
+    //     }(index, y)), 1000 * index)
+    //   })
+    // }
+  })
 }
 
 /**
@@ -472,10 +541,7 @@ export function renderPages() {
     pdf, viewport,
   } = docOpened
   const stage = getStage()
-
-  const y = Math.abs(stage.getAttr('y'))
-  const from = Math.floor(y / viewport.height) + 1
-  const to = Math.min(Math.ceil(from + showCount), pdf.numPages)
+  let { from, to } = getRangeToRender(stage, viewport, pdf)
   loopRender({ from, to })
 }
 
@@ -561,6 +627,11 @@ async function renderPage({
 // function onResize() {
 // init(config.documentId, config.documentPath)
 // }
+
+// 定时截图上传
+function updatePostil() {
+
+}
 
 export default {
   addCover,
