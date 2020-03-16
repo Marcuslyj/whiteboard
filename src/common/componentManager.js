@@ -1,8 +1,12 @@
 import syncArea from '@common/syncArea'
 import { Message } from 'view-design'
+import Vue from 'vue'
 import config from './config'
 import socketUtil from './socketUtil'
 import { formateComponent } from './utils'
+
+let timerUpdatePostil
+
 /**
  * 组件的加载移除等操作 (撤销，还原（需要一个队列管理。（新增，删除，组件缩放平移，组件复制，颜色更新））)
  */
@@ -31,6 +35,15 @@ function addComponent(graphic, componentType = 0, type = 'remark') {
   }
   pushCache({ graphic, opeType: 'addComponent', type })
   socketUtil.addComponent(formateComponent(params))
+
+  // 触发批注更新通知
+  if (config.initDone) {
+    clearTimeout(timerUpdatePostil)
+    timerUpdatePostil = setTimeout(() => {
+      console.log('emit updatePostil')
+      Vue.eventBus.$emit('updatePostil')
+    }, 800)
+  }
 }
 
 /**

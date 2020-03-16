@@ -53,4 +53,6 @@ export default Vue.observable({
   convertCanvasCount: 1,
   // 当前whiteboard vue实例
   whiteboard: null,
+  // 初始化完成标记
+  initDone: false,
 })
