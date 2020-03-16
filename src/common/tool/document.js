@@ -315,7 +315,7 @@ export async function addCoverImage(options, broadcast = false) {
       socketUtil.updateComponent(formateComponent(params))
     })
     // 同步操作
-    if (broadcast) cManager.addComponent(konvaImage, 1, 'cover')
+    if (broadcast) cManager.addComponent(JSON.parse(konvaImage.toJSON()), 1, 'cover')
   }
 
   return konvaImage

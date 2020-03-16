@@ -611,6 +611,8 @@ export default {
         componentType,
       }
       socketUtil.clearBoard(params)
+      //清掉缓存队列
+      cManager.clearCache()
     },
     gotoBoard() {
       this.$globalConf.activeTool = 'pen'

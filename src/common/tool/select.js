@@ -1,7 +1,7 @@
 import Konva from 'konva'
 import cManager from '@common/componentManager'
 import Vue from 'vue'
-import { generateUID } from '@common/utils'
+import { generateUID,cache } from '@common/utils'
 
 let currentLayer
 let currentStage
@@ -25,7 +25,8 @@ function create(params) {
     // 初始化边框
     currentLayer = target.getLayer()
     stage.find('Transformer').destroy()
-    origin = { attrs: target.getAttrs(), className: target.className }
+    // 防止浅克隆问题
+    origin =JSON.parse(target.toJSON())
     opeTarget = target
     opeTarget.draggable(true)
     const tr = new Konva.Transformer({
@@ -84,10 +85,11 @@ function destroy() {
 
 // 正在操作的对象更新到layer 中
 function add() {
+  const target=JSON.parse(opeTarget.toJSON())
   if (opeTarget.className === 'Text') {
-    cManager.updateComponent(opeTarget, 0, 'text', true, origin)
-  } else if (opeTarget.className === 'Line') {
-    cManager.updateComponent(opeTarget, 0, 'remark', true, origin)
+    cManager.updateComponent(target, 0, 'text', true, origin)
+  } else if (opeTarget.className === 'Line'||opeTarget.className === 'Arrow') {
+    cManager.updateComponent(target, 0, 'remark', true, origin)
   }
   // 关闭2个可能4存在的工具
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
@@ -119,13 +121,13 @@ function changeColor(color) {
     opeTarget.fill(color)
   } else if (opeTarget.className === 'Line') {
     opeTarget.stroke(color)
-  } else if (opeTarget.className === 'arrow') {
+  } else if (opeTarget.className === 'Arrow') {
     opeTarget.stroke(color)
     opeTarget.fill(color)
   }
   opeTarget.clearCache()
   currentLayer.draw()
-  opeTarget.cache()
+  cache(opeTarget)
 }
 
 function changeFontsize(size) {
@@ -134,7 +136,7 @@ function changeFontsize(size) {
   })
   opeTarget.clearCache()
   currentLayer.draw()
-  opeTarget.cache()
+  cache(opeTarget)
 }
 
 export default {

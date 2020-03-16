@@ -40,7 +40,7 @@ function create(params) {
       isDrawing = false
       if (arrow) {
         arrow && arrow.cache({ offset: 5 })
-        cManager.addComponent(arrow)
+        cManager.addComponent(JSON.parse(arrow.toJSON()))
         arrow = null
       }
     }
