@@ -161,7 +161,7 @@ function add(newPoi) {
   currentLayer.add(shape)
   shape.cache()
   currentLayer.draw()
-  cManager.addComponent(shape, 0, 'text')
+  cManager.addComponent(JSON.parse(shape.toJSON()), 0, 'text')
 }
 
 // 编辑更新
@@ -176,7 +176,7 @@ function update() {
   currentTarget.visible(true)
   currentLayer.draw()
   editorDom.value = ''
-  cManager.updateComponent(currentTarget, 0, 'text')
+  cManager.updateComponent(JSON.parse(currentTarget.toJSON()), 0, 'text')
 }
 
 function destroy() {

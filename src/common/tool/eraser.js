@@ -48,7 +48,7 @@ function create(params) {
         layer.draw()
       }
       line.cache()
-      cManager.addComponent(line)
+      cManager.addComponent(JSON.parse(line.toJSON()))
       line = null
     }
   })

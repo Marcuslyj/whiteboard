@@ -13,7 +13,7 @@ export default Vue.observable({
   baseWidth: '',
   lastSpeakerSize: {},
   // 画布拖动
-  stageXy: {},
+  stageXY: {},
   // 跟基准值的缩放比
   scale: 1,
   // 是否有有效组件
