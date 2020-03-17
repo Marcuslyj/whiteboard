@@ -7,6 +7,7 @@ export const imageService = process.env.VUE_APP_imageService
 
 export const api = {
   upload: `${webService}/upload/normal/file`,
+  batchUpload: `${webService}/upload/normal/batch-file`,
   docToPdf: `${'https://dev-whiteboard.tvflnet.com/'}/meeting-manager/meeting/{meetingId}/whiteboard/{whiteboardId}/doc-to-pdf`,
   createMeet: '/meeting-manager/meeting',
   createBoard: '/meeting-manager/meeting/{meetingId}/whiteboard',
@@ -45,7 +46,15 @@ export const sComponentId = {
   stageXY: 'stageXY',
 }
 
+// 待同步的带注释页面
+let postilsToUpdate = new Set()
+
 // 非响应式数据
+export const unObs = {
+  postilsToUpdate,
+}
+
+// 非响应式数据, 冻结（可用于vue模板或传入作为vue实例data）
 export default deepFreeze({
   socketUrl,
   baseUrl,

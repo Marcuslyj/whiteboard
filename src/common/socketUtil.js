@@ -5,6 +5,7 @@ import { socketUrl, socketEvent } from './common'
 import config from './config'
 
 let socket
+let timerUpdatePostil
 
 function initSocket() {
   socket = io(`${socketUrl}`, {
@@ -30,6 +31,17 @@ function initSocket() {
       closable: true,
     })
   })
+}
+
+// 触发批注更新通知
+function emitUpdatePostil() {
+  if (config.initDone) {
+    clearTimeout(timerUpdatePostil)
+    timerUpdatePostil = setTimeout(() => {
+      console.log('emit updatePostil')
+      Vue.eventBus.$emit('updatePostil')
+    }, 800)
+  }
 }
 
 export function destroySocket() {
@@ -64,16 +76,21 @@ function getComponent(params) {
 // 新增组件
 function addComponent(params) {
   socket.emit(socketEvent.addComponent, params)
+  // 触发批注更新通知
+  emitUpdatePostil()
 }
 
 // 更新组件
 function updateComponent(params) {
   socket.emit(socketEvent.updateComponent, params)
+  // 触发批注更新通知
+  params.componentType === 0 && emitUpdatePostil()
 }
 
 // 更新组件删除，存在状态
 function updateComponentState(params) {
   socket.emit(socketEvent.updateComponentState, params)
+  params.componentType === 0 && emitUpdatePostil()
 }
 
 // 批量删除
