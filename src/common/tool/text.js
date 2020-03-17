@@ -1,4 +1,4 @@
-import { setStyle, getPoiWithOffset, generateUID } from '@common/utils'
+import { setStyle, getPoiWithOffset, generateUID,isSameObject } from '@common/utils'
 import config from '@common/config'
 import Konva from 'konva'
 import Vue from 'vue'
@@ -94,7 +94,6 @@ function create(params) {
     let color
     let fontSize
     const boundingClientRect = stage.content.getBoundingClientRect()
-    console.log(target.className)
     // 点击到文字上，允许编辑
     if (target.className === 'Text') {
       mode = 'edit'
@@ -166,6 +165,7 @@ function add(newPoi) {
 
 // 编辑更新
 function update() {
+  const old=JSON.parse(currentTarget.toJSON())
   currentTarget.clearCache()
   currentTarget.setAttrs({
     fontSize: Number(editorDom.style.fontSize.split('px')[0]),
@@ -176,7 +176,10 @@ function update() {
   currentTarget.visible(true)
   currentLayer.draw()
   editorDom.value = ''
-  cManager.updateComponent(JSON.parse(currentTarget.toJSON()), 0, 'text')
+  // 检测组件是否发生了改变，是否需要保存到后台和缓存
+  if(!isSameObject(old.attrs,currentTarget.getAttrs(),['visible'])){
+    cManager.updateComponent(JSON.parse(currentTarget.toJSON()), 0, 'text')
+  }
 }
 
 function destroy() {
