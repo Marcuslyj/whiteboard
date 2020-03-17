@@ -1,7 +1,7 @@
 import Konva from 'konva'
 import cManager from '@common/componentManager'
 import Vue from 'vue'
-import { generateUID,cache } from '@common/utils'
+import { generateUID, cache, isSameObject } from '@common/utils'
 
 let currentLayer
 let currentStage
@@ -26,7 +26,7 @@ function create(params) {
     currentLayer = target.getLayer()
     stage.find('Transformer').destroy()
     // 防止浅克隆问题
-    origin =JSON.parse(target.toJSON())
+    origin = JSON.parse(target.toJSON())
     opeTarget = target
     opeTarget.draggable(true)
     const tr = new Konva.Transformer({
@@ -49,12 +49,20 @@ function create(params) {
   })
 }
 
-// 对上一次做收尾保存
+// 对上一次做收尾保存,为了不滥用保存，需要对数据做是否保存的判断（属性是否确实更新了）
 function save() {
   currentStage.find('Transformer').destroy()
   currentLayer && currentLayer.draw()
+  // 关闭2个可能4存在的工具
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
+
   if (opeTarget) {
-    add()
+    if (!isSameObject(origin.attrs, opeTarget.getAttrs())) {
+      add()
+    }
+    opeTarget.draggable(false)
+    origin = opeTarget = null
   }
 }
 function setMenu() {
@@ -85,17 +93,12 @@ function destroy() {
 
 // 正在操作的对象更新到layer 中
 function add() {
-  const target=JSON.parse(opeTarget.toJSON())
+  const target = JSON.parse(opeTarget.toJSON())
   if (opeTarget.className === 'Text') {
     cManager.updateComponent(target, 0, 'text', true, origin)
-  } else if (opeTarget.className === 'Line'||opeTarget.className === 'Arrow') {
+  } else if (opeTarget.className === 'Line' || opeTarget.className === 'Arrow') {
     cManager.updateComponent(target, 0, 'remark', true, origin)
   }
-  // 关闭2个可能4存在的工具
-  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
-  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
-  opeTarget.draggable(false)
-  origin = opeTarget = null
 }
 
 // 对外抛出的删除方法
@@ -109,11 +112,15 @@ function del() {
 // 对外抛出的copy方法
 function copy() {
   let poi = opeTarget.position()
-  const newAttrs = Object.assign(opeTarget.getAttrs(), { id: generateUID(), x: poi.x - 100, y: poi.y - 100 })
+  const newAttrs = Object.assign(JSON.parse(opeTarget.toJSON()), { id: generateUID(), x: poi.x - 100, y: poi.y - 100 })
   const copyShape = new Konva[opeTarget.className](newAttrs)
   currentLayer.add(copyShape)
+  cManager.addComponent(JSON.parse(copyShape.toJSON()), 0, opeTarget.className === 'Text' ? 'text' : 'remark')
+  currentStage.find('Transformer').destroy()
+  origin = opeTarget = null
   currentLayer.draw()
-  cManager.addComponent(copyShape, 0, opeTarget.className === 'Text' ? 'text' : 'remark')
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
+  Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
 }
 
 function changeColor(color) {

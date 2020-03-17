@@ -55,4 +55,6 @@ export default Vue.observable({
   whiteboard: null,
   // 初始化完成标记
   initDone: false,
+  // resize 标志
+  resizeFlag: false,
 })

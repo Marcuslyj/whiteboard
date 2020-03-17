@@ -1,4 +1,6 @@
-import { setStyle, getPoiWithOffset, generateUID } from '@common/utils'
+import {
+  setStyle, getPoiWithOffset, generateUID, isSameObject,
+} from '@common/utils'
 import config from '@common/config'
 import Konva from 'konva'
 import Vue from 'vue'
@@ -64,7 +66,13 @@ function create(params) {
     }
     Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, color })
   }
-  start()
+  // 如果是resize 窗口不需要默认
+  if (config.resizeFlag) {
+    config.resizeFlag = false
+  } else {
+    start()
+  }
+
   stage.on('click tap', function ({ evt, target }) {
     // 右键不处理
     if (evt.button === 2) {
@@ -94,7 +102,6 @@ function create(params) {
     let color
     let fontSize
     const boundingClientRect = stage.content.getBoundingClientRect()
-    console.log(target.className)
     // 点击到文字上，允许编辑
     if (target.className === 'Text') {
       mode = 'edit'
@@ -140,7 +147,7 @@ function create(params) {
       left: offsetX > 0 ? `${offsetX}px` : 0,
       top: offsetY > 0 ? `${offsetY - 40}px` : 0,
     }
-    Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, color })
+    Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: style, textColor: color })
   })
 }
 
@@ -157,15 +164,15 @@ function add(newPoi) {
     dash: [10, 5],
     keepRatio: true,
   })
-  console.log(shape)
   currentLayer.add(shape)
-  shape.cache()
+  // shape.cache()
   currentLayer.draw()
   cManager.addComponent(JSON.parse(shape.toJSON()), 0, 'text')
 }
 
 // 编辑更新
 function update() {
+  const old = JSON.parse(currentTarget.toJSON())
   currentTarget.clearCache()
   currentTarget.setAttrs({
     fontSize: Number(editorDom.style.fontSize.split('px')[0]),
@@ -176,7 +183,10 @@ function update() {
   currentTarget.visible(true)
   currentLayer.draw()
   editorDom.value = ''
-  cManager.updateComponent(JSON.parse(currentTarget.toJSON()), 0, 'text')
+  // 检测组件是否发生了改变，是否需要保存到后台和缓存
+  if (!isSameObject(old.attrs, currentTarget.getAttrs(), ['visible'])) {
+    cManager.updateComponent(JSON.parse(currentTarget.toJSON()), 0, 'text')
+  }
 }
 
 function destroy() {

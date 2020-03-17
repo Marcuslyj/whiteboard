@@ -135,6 +135,7 @@ export default {
   methods: {
     // 接受刷新广播
     onRefresh() {
+      this.$globalConf.resizeFlag = true
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
@@ -173,6 +174,7 @@ export default {
 
         this.$nextTick(() => {
           this.$refs['tool-bar'].active()
+          this.$globalConf.resizeFlag = false
           // this.$parent.$children[0].$refs['tool-bar'].active()
         })
       } else {
@@ -238,7 +240,7 @@ export default {
       })
     },
     addConvertCanvas(index) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         let count = ++this.$globalConf.convertCanvasCount
         this.convertCanvas.push({ id: generateUID() })
         this.$nextTick(() => {
@@ -600,10 +602,13 @@ export default {
       })
       const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
       if (this.$globalConf.isSpeaker) {
-        // 没有文档封面
+        // 没有文档封面，（这个判断有时会导致异常，等文档列表搞定之后，换成文档接口，内存中做判断）
         if (!bgLayer.findOne('Image')) {
           syncArea.updateBaseWidth('')
+          this.$globalConf.hasValidComponent = false
         }
+        // 清掉缓存队列
+        cManager.clearCache()
       }
     },
     clearBoard(componentType = 0) {
@@ -615,8 +620,6 @@ export default {
         componentType,
       }
       socketUtil.clearBoard(params)
-      //清掉缓存队列
-      cManager.clearCache()
     },
     gotoBoard() {
       this.$globalConf.activeTool = 'pen'
