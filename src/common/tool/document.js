@@ -290,7 +290,8 @@ export async function addCoverImage(options, broadcast = false) {
 
       // 清空缓存操作队列
       cManager.clearCache()
-
+      // 激活工具重新配置成钢笔
+      config.activeTool = 'pen'
       // 同步动作
       // 1.设置全局信息
       let syncAction = config.syncAction || {}
@@ -629,9 +630,9 @@ async function renderPage({
 // }
 
 // 定时截图上传
-function updatePostil() {
+// function updatePostil() {
 
-}
+// }
 
 export default {
   addCover,

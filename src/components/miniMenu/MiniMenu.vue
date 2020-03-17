@@ -66,10 +66,10 @@ export default {
   props: ['type', 'miniStyle', 'textColor'],
   data() {
     return {
-      activeColor: '',
+      activeColor: config.text.color || '',
       menuname: '',
       colors: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
-      fontSizes: [8, 10, 12, 16, 22],
+      fontSizes: [12, 16, 20, 24, 30],
     }
   },
   watch: {

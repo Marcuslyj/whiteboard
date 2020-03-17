@@ -1,7 +1,7 @@
 import Konva from 'konva'
 import cManager from '@common/componentManager'
 import Vue from 'vue'
-import { generateUID,cache,isSameObject } from '@common/utils'
+import { generateUID, cache, isSameObject } from '@common/utils'
 
 let currentLayer
 let currentStage
@@ -26,7 +26,7 @@ function create(params) {
     currentLayer = target.getLayer()
     stage.find('Transformer').destroy()
     // 防止浅克隆问题
-    origin =JSON.parse(target.toJSON())
+    origin = JSON.parse(target.toJSON())
     opeTarget = target
     opeTarget.draggable(true)
     const tr = new Konva.Transformer({
@@ -53,12 +53,12 @@ function create(params) {
 function save() {
   currentStage.find('Transformer').destroy()
   currentLayer && currentLayer.draw()
-   // 关闭2个可能4存在的工具
+  // 关闭2个可能4存在的工具
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
 
   if (opeTarget) {
-    if(!isSameObject(origin.attrs,opeTarget.getAttrs())){
+    if (!isSameObject(origin.attrs, opeTarget.getAttrs())) {
       add()
     }
     opeTarget.draggable(false)
@@ -93,10 +93,10 @@ function destroy() {
 
 // 正在操作的对象更新到layer 中
 function add() {
-  const target=JSON.parse(opeTarget.toJSON())
+  const target = JSON.parse(opeTarget.toJSON())
   if (opeTarget.className === 'Text') {
     cManager.updateComponent(target, 0, 'text', true, origin)
-  } else if (opeTarget.className === 'Line'||opeTarget.className === 'Arrow') {
+  } else if (opeTarget.className === 'Line' || opeTarget.className === 'Arrow') {
     cManager.updateComponent(target, 0, 'remark', true, origin)
   }
 }
