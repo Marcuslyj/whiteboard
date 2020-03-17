@@ -127,3 +127,16 @@ export function getURLBase64(url) {
     xhr.send()
   })
 }
+// b对象是否具备a 的所有属性，filterProps 为a不检验属性
+export function isSameObject(a, b, filterProps = []) {
+  for (let prop in a) {
+    if (filterProps.indexOf(prop) === -1) {
+      if (Array.isArray(a[prop])) {
+        if (!isSameObject(a[prop], b[prop])) { return false }
+      } else if (a[prop] !== b[prop]) {
+        return false
+      }
+    }
+  }
+  return true
+}

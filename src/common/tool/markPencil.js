@@ -55,7 +55,7 @@ function create(params) {
       }
       // 性能优化
       line.cache()
-      cManager.addComponent(line)
+      cManager.addComponent(JSON.parse(line.toJSON()))
       line = null
     }
   })

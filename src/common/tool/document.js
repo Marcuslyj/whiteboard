@@ -293,7 +293,8 @@ export async function addCoverImage(options, broadcast = false) {
 
       // 清空缓存操作队列
       cManager.clearCache()
-
+      // 激活工具重新配置成钢笔
+      config.activeTool = 'pen'
       // 同步动作
       // 1.设置全局信息
       let syncAction = config.syncAction || {}
@@ -318,7 +319,7 @@ export async function addCoverImage(options, broadcast = false) {
       socketUtil.updateComponent(formateComponent(params))
     })
     // 同步操作
-    if (broadcast) cManager.addComponent(konvaImage, 1, 'cover')
+    if (broadcast) cManager.addComponent(JSON.parse(konvaImage.toJSON()), 1, 'cover')
   }
 
   return konvaImage
@@ -731,9 +732,9 @@ async function renderPage({
 // }
 
 // 定时截图上传
-function updatePostil() {
+// function updatePostil() {
 
-}
+// }
 
 export default {
   addCover,

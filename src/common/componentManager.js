@@ -29,8 +29,8 @@ function addComponent(graphic, componentType = 0, type = 'remark') {
   }
   params = {
     componentType,
-    component: JSON.stringify(Object.assign(graphic.toObject(), { type })),
-    componentId: graphic.getAttr('id'),
+    component: JSON.stringify(Object.assign(graphic, { type })),
+    componentId: graphic.attrs.id,
   }
   pushCache({ graphic, opeType: 'addComponent', type })
   socketUtil.addComponent(formateComponent(params))
@@ -64,8 +64,8 @@ function updateComponentState(componentId, componentType = 0, state, isCache = t
 function updateComponent(graphic, componentType = 0, type = 'remark', isCache = true, oldGraphic) {
   let params = {
     componentType,
-    component: JSON.stringify(Object.assign(graphic.toObject(), { type })),
-    componentId: graphic.getAttr('id'),
+    component: JSON.stringify(Object.assign(graphic, { type })),
+    componentId: graphic.attrs.id,
   }
   isCache && pushCache({
     oldGraphic, graphic, opeType: 'updateComponent', type,
@@ -84,6 +84,7 @@ function back() {
     Message.info('没有可撤销的')
     return
   }
+  config.cPIndex === config.cacheGraphics.length && (config.cPIndex = config.cacheGraphics.length - 1)
   console.log(`config.cPIndex:${config.cPIndex}`)
   const cache = config.cacheGraphics[config.cPIndex]
   switch (cache.opeType) {
@@ -107,11 +108,12 @@ function back() {
 
 // 还原，还原一个新增组件时如果另外一个端找不到就不还原了，新增会导致堆叠顺序不对
 function goAhead() {
-  if (config.cPIndex + 1 >= config.cacheGraphics.length) {
+  if (config.cacheGraphics.length === 0 || config.cPIndex >= config.cacheGraphics.length) {
     Message.info('已经是最新的操作了')
     return
   }
-  const cache = config.cacheGraphics[++config.cPIndex]
+  config.cPIndex === -1 && (config.cPIndex = 0)
+  const cache = config.cacheGraphics[config.cPIndex++]
   console.log(`config.cPIndex:${config.cPIndex}`)
   switch (cache.opeType) {
   case 'addComponent':
@@ -119,8 +121,8 @@ function goAhead() {
     updateComponentState(cache.graphic.attrs.id, 0, 1, false)
     break
   case 'updateComponent':
-    renderUpdateComponent(cache.newGraphic, cache.type)
-    updateComponent(cache.newGraphic, 0, cache.type, false)
+    renderUpdateComponent(cache.graphic, cache.type)
+    updateComponent(cache.graphic, 0, cache.type, false)
     break
   case 'updateComponentState':
     // updateVisible(cache.graphic.attrs.id, cache.state===1)
@@ -162,11 +164,12 @@ function updateVisible(componentId, visible) {
 // 推入缓存时，可能要做长度截断
 function pushCache(obj) {
   // 有游标在中间，执行过还原操作，丢弃游标后面的数据
-  if (config.cPIndex !== -1) {
+  if (config.cPIndex > -1 && (config.cPIndex < config.cacheGraphics.length - 1)) {
     config.cacheGraphics = config.cacheGraphics.slice(0, config.cPIndex + 1)
   }
   config.cacheGraphics.push(obj)
   config.cPIndex = config.cacheGraphics.length - 1
+  console.log(config.cPIndex)
 }
 
 export default {
