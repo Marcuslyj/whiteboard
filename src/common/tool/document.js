@@ -27,7 +27,7 @@ let pageSigned
 let wacherDrag
 let toolCanDrag = 'pan'
 let elWrapper
-let flushing = false
+// let flushing = false
 
 const getStage = () => config.board
 // 多个转换板切换用，防止同时操作一个
@@ -404,7 +404,7 @@ function cachePostils(stage, viewport, pdf) {
 function flushPostils(immediate) {
   // 立刻或者待同步页面超过五个刷一遍
   if (unObs.postilsToUpdate && (immediate || unObs.postilsToUpdate.size > 5)) {
-    flushing = true
+    // flushing = true
     // 停止定时器
     watchPostil.clear()
     // flush
@@ -464,7 +464,7 @@ function flushPostils(immediate) {
 // 上传批注页面
 async function uploadPostils(datas) {
   if (!datas || datas.length === 0) {
-    flushing = false
+    // flushing = false
     return
   }
   console.log(datas)
@@ -476,9 +476,10 @@ async function uploadPostils(datas) {
   })
 
   // 上传图片
-  let result
+  // let result
   try {
-    result = await new Promise((resolve, reject) => {
+    // result =
+    await new Promise((resolve, reject) => {
       Vue.prototype.$api.post(
         api.batchUpload,
         param,
@@ -491,12 +492,12 @@ async function uploadPostils(datas) {
         },
       )
     })
-    result = result.data
+    // result = result.data
     // 通知替换图片 todo
 
     // 更新待同步批注页码 todo
 
-    flushing = false
+    // flushing = false
   } catch (error) {
     // 重新处理
     datas.map((data) => {
@@ -516,7 +517,7 @@ let watchPostil = {
     clearTimeout(timerPostil)
     timerPostil = setTimeout(() => {
       flushPostils(true)
-    }, 1000 * 60 * 2)
+    }, 1000 * 60 * 0.1)
   },
 }
 
