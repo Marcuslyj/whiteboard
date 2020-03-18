@@ -5,7 +5,7 @@
         <icon type="ios-contact" @click="logout" />
       </Tooltip>
     </div>
-    <Col span="12" class="mi-meeting">
+    <Col span="16" class="mi-meeting">
       <Tabs :value="active" @on-click="changeTab">
         <TabPane label="我的会议" name="mine" id="mine">
           <div id="mi-meeting-mine">
@@ -958,7 +958,7 @@ export default AuthorityMeetingComponent
       align-items: center;
       justify-content: center;
       span {
-        margin-right: 64px;
+        margin-right: 84px;
         &:last-child {
           margin-right: 0;
         }
