@@ -958,7 +958,7 @@ export default AuthorityMeetingComponent
       align-items: center;
       justify-content: center;
       span {
-        margin-right: 84px;
+        margin-right: 64px;
         &:last-child {
           margin-right: 0;
         }
