@@ -1,6 +1,5 @@
 import syncArea from '@common/syncArea'
 import { Message } from 'view-design'
-import Vue from 'vue'
 import config from './config'
 import socketUtil from './socketUtil'
 import { formateComponent } from './utils'

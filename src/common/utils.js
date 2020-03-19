@@ -155,3 +155,12 @@ export function toRGB(color) {
   }
   return `rgb(${r},${g},${b})`
 }
+
+// 文件下载
+export function downloadFile({ url, name = '' }) {
+  let link = document.createElement('a')
+  link.setAttribute('download', name)
+  link.href = url
+  link.click()
+  link = null
+}

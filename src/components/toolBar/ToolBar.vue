@@ -125,7 +125,7 @@ Description
         </li>
       </ul>
       <ul class="group bussiness-tool">
-        <li v-if="$globalConf.isSpeaker">
+        <li v-if="$globalConf.isSpeaker && $globalConf.mode==='board'">
           <Upload
             :action="common.api.upload"
             accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -147,10 +147,10 @@ Description
                   <div class="nodata-tip" v-if="files.length===0">暂无文档</div>
                   <div class="file-list" v-else>
                      <div class="file-item" v-for="(file,index) in files" :key="index">
-                       <span class="title">{{file.name}}</span>
+                       <span class="title">{{file.documentName}}</span>
                        <span class="btns">
-                          <Icon type="md-download" />
-                          <Icon type="ios-trash" />
+                          <Icon type="md-download" @click="downloadFile(file)"/>
+                          <!-- <Icon type="ios-trash" /> -->
                        </span>
                      </div>
                   </div>
@@ -164,6 +164,9 @@ Description
       <ul class="group other-tool">
         <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
         <li @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
+          <li>
+          <i class="iconfont icon-save"></i>
+        </li>
       </ul>
     </div>
     <div class="right part">
@@ -184,10 +187,12 @@ Description
 
 <script>
 import { Upload, Message } from 'view-design'
-import common from '@common/common'
+import common, { api, fileService } from '@common/common'
 import Vue from 'vue'
 import cManager from '@common/componentManager'
-import { fullscreen, exitFullscreen } from '@common/utils'
+import {
+  formateUrl, fullscreen, exitFullscreen, downloadFile,
+} from '@common/utils'
 
 export default {
   props: {
@@ -258,7 +263,7 @@ export default {
         },
       ],
       boxName: '',
-      files: [{ name: '1号文件1号文件1号文件1号文件1号文件' }, { name: '2号文件2号文件2号文件2号文件2号文件2号文件' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }, { name: '3' }],
+      files: [],
       // MsgUploading: []
       // 关联一级菜单栏和实际工具的
       menuRef: {
@@ -465,6 +470,33 @@ export default {
     },
     getFiles() {
 
+    },
+    // 获取文档
+    getDocumentList() {
+      this.$api.get(
+        formateUrl(api.documentList, {
+          meetingId: this.$globalConf.meetingId,
+        }),
+        null,
+        (res) => {
+          if (res.data && res.data.documents) {
+            this.files = res.data.documents
+          }
+        },
+      )
+    },
+    downloadFile(file) {
+      this.$api.post(
+        formateUrl(api.downloadPostil, {
+          documentId: file.documentId,
+        }),
+        null,
+        ({ data }) => {
+          console.log(fileService + data.url)
+          let url = fileService + data.url
+          downloadFile({ url, name: file.documentName })
+        },
+      )
     },
     // 裁剪
     clip() {

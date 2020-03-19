@@ -2,16 +2,15 @@ import config from '@common/config'
 import { isFirefox, formateComponent, getURLBase64 } from '@common/utils'
 import Konva from 'konva'
 import {
-  imageService, fileService, api, fbId, unObs,
+  imageService, fileService, api, fbId, unObs, socketEvent, webService,
 } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
 // import { debounce } from 'throttle-debounce'
 import image from '@common/tool/image'
 import Vue from 'vue'
 import syncArea from '@common/syncArea'
-import socketUtil from '@/common/socketUtil'
+import socketUtil, { getSocket } from '@/common/socketUtil'
 import cManager from '../componentManager'
-
 
 /**
  * 正在查阅的pdf
@@ -57,6 +56,7 @@ const getDocumentPath = () => config.documentPath
 let timerBroadcast
 let timerScroll
 let timerPostil
+let postilErrorCount = 0
 /**
  * 防抖
  */
@@ -139,10 +139,13 @@ export function destroy({ all = false } = {}) {
     if (wacherDrag) wacherDrag()
     watchPostil.clear()
     unObs.postilsToUpdate = new Set()
+    getSocket().off(socketEvent.getDocumentPages)
     // 记录待更新页码
     Vue.eventBus.$off('updatePostil')
+    postilErrorCount = 0
     if (all) {
-      getElWrapper().classList.remove('invisible')
+      let el = getElWrapper()
+      if (el) el.classList.remove('invisible')
     }
   }
 }
@@ -240,6 +243,7 @@ export async function addCover(pdf, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
+          baseURL: webService,
         },
       )
     })
@@ -385,7 +389,16 @@ function getRangeToRender(stage, viewport, pdf) {
 // 缓存待更新批注页面
 function cachePostils(stage, viewport, pdf) {
   unObs.postilsToUpdate = new Set()
-  // 获取上次未同步的 todo
+  // 监听事件
+  getSocket().on(socketEvent.getDocumentPages, (res) => {
+    // 合并待更新
+    if (res && res.length) unObs.postilsToUpdate = new Set(Array.from(unObs.postilsToUpdate).concat(res))
+    // 检查是否需要同步
+    flushPostils()
+  })
+  // 获取上次未同步的
+  socketUtil.getDocumentPages()
+
 
   Vue.eventBus.$on('updatePostil', () => {
     let { from, to } = getRangeToRender(stage, viewport, pdf)
@@ -394,6 +407,11 @@ function cachePostils(stage, viewport, pdf) {
     for (let i = from; i <= to; i++) {
       unObs.postilsToUpdate.add(i)
     }
+
+    // 后台记录待更新页码
+    let params = {}
+    params.updateStates = Array.from(unObs.postilsToUpdate)
+    socketUtil.reportDocumentAction(params)
 
     // 带刷新页面超过5个刷一遍
     flushPostils()
@@ -436,7 +454,6 @@ function flushPostils(immediate) {
               document.querySelector('body').append(ii)
               results.push({ img: _img, index })
               count++
-              console.log(results, count)
               resolve()
             },
             y,
@@ -467,7 +484,6 @@ async function uploadPostils(datas) {
     // flushing = false
     return
   }
-  console.log(datas)
   let param = new FormData()
   param.append('fbId', fbId.docCover)
   let imgs = datas.map((d) => convertBase64UrlToBlob(d.img.src))
@@ -476,10 +492,9 @@ async function uploadPostils(datas) {
   })
 
   // 上传图片
-  // let result
+  let result
   try {
-    // result =
-    await new Promise((resolve, reject) => {
+    result = await new Promise((resolve, reject) => {
       Vue.prototype.$api.post(
         api.batchUpload,
         param,
@@ -489,20 +504,39 @@ async function uploadPostils(datas) {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
+          baseURL: webService,
         },
       )
     })
-    // result = result.data
-    // 通知替换图片 todo
-
-    // 更新待同步批注页码 todo
+    result = result.data
+    // 通知替换图片
+    let paramsRpm = {}
+    paramsRpm.urls = []
+    if (result && result.length) {
+      paramsRpm.urls = result.map((r, i) => ({
+        pageNum: datas[i].index,
+        url: r.filePath,
+      }))
+      paramsRpm.updateStates = Array.from(unObs.postilsToUpdate)
+      // 通知替换
+      // 更新待同步批注页码
+      socketUtil.reportDocumentAction(paramsRpm)
+    }
 
     // flushing = false
   } catch (error) {
+    postilErrorCount++
+    if (postilErrorCount > 5) {
+      setTimeout(() => {
+        postilErrorCount = 0
+      }, 60000)
+      return
+    }
     // 重新处理
     datas.map((data) => {
-      unObs.postilsToUpdate.add(data)
+      unObs.postilsToUpdate.add(data.index)
     })
+
     flushPostils(true)
   }
 }
@@ -517,7 +551,7 @@ let watchPostil = {
     clearTimeout(timerPostil)
     timerPostil = setTimeout(() => {
       flushPostils(true)
-    }, 1000 * 60 * 0.1)
+    }, 1000 * 60 * 1)
   },
 }
 
