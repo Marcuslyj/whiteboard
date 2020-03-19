@@ -9,9 +9,8 @@ import pdfjsLib from 'pdfjsLib'
 import image from '@common/tool/image'
 import Vue from 'vue'
 import syncArea from '@common/syncArea'
-import cManager from '../componentManager'
 import socketUtil, { getSocket } from '@/common/socketUtil'
-
+import cManager from '../componentManager'
 
 /**
  * 正在查阅的pdf

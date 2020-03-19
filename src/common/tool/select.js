@@ -21,6 +21,7 @@ function create(params) {
     }
     if (opeTarget) {
       save()
+      return
     }
     // 初始化边框
     currentLayer = target.getLayer()
@@ -34,7 +35,7 @@ function create(params) {
       borderStrokeWidth: 2,
       anchorStrokeWidth: 2,
       // padding: 40,
-    //   enabledAnchors: ['bottom-right'],
+      enabledAnchors: ['bottom-right', 'top-right', 'bottom-left', 'top-left'],
     })
     tr.on('transform', () => {
       setMenu()
@@ -56,9 +57,10 @@ function save() {
   // 关闭2个可能4存在的工具
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
-
   if (opeTarget) {
-    if (!isSameObject(origin.attrs, opeTarget.getAttrs())) {
+    console.log(opeTarget.getAttrs())
+    // 此处opeTarget 可能新增了transformed 属性
+    if (!isSameObject(origin.attrs, opeTarget.getAttrs(), ['fill', 'stroke', 'x', 'y', 'rotation', 'scaleX', 'scaleY'])) {
       add()
     }
     opeTarget.draggable(false)
@@ -78,7 +80,7 @@ function setMenu() {
   if (opeTarget.className === 'Text') {
     miniMenuType = 'select-text'
     color = opeTarget.getAttr('fill')
-  } else if (opeTarget.className === 'Line' || opeTarget.className === 'Arrow') {
+  } else if (opeTarget.className === 'Line' || opeTarget.className === 'Arrow' || opeTarget.className === 'Circle') {
     miniMenuType = 'select-others'
     color = opeTarget.stroke()
   }
@@ -96,7 +98,7 @@ function add() {
   const target = JSON.parse(opeTarget.toJSON())
   if (opeTarget.className === 'Text') {
     cManager.updateComponent(target, 0, 'text', true, origin)
-  } else if (opeTarget.className === 'Line' || opeTarget.className === 'Arrow') {
+  } else if (opeTarget.className === 'Line' || opeTarget.className === 'Arrow' || opeTarget.className === 'Circle') {
     cManager.updateComponent(target, 0, 'remark', true, origin)
   }
 }
@@ -131,17 +133,19 @@ function changeColor(color) {
   } else if (opeTarget.className === 'Arrow') {
     opeTarget.stroke(color)
     opeTarget.fill(color)
+  } else if (opeTarget.className === 'Circle') {
+    opeTarget.fill(color)
   }
-  opeTarget.clearCache()
+  // opeTarget.clearCache()
   currentLayer.draw()
-  cache(opeTarget)
+  // cache(opeTarget)
 }
 
 function changeFontsize(size) {
   opeTarget.setAttrs({
     fontSize: size,
   })
-  opeTarget.clearCache()
+  // opeTarget.clearCache()
   currentLayer.draw()
   cache(opeTarget)
 }
