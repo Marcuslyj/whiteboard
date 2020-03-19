@@ -144,6 +144,7 @@ export function destroy({ all = false } = {}) {
     getSocket().off(socketEvent.getDocumentPages)
     // 记录待更新页码
     Vue.eventBus.$off('updatePostil')
+    Vue.eventBus.$off('savePostil')
     postilErrorCount = 0
     shouldSavePostil = false
     postilSaving = false
