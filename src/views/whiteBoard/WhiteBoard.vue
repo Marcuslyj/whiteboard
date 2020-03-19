@@ -7,7 +7,7 @@ Description
 <template>
   <div class="board-page">
     <section class="board-container-wrapper">
-    <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.isSpeaker" @click="savePostil"><i class="iconfont icon-file"></i></div>
+    <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.isSpeaker" @click="savePostil"><i class="iconfont icon-save"></i></div>
     <div id="board-container"
       ref="board-container">
     </div>
