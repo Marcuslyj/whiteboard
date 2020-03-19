@@ -113,12 +113,14 @@ function del() {
 
 // 对外抛出的copy方法
 function copy() {
+  opeTarget.draggable(false)
   let poi = opeTarget.position()
   const newAttrs = Object.assign(JSON.parse(opeTarget.toJSON()), { id: generateUID(), x: poi.x - 100, y: poi.y - 100 })
   const copyShape = new Konva[opeTarget.className](newAttrs)
   currentLayer.add(copyShape)
   cManager.addComponent(JSON.parse(copyShape.toJSON()), 0, opeTarget.className === 'Text' ? 'text' : 'remark')
   currentStage.find('Transformer').destroy()
+
   origin = opeTarget = null
   currentLayer.draw()
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-text', miniMenuStyle: { display: 'none' } })
