@@ -38,7 +38,6 @@ function emitUpdatePostil() {
   if (config.initDone) {
     clearTimeout(timerUpdatePostil)
     timerUpdatePostil = setTimeout(() => {
-      console.log('emit updatePostil')
       Vue.eventBus.$emit('updatePostil')
     }, 800)
   }
@@ -113,6 +112,34 @@ function deleteComponentsTypesState(params) {
   socket.emit(socketEvent.deleteComponentsTypesState, params)
 }
 
+/**
+ * 获取未同步批注页页码
+ */
+function getDocumentPages() {
+  let { meetingId, whiteboardId, documentId } = config
+  let params = {
+    meetingId,
+    whiteboardId,
+    documentId,
+  }
+  socket.emit(socketEvent.getDocumentPages, params)
+}
+
+/**
+ * 保存未同步批注页页码和替换文档页截图
+ * @param {*} params
+ */
+function reportDocumentAction(params) {
+  let { meetingId, whiteboardId, documentId } = config
+  params = {
+    ...params,
+    meetingId,
+    whiteboardId,
+    documentId,
+  }
+  socket.emit(socketEvent.reportDocumentAction, params)
+}
+
 export default {
   getSocket,
   initSocket,
@@ -128,4 +155,6 @@ export default {
   clearBoard,
   broadcast,
   deleteComponentsTypesState,
+  getDocumentPages,
+  reportDocumentAction,
 }

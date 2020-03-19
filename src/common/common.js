@@ -8,10 +8,12 @@ export const imageService = process.env.VUE_APP_imageService
 export const api = {
   upload: `${webService}/upload/normal/file`,
   batchUpload: `${webService}/upload/normal/batch-file`,
-  docToPdf: `${'https://dev-whiteboard.tvflnet.com/'}/meeting-manager/meeting/{meetingId}/whiteboard/{whiteboardId}/doc-to-pdf`,
+  docToPdf: '/meeting-manager/meeting/{meetingId}/whiteboard/{whiteboardId}/doc-to-pdf',
   createMeet: '/meeting-manager/meeting',
   createBoard: '/meeting-manager/meeting/{meetingId}/whiteboard',
   auth: '/meeting-manager/meeting/{meetingId}/auth',
+  documentList: '/meeting-manager/meeting/{meetingId}/documents',
+  downloadPostil: '/meeting-manager/meeting/whiteboard/document/{documentId}/imgs-to-pdf',
 }
 
 export const fbId = {
@@ -32,6 +34,14 @@ export const socketEvent = {
   clearBoard: 'clear-board',
   broadcast: 'broadcast',
   deleteComponentsTypesState: 'delete-components-types-state',
+  /**
+   * 保存未同步批注页页码和替换文档页截图
+   */
+  reportDocumentAction: 'report-document-action',
+  /**
+   * 获取未同步批注页页码
+   */
+  getDocumentPages: 'get-document-pages',
 }
 
 /**

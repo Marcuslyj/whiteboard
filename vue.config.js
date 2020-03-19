@@ -25,6 +25,7 @@ module.exports = {
       proxy: {
         '/file/': {
           target: 'https://dev-file.tvflnet.com',
+          // target: 'http://10.180.170.130:8000',
           changeOrigin: true,
           pathRewrite: {
             '^/file': '/',
@@ -32,9 +33,18 @@ module.exports = {
         },
         '/api/': {
           target: 'https://dev-whiteboard.tvflnet.com',
+          // target: 'http://10.180.170.130:8888',
           changeOrigin: true,
           pathRewrite: {
             '^/api': '/',
+          },
+        },
+        '/webserv/(webserv/)?': {
+          target: 'https://dev-web-services.tvflnet.com/',
+          // target: 'http://10.180.170.130:8889',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/webserv/(webserv)?': '/',
           },
         },
       },
