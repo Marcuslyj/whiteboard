@@ -50,7 +50,7 @@ export default Vue.observable({
   syncAction: null,
   isFullscreen: false,
   // 转换画板数量
-  convertCanvasCount: 1,
+  convertCanvasCount: 5,
   // 当前whiteboard vue实例
   whiteboard: null,
   // 初始化完成标记
