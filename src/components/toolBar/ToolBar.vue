@@ -464,7 +464,7 @@ export default {
       })
     },
     clickFile() {
-      this.setLiStyle('file-tool')
+      // this.setLiStyle('file-tool')
       this.setBoxName('file')
       this.getFiles()
     },

@@ -53,7 +53,7 @@ function create(params) {
         layer.draw()
       }
       // 性能优化
-      line.cache()
+      // line.cache()
       cManager.addComponent(JSON.parse(line.toJSON()))
       line = null
     }
