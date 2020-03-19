@@ -57,6 +57,8 @@ let timerBroadcast
 let timerScroll
 let timerPostil
 let postilErrorCount = 0
+let shouldSavePostil = false
+let postilSaving = false
 /**
  * 防抖
  */
@@ -143,6 +145,8 @@ export function destroy({ all = false } = {}) {
     // 记录待更新页码
     Vue.eventBus.$off('updatePostil')
     postilErrorCount = 0
+    shouldSavePostil = false
+    postilSaving = false
     if (all) {
       let el = getElWrapper()
       if (el) el.classList.remove('invisible')
@@ -355,6 +359,22 @@ export async function open() {
 
   // 记录待更新页码
   cachePostils(stage, viewport, pdf)
+  Vue.eventBus.$on('savePostil', () => {
+    if (!docOpened.viewport) { return }
+    console.log('save')
+    // debugger
+    if (postilSaving) {
+      Vue.prototype.$Message.success('正在保存')
+      shouldSavePostil = true
+    } else if (!unObs.postilsToUpdate.size) {
+      // alert
+      Vue.prototype.$Message.success('保存成功')
+    } else {
+      Vue.prototype.$Message.success('正在保存')
+      shouldSavePostil = true
+      flushPostils(true)
+    }
+  })
 
   // 定时检查待更新批注页
   watchPostil.watch()
@@ -422,6 +442,7 @@ function cachePostils(stage, viewport, pdf) {
 function flushPostils(immediate) {
   // 立刻或者待同步页面超过五个刷一遍
   if (unObs.postilsToUpdate && (immediate || unObs.postilsToUpdate.size > 5)) {
+    postilSaving = true
     // flushing = true
     // 停止定时器
     watchPostil.clear()
@@ -478,6 +499,7 @@ function flushPostils(immediate) {
 // 上传批注页面
 async function uploadPostils(datas) {
   if (!datas || datas.length === 0) {
+    postilSaving = false
     // flushing = false
     return
   }
@@ -518,6 +540,17 @@ async function uploadPostils(datas) {
       // 通知替换
       // 更新待同步批注页码
       socketUtil.reportDocumentAction(paramsRpm)
+      postilSaving = false
+      if (shouldSavePostil) {
+        if (unObs.postilsToUpdate.size) {
+          flushPostils(true)
+        } else {
+          // 批注保存成功
+          shouldSavePostil = false
+          Vue.prototype.$Message.success('批注保存成功')
+        }
+      }
+      postilSaving = false
     }
 
     // flushing = false
@@ -533,7 +566,7 @@ async function uploadPostils(datas) {
     datas.map((data) => {
       unObs.postilsToUpdate.add(data.index)
     })
-
+    postilSaving = false
     flushPostils(true)
   }
 }

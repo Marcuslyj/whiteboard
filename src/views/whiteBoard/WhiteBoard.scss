@@ -5,6 +5,29 @@
   flex-direction: column;
   background: #fff;
 
+  .postilSave{
+    position: absolute;
+    z-index:20;
+    right: 10px;
+    top: 10px;
+    cursor: pointer;
+    width: 3vw;
+    height: 3vw;
+    transition: background-color 0.3s;
+    border-radius: .2vw;
+    &:hover{
+      background-color: #607d8b;
+      .iconfont{
+        color: #fff;
+      }
+    }
+    .iconfont{
+      font-size: 3vw;
+      line-height:1;
+      transition: color 0.3s;
+    }
+  }
+
   /deep/ {
     canvas {
       transform: translateZ(0);
