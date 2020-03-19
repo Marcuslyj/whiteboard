@@ -39,7 +39,7 @@ function emitUpdatePostil() {
     clearTimeout(timerUpdatePostil)
     timerUpdatePostil = setTimeout(() => {
       Vue.eventBus.$emit('updatePostil')
-    }, 800)
+    }, 500)
   }
 }
 
