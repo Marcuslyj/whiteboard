@@ -148,7 +148,16 @@ function renderUpdateComponent(graphic, type) {
   const layer = type === 'remark' ? config.layerManager[config.layerIds.REMARK_LAYER] : config.layerManager[config.layerIds.TEXT_LAYER]
   const node = layer.findOne(`#${graphic.attrs.id}`)
   if (node) {
-    node.setAttrs(graphic.attrs)
+    // 批量设置，新状态缺失的transformed属性没有覆盖到node 旧状态。
+    const states = [{ name: 'x', value: 0 }, { name: 'y', value: 0 }, { name: 'rotation', value: 0 }, { name: 'scaleX', value: 1 }, { name: 'scaleY', value: 1 }]
+    let nAttrs = node.getAttrs()
+    nAttrs = Object.assign(nAttrs, graphic.attrs)
+    states.forEach((e) => {
+      if (nAttrs[e.name] && !graphic.attrs[e.name]) {
+        nAttrs[e.name] = e.value
+      }
+    })
+    node.setAttrs(nAttrs)
     node.clearCache()
     layer.draw()
     node.className === 'Arrow' ? node.cache({ offset: 5 }) : node.cache()
@@ -171,10 +180,10 @@ function updateVisible(componentId, visible) {
   }
 }
 
-// 推入缓存时，可能要做长度截断
+// 推入缓存时，要做长度截断
 function pushCache(obj) {
   // 有游标在中间，执行过还原操作，丢弃游标后面的数据
-  if (config.cPIndex > -1 && (config.cPIndex < config.cacheGraphics.length - 1)) {
+  if (config.cPIndex < config.cacheGraphics.length - 1) {
     config.cacheGraphics = config.cacheGraphics.slice(0, config.cPIndex + 1)
   }
   config.cacheGraphics.push(obj)

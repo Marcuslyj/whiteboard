@@ -9,8 +9,8 @@ import pdfjsLib from 'pdfjsLib'
 import image from '@common/tool/image'
 import Vue from 'vue'
 import syncArea from '@common/syncArea'
-import cManager from '../componentManager'
 import socketUtil from '@/common/socketUtil'
+import cManager from '../componentManager'
 
 
 /**

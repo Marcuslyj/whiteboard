@@ -1,5 +1,5 @@
 import {
-  setStyle, getPoiWithOffset, generateUID, isSameObject,
+  setStyle, getPoiWithOffset, generateUID, isSameObject, toRGB,
 } from '@common/utils'
 import config from '@common/config'
 import Konva from 'konva'
@@ -168,24 +168,33 @@ function add(newPoi) {
   // shape.cache()
   currentLayer.draw()
   cManager.addComponent(JSON.parse(shape.toJSON()), 0, 'text')
+  currentTarget = null
 }
 
 // 编辑更新
 function update() {
   const old = JSON.parse(currentTarget.toJSON())
+  // 编辑时修改了，存到缓存必须可见
+  old.attrs.visible = true
+  // dom会把颜色转成rgb
+  old.attrs.fill = old.attrs.fill.indexOf('rgb') > -1 ? old.attrs.fill : toRGB(old.attrs.fill)
+  console.log(old.attrs.fill)
   currentTarget.clearCache()
   currentTarget.setAttrs({
     fontSize: Number(editorDom.style.fontSize.split('px')[0]),
     fill: editorDom.style.color,
     text: editorDom.value,
   })
-  currentTarget.cache()
   currentTarget.visible(true)
   currentLayer.draw()
+  currentTarget.cache({ drawBorder: true })
   editorDom.value = ''
   // 检测组件是否发生了改变，是否需要保存到后台和缓存
-  if (!isSameObject(old.attrs, currentTarget.getAttrs(), ['visible'])) {
-    cManager.updateComponent(JSON.parse(currentTarget.toJSON()), 0, 'text')
+  const newAttrs = currentTarget.getAttrs()
+  // rgb(51, 51 ,51) 带空格了
+  newAttrs.fill = newAttrs.fill.replace(/\s/g, '')
+  if (!isSameObject(old.attrs, newAttrs, ['fontSize', 'fill', 'text'])) {
+    cManager.updateComponent(JSON.parse(currentTarget.toJSON()), 0, 'text', true, old)
   }
 }
 
@@ -194,6 +203,12 @@ function destroy() {
   currentStage.off('click tap')
   if (editorDom.style.display === 'block') {
     editorDom.style.display = 'none'
+  }
+  // 正在编辑的恢复
+  if (currentTarget) {
+    // currentTarget.clearCache()
+    currentTarget.visible(true)
+    currentLayer.draw()
   }
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'edit-text', miniMenuStyle: { display: 'none' } })
   mode = ''

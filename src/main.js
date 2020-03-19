@@ -10,9 +10,10 @@ import {
 import base from '@common/base'
 import globalConf from '@/common/config'
 
+import api from '@/common/api'
 import App from './App.vue'
 import router from './router'
-import api from '@/common/api'
+
 
 const components = {
   Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input,

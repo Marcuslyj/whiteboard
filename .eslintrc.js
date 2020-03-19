@@ -37,9 +37,21 @@ module.exports = {
     'no-bitwise':0,
     'no-restricted-globals':0,
     'vue/no-parsing-error': [2, { 'x-invalid-end-tag': false }],
-    'no-unused-vars':1
+    'no-unused-vars':1,
+    'radix':0,
   },
   'parserOptions':{
     parser: 'babel-eslint',
   },
+  overrides: [
+    {
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/tests/unit/**/*.spec.{j,t}s?(x)',
+      ],
+      env: {
+        mocha: true,
+      },
+    },
+  ]
 };

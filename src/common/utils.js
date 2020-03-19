@@ -127,16 +127,31 @@ export function getURLBase64(url) {
     xhr.send()
   })
 }
-// b对象是否具备a 的所有属性，filterProps 为a不检验属性
-export function isSameObject(a, b, filterProps = []) {
-  for (let prop in a) {
-    if (filterProps.indexOf(prop) === -1) {
-      if (Array.isArray(a[prop])) {
-        if (!isSameObject(a[prop], b[prop])) { return false }
-      } else if (a[prop] !== b[prop]) {
-        return false
-      }
+// 判断是否相同，以props 为标准
+export function isSameObject(a, b, props = []) {
+  for (let p of props) {
+    if (a[p] !== b[p]) {
+      return false
     }
   }
   return true
+}
+
+export function toRGB(color) {
+  if (isEmpty(color) || (color.length !== 4 && color.length !== 7)) {
+    return ''
+  }
+
+  let r; let g; let b
+  let str = color.split('#')[1]
+  if (str.length === 3) {
+    r = parseInt(`${str.slice(0, 1)}${str.slice(0, 1)}`, 16)
+    g = parseInt(`${str.slice(1, 2)}${str.slice(1, 2)}`, 16)
+    b = parseInt(`${str.slice(2, 3)}${str.slice(2, 3)}`, 16)
+  } else if (str.length === 6) {
+    r = parseInt(`${str.slice(0, 2)}`, 16)
+    g = parseInt(`${str.slice(2, 4)}`, 16)
+    b = parseInt(`${str.slice(4, 6)}`, 16)
+  }
+  return `rgb(${r},${g},${b})`
 }
