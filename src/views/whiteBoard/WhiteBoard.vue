@@ -99,6 +99,7 @@ export default {
       },
       tempLayer: null,
       convertCanvas: [],
+      timerSavePostil: null,
     }
   },
   mounted() {
@@ -136,7 +137,10 @@ export default {
   methods: {
     // 同步批注
     savePostil() {
-      Vue.eventBus.$emit('savePostil')
+      clearTimeout(this.timerSavePostil)
+      this.timerSavePostil = setTimeout(() => {
+        Vue.eventBus.$emit('savePostil')
+      }, 500)
     },
     // 接受刷新广播
     onRefresh() {
