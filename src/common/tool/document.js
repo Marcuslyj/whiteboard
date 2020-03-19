@@ -449,9 +449,6 @@ function flushPostils(immediate) {
         await new Promise((resolve) => {
           stage.toImage({
             callback(_img) {
-              let ii = new Image()
-              ii.src = _img.src
-              document.querySelector('body').append(ii)
               results.push({ img: _img, index })
               count++
               resolve()
