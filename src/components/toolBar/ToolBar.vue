@@ -164,6 +164,9 @@ Description
       <ul class="group other-tool">
         <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
         <li @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
+          <li>
+          <i class="iconfont icon-save"></i>
+        </li>
       </ul>
     </div>
     <div class="right part">

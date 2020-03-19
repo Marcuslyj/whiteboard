@@ -18,7 +18,7 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
                  </ul>
              </div>
         </Poptip>
-         <Poptip placement="top" class="poptip-body menu-item">
+         <Poptip placement="top" class="poptip-body menu-item" v-show="type==='edit-text'">
              <i class="iconfont icon-text-size" ></i>
              <div slot="content">
                 <ul class="hor fontSize-list">
