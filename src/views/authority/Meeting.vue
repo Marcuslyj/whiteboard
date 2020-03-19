@@ -5,7 +5,7 @@
         <icon type="ios-contact" @click="logout" />
       </Tooltip>
     </div>
-    <Col span="12" class="mi-meeting">
+    <Col span="16" class="mi-meeting">
       <Tabs :value="active" @on-click="changeTab">
         <TabPane label="我的会议" name="mine" id="mine">
           <div id="mi-meeting-mine">
@@ -126,7 +126,7 @@
             </div>
           </div>
         </TabPane>
-        <TabPane label="待参加会议" name="soon" id="soon">
+        <TabPane :label="label" name="soon" id="soon">
           <div id="mi-meeting-soon">
             <div class="mi-meeting-list">
               <div class="mi-meeting-search">
@@ -154,6 +154,7 @@
                 <div class="mi-meeting-item-info">
                   <span>会议时间：{{ meet.meetingTimeText }}</span>
                   <span>会议地点：{{ meet.address || "-" }}</span>
+                  <span>发起人：{{ meet.creator || "-" }}</span>
                 </div>
               </div>
               <div class="mi-meeting-item-none" v-if="meeting.soon.length <= 0">
@@ -205,6 +206,7 @@
                 <div class="mi-meeting-item-info">
                   <span>会议时间：{{ meet.meetingTimeText }}</span>
                   <span>会议地点：{{ meet.address || "-" }}</span>
+                  <span>发起人：{{ meet.creator || "-" }}</span>
                 </div>
               </div>
               <div
@@ -362,6 +364,7 @@ import {
   TabPane,
   Page,
   Icon,
+  Badge,
   DatePicker,
   TimePicker,
   Tree,
@@ -385,6 +388,7 @@ const components = {
   TabPane,
   Page,
   Icon,
+  Badge,
   DatePicker,
   TimePicker,
   Tree,
@@ -507,6 +511,15 @@ const AuthorityMeetingComponent = {
         type: [{ required: true, message: '请选择房间类型' }],
         people: [{ validator: validatorUsers }],
       },
+      attend: 3,
+      label: (h) => h('div', [
+        h('span', '待参加会议'),
+        h('Badge', {
+          props: {
+            count: this.attend,
+          },
+        }),
+      ]),
     }
   },
   methods: {
@@ -593,6 +606,7 @@ const AuthorityMeetingComponent = {
             }
             this.total[this.active] = res.data.pagination.count
             this.meeting[this.active] = res.data.meetings
+            if (this.cates[this.active] === 2) this.attend = res.data.pagination.count
             this.$nextTick(() => {
               this.setHeight()
             })
@@ -830,6 +844,7 @@ export default AuthorityMeetingComponent
 </script>
 
 <style lang="less">
+  body {overflow: auto;}
 @mi-meeting: mi-meeting;
 @mi-pagination: mi-pagination;
 @mi-header: mi-header;
@@ -841,6 +856,7 @@ export default AuthorityMeetingComponent
   top: 0;
   width: 100%;
   background: #e6e6e6;
+  z-index: 1;
   &-user {
     position: absolute;
     right: 20px;
@@ -864,6 +880,13 @@ export default AuthorityMeetingComponent
     .ivu-input-wrapper {
       width: 350px;
     }
+  }
+  .ivu-badge {
+    margin-left: 6px;
+    vertical-align: 2px;
+  }
+  .ivu-badge-count-alone {
+    line-height: 16px;
   }
   &-item {
     display: flex;
@@ -935,7 +958,7 @@ export default AuthorityMeetingComponent
       align-items: center;
       justify-content: center;
       span {
-        margin-right: 64px;
+        margin-right: 84px;
         &:last-child {
           margin-right: 0;
         }
@@ -976,6 +999,9 @@ export default AuthorityMeetingComponent
   .ivu-tabs-bar {
     background: #e6e6e6;
     border-bottom: none;
+    position: fixed;
+    top: 0;
+    z-index: 10;
     .ivu-tabs-tab {
       height: 60px;
       line-height: 60px;
@@ -984,7 +1010,7 @@ export default AuthorityMeetingComponent
     }
   }
   .ivu-tabs-content {
-    margin-top: 32px;
+    margin-top: 90px;
     margin-bottom: 32px;
   }
   .ivu-tabs .ivu-tabs-tabpane {

@@ -2,7 +2,7 @@ import config from '@common/config'
 import { isFirefox, formateComponent, getURLBase64 } from '@common/utils'
 import Konva from 'konva'
 import {
-  imageService, fileService, api, fbId,
+  imageService, fileService, api, fbId, unObs,
 } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
 // import { debounce } from 'throttle-debounce'
@@ -27,7 +27,7 @@ let pageSigned
 let wacherDrag
 let toolCanDrag = 'pan'
 let elWrapper
-let postilsToUpdate = new Set()
+// let flushing = false
 
 const getStage = () => config.board
 // 多个转换板切换用，防止同时操作一个
@@ -56,6 +56,7 @@ const getLayer = () => config.layerManager[config.layerIds.BG_LAYER]
 const getDocumentPath = () => config.documentPath
 let timerBroadcast
 let timerScroll
+let timerPostil
 /**
  * 防抖
  */
@@ -136,6 +137,8 @@ export function destroy({ all = false } = {}) {
       y: 0,
     })
     if (wacherDrag) wacherDrag()
+    watchPostil.clear()
+    unObs.postilsToUpdate = new Set()
     // 记录待更新页码
     Vue.eventBus.$off('updatePostil')
     if (all) {
@@ -348,6 +351,9 @@ export async function open() {
 
   // 记录待更新页码
   cachePostils(stage, viewport, pdf)
+
+  // 定时检查待更新批注页
+  watchPostil.watch()
 }
 
 // 获取可视区中涉及页面
@@ -378,44 +384,141 @@ function getRangeToRender(stage, viewport, pdf) {
 
 // 缓存待更新批注页面
 function cachePostils(stage, viewport, pdf) {
+  unObs.postilsToUpdate = new Set()
+  // 获取上次未同步的 todo
+
   Vue.eventBus.$on('updatePostil', () => {
     let { from, to } = getRangeToRender(stage, viewport, pdf)
 
     // 中等粒度记录当前可视区的页码
     for (let i = from; i <= to; i++) {
-      postilsToUpdate.add(i)
+      unObs.postilsToUpdate.add(i)
     }
 
-    // 截图
-
-    // if (postilsToUpdate.size > 0) {
-    //   Array.from(postilsToUpdate).forEach(async (index) => {
-    //     await renderPage({ from: index, to: index })
-    //     // 截图
-    //     let scrollTop = Math.abs(stage.getAttr('y'))
-    //     let top = (index - 1) * viewport.height
-    //     let y
-
-    //     y = top - scrollTop
-
-    //     setTimeout((function (_index, _y) {
-    //       return async () => {
-    //         await stage.toImage({
-    //           callback(img) {
-    //             console.log(_index, _y, viewport.height)
-    //             console.log(img.src)
-    //             let ii = new Image()
-    //             ii.src = img.src
-    //             document.querySelector('body').append(ii)
-    //           },
-    //           y: _y,
-    //           height: viewport.height,
-    //         })
-    //       }
-    //     }(index, y)), 1000 * index)
-    //   })
-    // }
+    // 带刷新页面超过5个刷一遍
+    flushPostils()
   })
+}
+
+// 同步批注
+function flushPostils(immediate) {
+  // 立刻或者待同步页面超过五个刷一遍
+  if (unObs.postilsToUpdate && (immediate || unObs.postilsToUpdate.size > 5)) {
+    // flushing = true
+    // 停止定时器
+    watchPostil.clear()
+    // flush
+    const { viewport } = docOpened
+    const stage = getStage()
+
+    let que = Array.from(unObs.postilsToUpdate)
+    unObs.postilsToUpdate = new Set()
+
+    let results = []
+    let count = 0
+
+    que.forEach(async (index) => {
+      await renderPage({ from: index, to: index })
+      // 截图
+      let scrollTop = Math.abs(stage.getAttr('y'))
+      let top = (index - 1) * viewport.height
+      let y
+
+      y = top - scrollTop
+
+      // 转图片
+      try {
+        await new Promise((resolve) => {
+          stage.toImage({
+            callback(_img) {
+              let ii = new Image()
+              ii.src = _img.src
+              document.querySelector('body').append(ii)
+              results.push({ img: _img, index })
+              count++
+              console.log(results, count)
+              resolve()
+            },
+            y,
+            height: viewport.height,
+          })
+        })
+      } catch (error) {
+        count++
+        // 重新添加到待更新队列
+        unObs.postilsToUpdate.add(index)
+      } finally {
+        if (count === que.length) {
+          uploadPostils(results)
+        }
+      }
+    })
+
+    // 重新开始定时器
+    watchPostil.watch()
+  } else if (immediate) {
+    watchPostil.watch()
+  }
+}
+
+// 上传批注页面
+async function uploadPostils(datas) {
+  if (!datas || datas.length === 0) {
+    // flushing = false
+    return
+  }
+  console.log(datas)
+  let param = new FormData()
+  param.append('fbId', fbId.docCover)
+  let imgs = datas.map((d) => convertBase64UrlToBlob(d.img.src))
+  imgs.map((img) => {
+    param.append('file', img)
+  })
+
+  // 上传图片
+  // let result
+  try {
+    // result =
+    await new Promise((resolve, reject) => {
+      Vue.prototype.$api.post(
+        api.batchUpload,
+        param,
+        (res) => resolve(res),
+        (err) => reject(err),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      )
+    })
+    // result = result.data
+    // 通知替换图片 todo
+
+    // 更新待同步批注页码 todo
+
+    // flushing = false
+  } catch (error) {
+    // 重新处理
+    datas.map((data) => {
+      unObs.postilsToUpdate.add(data)
+    })
+    flushPostils(true)
+  }
+}
+
+// 定时检查postil que
+let watchPostil = {
+  clear() {
+    clearTimeout(timerPostil)
+  },
+  watch() {
+    // 2分钟同步一次
+    clearTimeout(timerPostil)
+    timerPostil = setTimeout(() => {
+      flushPostils(true)
+    }, 1000 * 60 * 0.1)
+  },
 }
 
 /**
