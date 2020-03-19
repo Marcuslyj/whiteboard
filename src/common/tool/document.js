@@ -552,7 +552,7 @@ let watchPostil = {
     clearTimeout(timerPostil)
     timerPostil = setTimeout(() => {
       flushPostils(true)
-    }, 1000 * 60 * 0.1)
+    }, 1000 * 60 * 1)
   },
 }
 
