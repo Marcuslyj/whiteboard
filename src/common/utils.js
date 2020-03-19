@@ -160,6 +160,7 @@ export function toRGB(color) {
 export function downloadFile({ url, name = '' }) {
   let link = document.createElement('a')
   link.setAttribute('download', name)
+  link.setAttribute('target', '_blank')
   link.href = url
   link.click()
   link = null

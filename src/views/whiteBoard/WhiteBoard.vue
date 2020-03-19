@@ -7,6 +7,7 @@ Description
 <template>
   <div class="board-page">
     <section class="board-container-wrapper">
+    <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.isSpeaker" @click="savePostil"><i class="iconfont icon-save"></i></div>
     <div id="board-container"
       ref="board-container">
     </div>
@@ -98,6 +99,7 @@ export default {
       },
       tempLayer: null,
       convertCanvas: [],
+      timerSavePostil: null,
     }
   },
   mounted() {
@@ -133,6 +135,13 @@ export default {
     this.startMeeting()
   },
   methods: {
+    // 同步批注
+    savePostil() {
+      clearTimeout(this.timerSavePostil)
+      this.timerSavePostil = setTimeout(() => {
+        Vue.eventBus.$emit('savePostil')
+      }, 500)
+    },
     // 接受刷新广播
     onRefresh() {
       this.$globalConf.resizeFlag = true
