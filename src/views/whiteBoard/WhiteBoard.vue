@@ -58,7 +58,7 @@ import { Message } from 'view-design'
 import Konva from 'konva'
 import { initTool, destroyTool } from '@common/tool'
 import {
-  addCover, loadPdf, addCoverImage, init as initDocument, renderPages,
+  addCover, loadPdf, addCoverImage, init as initDocument, renderPages, destroy as destroyDocument,
 } from '@common/tool/document'
 import socketUtil, { getSocket, destroySocket } from '@common/socketUtil'
 import {
@@ -467,7 +467,10 @@ export default {
       this.whiteboards = res.whiteboards
       if (this.whiteboards) {
         // 取出指定的board(whiteboardId+documentId)
-        if (!isEmpty(res.syncAction)) {
+        let { syncAction } = res
+        syncAction = this.$globalConf.syncAction = !isEmpty(syncAction) ? JSON.parse(syncAction) : {}
+
+        if (!isEmpty(syncAction.whiteboardId)) {
           const { whiteboardId, documentId, documentPath } = this.$globalConf.syncAction = JSON.parse(res.syncAction)
           this.$globalConf.mode = documentId == null ? 'board' : 'document'
           // 缓存whiteboard实例
@@ -495,6 +498,17 @@ export default {
           this.$globalConf.whiteboardId = this.whiteboards[0].whiteboardId
           this.$globalConf.documentId = null
           this.$globalConf.documentPath = null
+
+          // 重新存syncAction
+          const paramsSA = {
+            meetingId: this.$globalConf.meetingId,
+            syncAction: JSON.stringify({
+              ...syncAction,
+              whiteboardId: this.$globalConf.whiteboardId,
+              documentId: null,
+            }),
+          }
+          socketUtil.syncAction(paramsSA)
           socketUtil.getComponent(params)
         }
       } else {
@@ -524,6 +538,8 @@ export default {
           }
         })
       }
+      // 获取文档
+      this.$refs['tool-bar'].getDocumentList()
     },
     addSpecialComponent() {
       const el = document.querySelector('#board-container')
@@ -680,6 +696,8 @@ export default {
     this.stopListener()
     Vue.eventBus.$off('setTbMask')
     Vue.eventBus.$off('setMiniMenu')
+    // 销毁文档相关
+    destroyDocument({ all: true })
   },
 }
 </script>

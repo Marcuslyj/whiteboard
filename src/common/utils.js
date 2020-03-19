@@ -140,3 +140,12 @@ export function isSameObject(a, b, filterProps = []) {
   }
   return true
 }
+
+// 文件下载
+export function downloadFile({ url, name = '' }) {
+  let link = document.createElement('a')
+  link.setAttribute('download', name)
+  link.href = url
+  link.click()
+  link = null
+}

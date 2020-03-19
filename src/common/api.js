@@ -71,6 +71,12 @@ export default {
      * @returns {*}
      */
   post(url, params, success, failure, config) {
+    config = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      ...config,
+    }
     return base('POST', url, params, success, failure, config)
   },
 
