@@ -158,16 +158,10 @@ export function toRGB(color) {
 
 // 文件下载
 export function downloadFile({ url, name = '' }) {
-  // let link = document.createElement('a')
-  // link.setAttribute('download', name)
-  // link.href = url
-  // link.click()
-  // link = null
-  let iframe = document.createElement('iframe')
-  iframe.src = url
-  iframe.style.display = 'none'
-  iframe.onload = function () {
-    document.body.removeAttribute(iframe)
-  }
-  document.body.appendChild(iframe)
+  let link = document.createElement('a')
+  link.setAttribute('download', name)
+  link.setAttribute('target', '_blank')
+  link.href = url
+  link.click()
+  link = null
 }
