@@ -164,6 +164,7 @@ Description
       <ul class="group other-tool">
         <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
         <li @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
+        <li @click.stop="showUsers"><i class="iconfont icon-userSetting"></i></li>
       </ul>
     </div>
     <div class="right part">
@@ -504,6 +505,9 @@ export default {
     },
     goAhead() {
       cManager.goAhead()
+    },
+    showUsers() {
+      this.$emit('showUsers')
     },
     setLiStyle(ref) {
       const el = document.querySelector('.center .activeTool')
