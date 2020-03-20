@@ -1,5 +1,7 @@
 import config from '@common/config'
-import { isFirefox, formateComponent, getURLBase64 } from '@common/utils'
+import {
+  isFirefox, formateComponent, getURLBase64, base64UrlToBlob, blobToFile,
+} from '@common/utils'
 import Konva from 'konva'
 import {
   imageService, fileService, api, fbId, unObs, socketEvent, webService,
@@ -183,26 +185,6 @@ export function formatCoverUrl(url) {
   return url
 }
 
-
-function convertBase64UrlToBlob(urlData) {
-  let bytes = window.atob(urlData.split(',')[1]) // 去掉url的头，并转换为byte
-
-  // 处理异常,将ascii码小于0的转换为大于0
-
-  let ab = new ArrayBuffer(bytes.length)
-
-  let ia = new Uint8Array(ab)
-
-  for (let i = 0; i < bytes.length; i++) {
-    ia[i] = bytes.charCodeAt(i)
-  }
-
-  return new Blob([ab], {
-
-    type: 'image/png',
-
-  })
-}
 /**
  * 文档cover添加到首页
  * @param {*} pdf
@@ -238,7 +220,7 @@ export async function addCover(pdf, {
     let result = await new Promise((resolve, reject) => {
       let param = new FormData()
       param.append('fbId', fbId.docCover)
-      param.append('file', convertBase64UrlToBlob(imgUrl))
+      param.append('file', blobToFile(base64UrlToBlob(imgUrl)))
       Vue.prototype.$api.post(
         api.upload,
         param,
@@ -505,8 +487,8 @@ async function uploadPostils(datas) {
     return
   }
   let param = new FormData()
-  param.append('fbId', fbId.docCover)
-  let imgs = datas.map((d) => convertBase64UrlToBlob(d.img.src))
+  param.append('fbId', fbId.postil)
+  let imgs = datas.map((d) => blobToFile(base64UrlToBlob(d.img.src)))
   imgs.map((img) => {
     param.append('file', img)
   })

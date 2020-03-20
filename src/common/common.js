@@ -17,8 +17,12 @@ export const api = {
 }
 
 export const fbId = {
-  upload: 'F1912100',
-  docCover: 'F1912101',
+  // 文件
+  upload: 'F4710100',
+  // 封片图片
+  docCover: 'F4710100',
+  // 批注图片
+  postil: 'F4720100',
 }
 
 export const socketUrl = process.env.VUE_APP_socketUrl

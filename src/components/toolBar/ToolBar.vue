@@ -189,7 +189,7 @@ import common, { api, fileService } from '@common/common'
 import Vue from 'vue'
 import cManager from '@common/componentManager'
 import {
-  formateUrl, fullscreen, exitFullscreen, downloadFile,
+  formateUrl, fullscreen, exitFullscreen, fileLinkToStreamDownload,
 } from '@common/utils'
 
 export default {
@@ -490,9 +490,8 @@ export default {
         }),
         null,
         ({ data }) => {
-          console.log(fileService + data.url)
           let url = fileService + data.url
-          downloadFile({ url, name: file.documentName })
+          fileLinkToStreamDownload(url, file.documentName, 'pdf')
         },
       )
     },
