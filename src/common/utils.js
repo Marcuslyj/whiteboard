@@ -105,28 +105,6 @@ export function cache(node) {
   } else node.cache()
 }
 
-export function getURLBase64(url) {
-  return new Promise((resolve, reject) => {
-    let xhr = new XMLHttpRequest()
-    xhr.open('get', url, true)
-    xhr.responseType = 'blob'
-    xhr.onload = function () {
-      if (this.status === 200) {
-        let blob = this.response
-        let fileReader = new FileReader()
-        fileReader.onloadend = function (e) {
-          let { result } = e.target
-          resolve(result)
-        }
-        fileReader.readAsDataURL(blob)
-      }
-    }
-    xhr.onerror = function () {
-      reject()
-    }
-    xhr.send()
-  })
-}
 // 判断是否相同，以props 为标准
 export function isSameObject(a, b, props = []) {
   for (let p of props) {
@@ -164,4 +142,91 @@ export function downloadFile({ url, name = '' }) {
   link.href = url
   link.click()
   link = null
+}
+
+/**
+ * 文件链接转文件流下载--主要针对pdf 解决谷歌浏览器a标签下载pdf直接打开的问题
+ * @param url  ：文件链接
+ * @param fileName  ：文件名;
+ * @param type  ：文件类型;
+ */
+export function fileLinkToStreamDownload(url, fileName, type) {
+  // let reg = /^([hH][tT]{2}[pP]:\/\/|[hH][tT]{2}[pP][sS]:\/\/)(([A-Za-z0-9-~]+).)+([A-Za-z0-9-~\/])+$/
+  // if (!reg.test(url)) {
+  //   throw new Error('传入参数不合法,不是标准的文件链接')
+  // } else {
+  let xhr = new XMLHttpRequest()
+  xhr.open('get', url, true)
+  xhr.setRequestHeader('Content-Type', `application/${type}`)
+  xhr.responseType = 'blob'
+  xhr.onload = function () {
+    if (this.status === 200) {
+      // 接受二进制文件流
+      let blob = this.response
+      downloadExportFile(blob, fileName, type)
+    }
+  }
+  xhr.send()
+  // }
+}
+
+/**
+ *下载导出文件
+ * @param blob  ：返回数据的blob对象或链接
+ * @param tagFileName  ：下载后文件名标记
+ * @param fileType  ：文件类 word(docx) excel(xlsx) ppt等
+ */
+function downloadExportFile(blob, tagFileName, fileType) {
+  let downloadElement = document.createElement('a')
+  let href = blob
+  if (typeof blob === 'string') {
+    downloadElement.target = '_blank'
+  } else {
+    href = window.URL.createObjectURL(blob) // 创建下载的链接
+  }
+  downloadElement.href = href
+  downloadElement.download = `${tagFileName}.${fileType}` // 下载后文件名
+  document.body.appendChild(downloadElement)
+  downloadElement.click() // 点击下载
+  document.body.removeChild(downloadElement) // 下载完成移除元素
+  if (typeof blob !== 'string') {
+    window.URL.revokeObjectURL(href) // 释放掉blob对象
+  }
+}
+
+export function base64UrlToBlob(urlData) {
+  let bytes = window.atob(urlData.split(',')[1]) // 去掉url的头，并转换为byte
+  // 处理异常,将ascii码小于0的转换为大于0
+  let ab = new ArrayBuffer(bytes.length)
+  let ia = new Uint8Array(ab)
+  for (let i = 0; i < bytes.length; i++) {
+    ia[i] = bytes.charCodeAt(i)
+  }
+  return new Blob([ab], {
+    type: 'image/png',
+
+  })
+}
+
+export function getURLBase64(url) {
+  return new Promise((resolve, reject) => {
+    let xhr = new XMLHttpRequest()
+    xhr.open('get', url, true)
+    xhr.responseType = 'blob'
+    xhr.onload = function () {
+      if (this.status === 200) {
+        let blob = this.response
+        let fileReader = new FileReader()
+        fileReader.onloadend = function (e) {
+          let { result } = e.target
+          resolve(result)
+        }
+        fileReader.readAsDataURL(blob)
+      }
+    }
+    xhr.onerror = function () {
+      reject()
+    }
+    xhr.send()
+  })
 }
