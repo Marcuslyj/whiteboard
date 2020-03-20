@@ -50,6 +50,7 @@
         max-width: 24vw;
         transform: translateX(-50%);
         background: #f3f4f7;
+        box-shadow: 0 1px 6px rgba(0,0,0,.2);
         padding: 1vw;
         &::before {
           position: absolute;
