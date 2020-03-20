@@ -487,7 +487,7 @@ async function uploadPostils(datas) {
     return
   }
   let param = new FormData()
-  param.append('fbId', fbId.docCover)
+  param.append('fbId', fbId.postil)
   let imgs = datas.map((d) => blobToFile(base64UrlToBlob(d.img.src)))
   imgs.map((img) => {
     param.append('file', img)
