@@ -17,10 +17,10 @@ export function isObject(obj) {
   return typeof obj === 'object' && obj !== null
 }
 // uid
-export const generateUID = (prefix = '', suffix = '') => {
+export const generateUID = (prefix = '', suffix = '', split = '_') => {
   let uid = Date.now().toString(36)
   Array.from({ length: 3 }).map(() => {
-    uid += `_${Math.floor(Math.random() * 10000).toString(36)}`
+    uid += `${split}${Math.floor(Math.random() * 10000).toString(36)}`
   })
   return `${prefix}${uid}${suffix}`
 }
@@ -211,7 +211,7 @@ export function base64UrlToBlob(urlData) {
     ia[i] = bytes.charCodeAt(i)
   }
   return new Blob([ab], {
-    type: 'image/png',
+    type: 'image/jpeg',
 
   })
 }
@@ -237,4 +237,9 @@ export function getURLBase64(url) {
     }
     xhr.send()
   })
+}
+
+export const blobToFile = (blob) => {
+  let suffix = blob.type.split('/')[1]
+  return new window.File([blob], generateUID('', `.${suffix}`, ''), { type: blob.type })
 }

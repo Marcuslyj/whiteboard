@@ -1,6 +1,6 @@
 import config from '@common/config'
 import {
-  isFirefox, formateComponent, getURLBase64, base64UrlToBlob,
+  isFirefox, formateComponent, getURLBase64, base64UrlToBlob, blobToFile,
 } from '@common/utils'
 import Konva from 'konva'
 import {
@@ -220,7 +220,7 @@ export async function addCover(pdf, {
     let result = await new Promise((resolve, reject) => {
       let param = new FormData()
       param.append('fbId', fbId.docCover)
-      param.append('file', base64UrlToBlob(imgUrl))
+      param.append('file', blobToFile(base64UrlToBlob(imgUrl)))
       Vue.prototype.$api.post(
         api.upload,
         param,
@@ -488,7 +488,7 @@ async function uploadPostils(datas) {
   }
   let param = new FormData()
   param.append('fbId', fbId.docCover)
-  let imgs = datas.map((d) => base64UrlToBlob(d.img.src))
+  let imgs = datas.map((d) => blobToFile(base64UrlToBlob(d.img.src)))
   imgs.map((img) => {
     param.append('file', img)
   })
