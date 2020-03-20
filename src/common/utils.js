@@ -17,10 +17,10 @@ export function isObject(obj) {
   return typeof obj === 'object' && obj !== null
 }
 // uid
-export const generateUID = (prefix = '', suffix = '') => {
+export const generateUID = (prefix = '', suffix = '', split = '_') => {
   let uid = Date.now().toString(36)
   Array.from({ length: 3 }).map(() => {
-    uid += `_${Math.floor(Math.random() * 10000).toString(36)}`
+    uid += `${split}${Math.floor(Math.random() * 10000).toString(36)}`
   })
   return `${prefix}${uid}${suffix}`
 }
@@ -151,36 +151,30 @@ export function downloadFile({ url, name = '' }) {
  * @param type  ：文件类型;
  */
 export function fileLinkToStreamDownload(url, fileName, type) {
-  // // let reg = /^([hH][tT]{2}[pP]:\/\/|[hH][tT]{2}[pP][sS]:\/\/)(([A-Za-z0-9-~]+).)+([A-Za-z0-9-~\/])+$/
-  // // if (!reg.test(url)) {
-  // //   throw new Error('传入参数不合法,不是标准的文件链接')
-  // // } else {
-  // let xhr = new XMLHttpRequest()
-  // xhr.open('get', url, true)
-  // // xhr.setRequestHeader('Content-Type', `application/${type}`)
-  // xhr.responseType = 'blob'
-  // xhr.onload = function () {
-  //   if (this.status === 200) {
+  // let reg = /^([hH][tT]{2}[pP]:\/\/|[hH][tT]{2}[pP][sS]:\/\/)(([A-Za-z0-9-~]+).)+([A-Za-z0-9-~\/])+$/
+  // if (!reg.test(url)) {
+  //   throw new Error('传入参数不合法,不是标准的文件链接')
+  // } else {
+  //   let xhr = new XMLHttpRequest()
+  //   xhr.open('get', url, true)
+  //   xhr.setRequestHeader('Content-Type', `application/${type}`)
+  //   xhr.responseType = 'blob'
+  //   xhr.onload = function () {
+  //     if (this.status === 200) {
   //     // 接受二进制文件流
-  //     let blob = this.response
-  //     downloadExportFile(blob, fileName, type)
+  //       let blob = this.response
+  //       downloadExportFile(blob, fileName, type)
+  //     }
   //   }
+  //   xhr.send()
   // }
-  // xhr.send()
-  // // }
 
+  // 使用fetch不报跨域
   fetch(url, {
     method: 'get',
     responseType: 'blob',
   }).then((res) => res.blob()).then((blob) => {
     downloadExportFile(blob, fileName, type)
-    // let bl = new Blob([blob], { type: 'audio/m4a' })
-    // let fileName = `${Date.parse(new Date())}.m4a`
-    // let link = document.createElement('a')
-    // link.href = window.URL.createObjectURL(blob)
-    // link.download = fileName
-    // link.click()
-    // window.URL.revokeObjectURL(link.href)
   })
 }
 
@@ -217,7 +211,7 @@ export function base64UrlToBlob(urlData) {
     ia[i] = bytes.charCodeAt(i)
   }
   return new Blob([ab], {
-    type: 'image/png',
+    type: 'image/jpeg',
 
   })
 }
@@ -243,4 +237,9 @@ export function getURLBase64(url) {
     }
     xhr.send()
   })
+}
+
+export const blobToFile = (blob) => {
+  let suffix = blob.type.split('/')[1]
+  return new window.File([blob], generateUID('', `.${suffix}`, ''), { type: blob.type })
 }
