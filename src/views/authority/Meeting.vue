@@ -625,17 +625,17 @@ const AuthorityMeetingComponent = {
       this.loading = true
       this.$refs.form.validate((valid) => {
         if (valid) {
-          const startTime = `${this.model.datetime.date} ${this.model.datetime.time[0]}`
+          const startTime = `${this.model.datetime.date} ${this.model.datetime.time[0]}:00`
           const stime = new Date(startTime).getTime()
           const ntime = new Date().getTime()
           if (stime <= ntime) {
             this.loading = false
-            this.$Message.error('开始时间不能小于当前时间')
+            this.$Message.error('会议开始时间不能小于当前时间')
           } else {
             const params = {
               theme: this.model.subject,
               startTime,
-              endTime: `${this.model.datetime.date} ${this.model.datetime.time[1]}`,
+              endTime: `${this.model.datetime.date} ${this.model.datetime.time[1]}:00`,
               address: this.model.address,
               type: parseInt(this.model.type),
               userIds: this.model.users,
