@@ -281,26 +281,11 @@ export async function addCoverImage(options, broadcast = false) {
     //   layer.draw()
     // })
     konvaImage.on('click tap', () => {
-      // 获取白板批注
-
-      // 清空缓存操作队列
-      cManager.clearCache()
-      // 激活工具重新配置成钢笔
-      config.activeTool = 'pen'
-      // 同步动作
-      // 1.设置全局信息
-      let syncAction = config.syncAction || {}
-      syncAction.documentId = konvaImage.getAttr('documentId')
-      syncAction.documentPath = konvaImage.getAttr('documentPath')
-      socketUtil.syncAction({
-        meetingId: config.meetingId,
-        syncAction: JSON.stringify(syncAction),
+      // 跳转文档模式
+      openDocument({
+        documentId: konvaImage.getAttr('documentId'),
+        documentPath: konvaImage.getAttr('documentPath'),
       })
-      // 2.主讲先跳转,添加必要特殊组件
-      config.toggleRouter = !config.toggleRouter
-      // 不需要广播，主屏whiteboard重新初始化已经通知
-      // // 3.广播
-      // socketUtil.broadcast({ meetingId: config.meetingId, msg: JSON.stringify({ event: 'refresh' }) })
     })
     konvaImage.on('dragend', () => {
       let params = {
@@ -315,6 +300,30 @@ export async function addCoverImage(options, broadcast = false) {
   }
 
   return konvaImage
+}
+
+/**
+ * 跳转document
+ * @param {} document
+ */
+export function openDocument({ documentId, documentPath }) {
+  // 清空缓存操作队列
+  cManager.clearCache()
+  // 激活工具重新配置成钢笔
+  config.activeTool = 'pen'
+  // 同步动作
+  // 1.设置全局信息
+  let syncAction = {
+    ...config.syncAction,
+    documentId,
+    documentPath,
+  }
+  socketUtil.syncAction({
+    meetingId: config.meetingId,
+    syncAction: JSON.stringify(syncAction),
+  })
+  // 2.主讲先跳转,添加必要特殊组件
+  config.toggleRouter = !config.toggleRouter
 }
 
 
