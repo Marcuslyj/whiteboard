@@ -625,12 +625,12 @@ const AuthorityMeetingComponent = {
       this.loading = true
       this.$refs.form.validate((valid) => {
         if (valid) {
-          const startTime = `${this.model.datetime.date} ${this.model.datetime.time[0]}`,
-            stime = new Date(startTime).getTime(),
-            ntime = new Date().getTime();
+          const startTime = `${this.model.datetime.date} ${this.model.datetime.time[0]}`
+          const stime = new Date(startTime).getTime()
+          const ntime = new Date().getTime()
           if (stime <= ntime) {
-            this.loading = false;
-            this.$Message.error('开始时间不能小于当前时间');
+            this.loading = false
+            this.$Message.error('开始时间不能小于当前时间')
           } else {
             const params = {
               theme: this.model.subject,
