@@ -150,6 +150,7 @@ export function destroy({ all = false } = {}) {
     postilErrorCount = 0
     shouldSavePostil = false
     postilSaving = false
+    elWrapper = null
     if (all) {
       let el = getElWrapper()
       if (el) el.classList.remove('invisible')

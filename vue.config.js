@@ -4,7 +4,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
   publicPath: './',
-  lintOnSave: 'error',
+  lintOnSave: 'warning',
   configureWebpack: {
     resolve: {
       alias: {

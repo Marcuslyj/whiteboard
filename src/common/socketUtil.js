@@ -31,6 +31,9 @@ function initSocket() {
       closable: true,
     })
   })
+  socket.on('error', (error) => {
+    console.log('error:', error)
+  })
 }
 
 // 触发批注更新通知
