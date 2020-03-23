@@ -513,7 +513,7 @@ const AuthorityMeetingComponent = {
         people: [{ validator: validatorUsers }],
       },
       firstIn: true,
-      attend: 3,
+      attend: 0,
       label: (h) => h('div', [
         h('span', '待参加会议'),
         h('Badge', {
@@ -611,7 +611,7 @@ const AuthorityMeetingComponent = {
             if (this.cates[this.active] !== 2 && this.firstIn) {
               this.firstIn = false
               this.getMeeting(2);
-            } else {
+            } else if (this.cates[this.active] === 2) {
               this.attend = res.data.pagination.count
             }
             if (!this.firstIn) {
@@ -660,6 +660,7 @@ const AuthorityMeetingComponent = {
                     this.$Message.success('创建成功')
                     this.setMeetingModal()
                     this.getMeeting()
+                    this.attend++
                   } else {
                     this.$Message.error(res.ret.retMsg)
                   }
