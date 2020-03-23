@@ -146,10 +146,10 @@ Description
                 <div class="file-bd">
                   <div class="nodata-tip" v-if="files.length===0">暂无文档</div>
                   <div class="file-list" v-else>
-                     <div class="file-item" v-for="(file,index) in files" :key="index">
+                     <div class="file-item" v-for="(file,index) in files" :key="index" @click.stop.prevent="openFile(file)">
                        <span class="title">{{file.documentName}}</span>
                        <span class="btns">
-                          <Icon type="md-download" @click="downloadFile(file)"/>
+                          <Icon type="md-download" @click.stop.prevent="downloadFile(file)"/>
                           <!-- <Icon type="ios-trash" /> -->
                        </span>
                      </div>
@@ -191,6 +191,7 @@ import cManager from '@common/componentManager'
 import {
   formateUrl, fullscreen, exitFullscreen, fileLinkToStreamDownload,
 } from '@common/utils'
+import { openDocument } from '@common/tool/document'
 
 export default {
   props: {
@@ -468,6 +469,13 @@ export default {
     },
     getFiles() {
 
+    },
+    // 打开文档
+    openFile({ documentId, url: documentPath }) {
+      openDocument({
+        documentId,
+        documentPath,
+      })
     },
     // 获取文档
     getDocumentList() {
