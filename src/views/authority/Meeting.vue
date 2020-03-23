@@ -588,11 +588,11 @@ const AuthorityMeetingComponent = {
         },
       )
     },
-    getMeeting() {
+    getMeeting(type = null) {
       this.$api.get(
         '/meeting-manager/meetings',
         {
-          meetingType: this.cates[this.active],
+          meetingType: type ? parseInt(type) : this.cates[this.active],
           queryParam: this.search.subject,
           ...this.pagination.mine,
         },
@@ -607,10 +607,12 @@ const AuthorityMeetingComponent = {
             }
             this.total[this.active] = res.data.pagination.count
             this.meeting[this.active] = res.data.meetings
-            if (this.cates[this.active] === 2) this.attend = res.data.pagination.count
-            this.$nextTick(() => {
-              this.setHeight()
-            })
+            if (this.cates[this.active] !== 2) {
+              this.getMeeting(2);
+              this.$nextTick(() => {
+                this.setHeight()
+              })
+            } else this.attend = res.data.pagination.count
           } else {
             this.$Message.error(res.ret.retMsg)
           }
