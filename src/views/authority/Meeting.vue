@@ -239,7 +239,7 @@
     <Modal
       title="创建会议"
       class-name="mi-modal"
-      width="540"
+      width="560"
       v-model="modal"
       footer-hide
     >
@@ -271,6 +271,7 @@
             type="timerange"
             v-model="model.time"
             placeholder="请选择会议具体时间点"
+            format="HH:mm"
             @on-change="setTime"
             :editable="false"
             style="margin-left: 16px;"
@@ -624,35 +625,43 @@ const AuthorityMeetingComponent = {
       this.loading = true
       this.$refs.form.validate((valid) => {
         if (valid) {
-          const params = {
-            theme: this.model.subject,
-            startTime: `${this.model.datetime.date} ${this.model.datetime.time[0]}`,
-            endTime: `${this.model.datetime.date} ${this.model.datetime.time[1]}`,
-            address: this.model.address,
-            type: parseInt(this.model.type),
-            userIds: this.model.users,
-          }
-          if (this.model.id) {
-            this.updateMeeting(params)
+          const startTime = `${this.model.datetime.date} ${this.model.datetime.time[0]}`,
+            stime = new Date(startTime).getTime(),
+            ntime = new Date().getTime();
+          if (stime <= ntime) {
+            this.loading = false;
+            this.$Message.error('开始时间不能小于当前时间');
           } else {
-            this.$api.post(
-              '/meeting-manager/meeting',
-              params,
-              (res) => {
-                this.loading = false
-                if (res.ret.retCode === '0') {
-                  this.$Message.success('创建成功')
-                  this.setMeetingModal()
-                  this.getMeeting()
-                } else {
-                  this.$Message.error(res.ret.retMsg)
-                }
-              },
-              (err) => {
-                this.loading = false
-                this.$Message.error(err.message)
-              },
-            )
+            const params = {
+              theme: this.model.subject,
+              startTime,
+              endTime: `${this.model.datetime.date} ${this.model.datetime.time[1]}`,
+              address: this.model.address,
+              type: parseInt(this.model.type),
+              userIds: this.model.users,
+            }
+            if (this.model.id) {
+              this.updateMeeting(params)
+            } else {
+              this.$api.post(
+                '/meeting-manager/meeting',
+                params,
+                (res) => {
+                  this.loading = false
+                  if (res.ret.retCode === '0') {
+                    this.$Message.success('创建成功')
+                    this.setMeetingModal()
+                    this.getMeeting()
+                  } else {
+                    this.$Message.error(res.ret.retMsg)
+                  }
+                },
+                (err) => {
+                  this.loading = false
+                  this.$Message.error(err.message)
+                },
+              )
+            }
           }
         } else this.loading = false
       })

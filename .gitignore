@@ -21,3 +21,4 @@ yarn-error.log*
 *.sw?
 
 select_copy.js
+src/components/drawer/Drawer.vue

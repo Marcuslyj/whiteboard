@@ -24,6 +24,7 @@ Description
         @clearBoard="clearBoard"
         @gotoBoard="gotoBoard"
         @clip="saveClipImg"
+        @showUsers="showUsers"
       ></tool-bar>
     </div>
     <!-- 用于转换图片,创建多个转换板，防止同时操作一个 -->
@@ -51,6 +52,7 @@ Description
           <Button type="primary" size="large" @click="saveClipImg">保存</Button>
         </div>
     </Modal> -->
+    <side-drawer v-model="showSideDrawer"></side-drawer>
   </div>
 </template>
 
@@ -73,6 +75,7 @@ import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
 import MiniMenu from '@/components/miniMenu/MiniMenu'
+import SideDrawer from '@/components/side-drawer/SideDrawer'
 // import pdfjsLib from 'pdfjsLib'
 // import common from '@common/common'
 
@@ -80,6 +83,7 @@ export default {
   components: {
     ToolBar,
     MiniMenu,
+    SideDrawer,
   },
   data() {
     return {
@@ -100,6 +104,7 @@ export default {
       tempLayer: null,
       convertCanvas: [],
       timerSavePostil: null,
+      showSideDrawer: false,
     }
   },
   mounted() {
@@ -688,6 +693,9 @@ export default {
       link.download = true
       document.body.appendChild(link)
       link.click()
+    },
+    showUsers() {
+      this.showSideDrawer = true
     },
     cancelClipImg() {
       this.clip.showClip = false
