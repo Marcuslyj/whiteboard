@@ -17,13 +17,13 @@ Description
     </div> -->
     <div class="center">
       <ul class="group draw-tool">
-        <li ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
+        <li title="移动画布" ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
           <i class="iconfont icon-shou"></i>
         </li>
-        <li ref="select-tool" @click.stop.prevent="clickSelectTool" :class="{'activeTool':isActive('select-tool')}">
+        <li title="选中" ref="select-tool" @click.stop.prevent="clickSelectTool" :class="{'activeTool':isActive('select-tool')}">
           <i class="iconfont icon-select"></i>
         </li>
-        <li ref="pencil-tool" @click.stop.prevent="clickPencilTool" :class="{'activeTool':isActive('pencil-tool')}">
+        <li title="画笔" ref="pencil-tool" @click.stop.prevent="clickPencilTool" :class="{'activeTool':isActive('pencil-tool')}">
           <i class="iconfont icon-pen"></i>
           <div class="menu pencil" v-show="boxName === 'pencil'">
             <div class="preview-wrapper">
@@ -80,7 +80,7 @@ Description
             </div>
           </div>
         </li>
-        <li ref="eraser-tool" @click.stop.prevent="clickEraserTool" :class="{'activeTool':isActive('eraser-tool')}">
+        <li title="擦除" ref="eraser-tool" @click.stop.prevent="clickEraserTool" :class="{'activeTool':isActive('eraser-tool')}">
           <i class="iconfont icon-eraser"></i>
           <div class="menu eraser" v-if="boxName === 'eraser'">
             <div class="row">
@@ -120,12 +120,12 @@ Description
             </div>
           </div>
         </li>
-        <li ref="text-tool" @click.stop="clickTextTool" :class="{'activeTool':isActive('text-tool')}">
+        <li title="文字" ref="text-tool" @click.stop="clickTextTool" :class="{'activeTool':isActive('text-tool')}">
           <i class="iconfont icon-text"></i>
         </li>
       </ul>
       <ul class="group bussiness-tool">
-        <li v-if="$globalConf.isSpeaker && $globalConf.mode==='board'">
+        <li title="打开" v-if="$globalConf.isSpeaker && $globalConf.mode==='board'">
           <Upload
             :action="common.api.upload"
             accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -138,7 +138,7 @@ Description
             <i class="iconfont icon-upload"></i>
           </Upload>
         </li>
-        <li ref="file-tool" @click.stop.prevent="clickFile">
+        <li title="文档" ref="file-tool" @click.stop.prevent="clickFile">
           <i class="iconfont icon-file"></i>
           <div class="menu file" v-show="boxName === 'file'">
             <Tabs value="meeting">
@@ -159,12 +159,12 @@ Description
             </Tabs>
           </div>
         </li>
-        <li @click="clip"><i class="iconfont icon-clip"></i></li>
+        <li title="截屏" @click="clip"><i class="iconfont icon-clip"></i></li>
       </ul>
       <ul class="group other-tool">
-        <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
-        <li @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
-        <li @click.stop="showUsers"><i class="iconfont icon-userSetting"></i></li>
+        <li title="后退" @click.stop="back"><i class="iconfont icon-houtui"></i></li>
+        <li title="前进" @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
+        <li title="用户" @click.stop="showUsers"><i class="iconfont icon-userSetting"></i></li>
       </ul>
     </div>
     <div class="right part">
@@ -283,8 +283,8 @@ export default {
     //   ret: { retCode: 0 },
     // })
 
-    document.body.addEventListener('mousedown', this.handleBodyClick)
-    document.body.addEventListener('touchstart', this.handleBodyClick)
+    // document.body.addEventListener('mousedown', this.handleBodyClick)
+    // document.body.addEventListener('touchstart', this.handleBodyClick)
   },
   // 关闭时销毁工具
   beforeDestroy() {
@@ -514,9 +514,9 @@ export default {
       this.$refs[ref].classList.add('activeTool')
     },
     setBoxName(boxName) {
-      this.boxName = boxName
+      this.boxName = this.boxName === boxName ? '' : boxName
       console.log(this.boxName)
-      // Vue.eventBus.$emit('setTbMask', this.boxName !== '')
+      Vue.eventBus.$emit('setTbMask', this.boxName !== '')
     },
     // 预览图
     resetCanvas() {
