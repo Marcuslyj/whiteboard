@@ -611,7 +611,7 @@ const AuthorityMeetingComponent = {
             if (this.cates[this.active] !== 2 && this.firstIn) {
               this.firstIn = false
               this.getMeeting(2);
-            } else if (this.cates[this.active] === 2) {
+            } else if (this.cates[this.active] === 2 || parseInt(type) === 2) {
               this.attend = res.data.pagination.count
             }
             if (!this.firstIn) {
