@@ -8,8 +8,8 @@ module.exports = {
     '@vue/airbnb',
   ],
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': process.env.NODE_ENV === 'production' ? 1 : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 1 : 'off',
     'semi': [2, 'never'],
     'no-use-before-define': 0,
     'no-var': 1,
