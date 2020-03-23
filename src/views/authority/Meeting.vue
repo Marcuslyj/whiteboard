@@ -512,6 +512,7 @@ const AuthorityMeetingComponent = {
         type: [{ required: true, message: '请选择房间类型' }],
         people: [{ validator: validatorUsers }],
       },
+      firstIn: true,
       attend: 3,
       label: (h) => h('div', [
         h('span', '待参加会议'),
@@ -607,12 +608,17 @@ const AuthorityMeetingComponent = {
             }
             this.total[this.active] = res.data.pagination.count
             this.meeting[this.active] = res.data.meetings
-            if (this.cates[this.active] !== 2) {
+            if (this.cates[this.active] !== 2 && this.firstIn) {
               this.getMeeting(2);
+            } else {
+              this.firstIn = false
+              this.attend = res.data.pagination.count
+            }
+            if (!this.firstIn) {
               this.$nextTick(() => {
                 this.setHeight()
               })
-            } else this.attend = res.data.pagination.count
+            }
           } else {
             this.$Message.error(res.ret.retMsg)
           }
