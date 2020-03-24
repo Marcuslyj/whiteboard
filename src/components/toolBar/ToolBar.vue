@@ -17,20 +17,32 @@ Description
     </div> -->
     <div class="center">
       <ul class="group draw-tool">
-        <li ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
-          <i class="iconfont icon-shou"></i>
+        <li v-if="$globalConf.mode==='board'" ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
+          <div class="inner">
+            <Tooltip content="拖动" placement="top-end">
+            <i class="iconfont icon-shou"></i>
+            </Tooltip>
+          </div>
         </li>
         <li ref="select-tool" @click.stop.prevent="clickSelectTool" :class="{'activeTool':isActive('select-tool')}">
-          <i class="iconfont icon-select"></i>
+          <div class="inner">
+            <Tooltip content="指针" placement="top-end">
+              <i class="iconfont icon-select"></i>
+            </Tooltip>
+          </div>
         </li>
         <li ref="pencil-tool" @click.stop.prevent="clickPencilTool" :class="{'activeTool':isActive('pencil-tool')}">
-          <i class="iconfont icon-pen"></i>
-          <div class="menu pencil" v-show="boxName === 'pencil'">
-            <div class="preview-wrapper">
-              <canvas id="preview-canvas"></canvas>
-            </div>
-            <div class="tool-control row">
-              <div
+           <div class="inner">
+            <Tooltip content="画笔" placement="top-end">
+            <i class="iconfont icon-pen"></i>
+            </Tooltip>
+           </div>
+            <div class="menu pencil" v-show="boxName === 'pencil'">
+              <div class="preview-wrapper">
+                <canvas id="preview-canvas"></canvas>
+              </div>
+              <div class="tool-control row">
+                <div
                 v-for="(pencilTool, index) in pencilToolArr"
                 :Key="index"
                 :class="{
@@ -80,8 +92,13 @@ Description
             </div>
           </div>
         </li>
+       <!-- </Tooltip> -->
         <li ref="eraser-tool" @click.stop.prevent="clickEraserTool" :class="{'activeTool':isActive('eraser-tool')}">
-          <i class="iconfont icon-eraser"></i>
+          <div class="inner">
+            <Tooltip content="橡皮擦" placement="top-end">
+              <i class="iconfont icon-eraser"></i>
+            </Tooltip>
+          </div>
           <div class="menu eraser" v-if="boxName === 'eraser'">
             <div class="row">
               <div
@@ -120,26 +137,40 @@ Description
             </div>
           </div>
         </li>
+       </Tooltip>
         <li ref="text-tool" @click.stop="clickTextTool" :class="{'activeTool':isActive('text-tool')}">
-          <i class="iconfont icon-text"></i>
+          <div class="inner">
+            <Tooltip content="文本框" placement="top-end">
+               <i class="iconfont icon-text"></i>
+            </Tooltip>
+          </div>
         </li>
+       </Tooltip>
       </ul>
       <ul class="group bussiness-tool">
         <li v-if="$globalConf.isSpeaker && $globalConf.mode==='board'">
-          <Upload
-            :action="common.api.upload"
-            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            :format="['pdf', 'doc', 'docx', 'ppt', 'pptx']"
-            :before-upload="beforeUpload"
-            :on-success="uploadSuccess"
-            :data="{ fbId: common.fbId.upload }"
-            :show-upload-list="false"
-          >
-            <i class="iconfont icon-upload"></i>
-          </Upload>
+          <div class="inner">
+            <Tooltip content="导入文档" placement="top-end">
+            <Upload
+              :action="common.api.upload"
+              accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+              :format="['pdf', 'doc', 'docx', 'ppt', 'pptx']"
+              :before-upload="beforeUpload"
+              :on-success="uploadSuccess"
+              :data="{ fbId: common.fbId.upload }"
+              :show-upload-list="false"
+            >
+              <i class="iconfont icon-upload"></i>
+            </Upload>
+           </Tooltip>
+          </div>
         </li>
         <li ref="file-tool" @click.stop.prevent="clickFile">
-          <i class="iconfont icon-file"></i>
+          <div class="inner">
+            <Tooltip content="文档管理" placement="top-end">
+              <i class="iconfont icon-file"></i>
+            </Tooltip>
+          </div>
           <div class="menu file" v-show="boxName === 'file'">
             <Tabs value="meeting">
               <TabPane label="会议文档" name="meeting">
@@ -159,12 +190,36 @@ Description
             </Tabs>
           </div>
         </li>
-        <li @click="clip"><i class="iconfont icon-clip"></i></li>
+        <li @click="clip">
+          <div class="inner">
+            <Tooltip content="剪切" placement="top-end">
+              <i class="iconfont icon-clip"></i>
+            </Tooltip>
+          </div>
+        </li>
       </ul>
       <ul class="group other-tool">
-        <li @click.stop="back"><i class="iconfont icon-houtui"></i></li>
-        <li @click.stop="goAhead"><i class="iconfont icon-qianjin"></i></li>
-        <li @click.stop="showUsers"><i class="iconfont icon-userSetting"></i></li>
+        <li @click.stop="back">
+          <div class="inner">
+          <Tooltip content="撤销" placement="top-end">
+            <i class="iconfont icon-houtui"></i>
+          </Tooltip>
+          </div>
+        </li>
+        <li @click.stop="goAhead">
+          <div class="inner">
+            <Tooltip content="恢复" placement="top-end">
+              <i class="iconfont icon-qianjin"></i>
+            </Tooltip>
+          </div>
+        </li>
+        <li @click.stop="showUsers">
+          <div class="inner">
+            <Tooltip content="用户列表" placement="top-end">
+              <i class="iconfont icon-userSetting"></i>
+            </Tooltip>
+          </div>
+        </li>
       </ul>
     </div>
     <div class="right part">
@@ -222,8 +277,8 @@ export default {
     //   ret: { retCode: 0 },
     // })
 
-    document.body.addEventListener('mousedown', this.handleBodyClick)
-    document.body.addEventListener('touchstart', this.handleBodyClick)
+    // document.body.addEventListener('mousedown', this.handleBodyClick)
+    // document.body.addEventListener('touchstart', this.handleBodyClick)
   },
   // 关闭时销毁工具
   beforeDestroy() {
@@ -472,9 +527,9 @@ export default {
       this.$refs[ref].classList.add('activeTool')
     },
     setBoxName(boxName) {
-      this.boxName = boxName
+      this.boxName = this.boxName === boxName ? '' : boxName
       console.log(this.boxName)
-      // Vue.eventBus.$emit('setTbMask', this.boxName !== '')
+      Vue.eventBus.$emit('setTbMask', this.boxName !== '')
     },
     // 预览图
     resetCanvas() {

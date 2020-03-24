@@ -187,7 +187,6 @@ function update() {
   })
   currentTarget.visible(true)
   currentLayer.draw()
-  currentTarget.cache({ drawBorder: true })
   editorDom.value = ''
   // 检测组件是否发生了改变，是否需要保存到后台和缓存
   const newAttrs = currentTarget.getAttrs()
