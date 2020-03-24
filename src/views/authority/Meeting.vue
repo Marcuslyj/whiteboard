@@ -512,7 +512,8 @@ const AuthorityMeetingComponent = {
         type: [{ required: true, message: '请选择房间类型' }],
         people: [{ validator: validatorUsers }],
       },
-      attend: 3,
+      firstIn: true,
+      attend: 0,
       label: (h) => h('div', [
         h('span', '待参加会议'),
         h('Badge', {
@@ -588,11 +589,11 @@ const AuthorityMeetingComponent = {
         },
       )
     },
-    getMeeting() {
+    getMeeting(type = null) {
       this.$api.get(
         '/meeting-manager/meetings',
         {
-          meetingType: this.cates[this.active],
+          meetingType: type ? parseInt(type) : this.cates[this.active],
           queryParam: this.search.subject,
           ...this.pagination.mine,
         },
@@ -607,10 +608,17 @@ const AuthorityMeetingComponent = {
             }
             this.total[this.active] = res.data.pagination.count
             this.meeting[this.active] = res.data.meetings
-            if (this.cates[this.active] === 2) this.attend = res.data.pagination.count
-            this.$nextTick(() => {
-              this.setHeight()
-            })
+            if (this.cates[this.active] !== 2 && this.firstIn) {
+              this.firstIn = false
+              this.getMeeting(2);
+            } else if (this.cates[this.active] === 2 || parseInt(type) === 2) {
+              this.attend = res.data.pagination.count
+            }
+            if (!this.firstIn) {
+              this.$nextTick(() => {
+                this.setHeight()
+              })
+            }
           } else {
             this.$Message.error(res.ret.retMsg)
           }
@@ -625,17 +633,17 @@ const AuthorityMeetingComponent = {
       this.loading = true
       this.$refs.form.validate((valid) => {
         if (valid) {
-          const startTime = `${this.model.datetime.date} ${this.model.datetime.time[0]}`
+          const startTime = `${this.model.datetime.date} ${this.model.datetime.time[0]}:00`
           const stime = new Date(startTime).getTime()
           const ntime = new Date().getTime()
           if (stime <= ntime) {
             this.loading = false
-            this.$Message.error('开始时间不能小于当前时间')
+            this.$Message.error('会议开始时间不能小于当前时间')
           } else {
             const params = {
               theme: this.model.subject,
               startTime,
-              endTime: `${this.model.datetime.date} ${this.model.datetime.time[1]}`,
+              endTime: `${this.model.datetime.date} ${this.model.datetime.time[1]}:00`,
               address: this.model.address,
               type: parseInt(this.model.type),
               userIds: this.model.users,
@@ -652,6 +660,7 @@ const AuthorityMeetingComponent = {
                     this.$Message.success('创建成功')
                     this.setMeetingModal()
                     this.getMeeting()
+                    this.attend++
                   } else {
                     this.$Message.error(res.ret.retMsg)
                   }
