@@ -276,6 +276,8 @@ export default {
           content: '转换中...',
           duration: 0,
         }))
+        // 封面组件id
+        let componentId = generateUID()
         // 文档转pdf，获取文档路径和文档id
         let result = await new Promise((resolve, reject) => {
           this.$api.post(
@@ -286,6 +288,9 @@ export default {
             {
               docPath: data.filePath,
               docName: data.fileName,
+              componentId,
+              // 封面组件，componentType是1
+              componentType: 1,
             },
             (res) => resolve(res),
             (err) => reject(err),
@@ -299,7 +304,17 @@ export default {
           }))
           const pdf = await loadPdf({ url: result.data.url })
           if (this.Msgloading.length) this.Msgloading.pop()()
-          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId })
+          // 添加封面组件
+          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId, componentId })
+          // 更新文档列表
+          this.$refs['tool-bar'].getDocumentList()
+          // 通知副屏更新文档列表
+          socketUtil.broadcast({
+            meetingId: this.$globalConf.meetingId,
+            msg: JSON.stringify({
+              event: 'updateDocumentList',
+            }),
+          })
         }
       }
     },
@@ -437,44 +452,69 @@ export default {
       }
     },
     startListener() {
-      getSocket().on(socketEvent.getComponent, ({ components }) => {
-        this.$nextTick(
-          () => {
-            this.initComponents(components)
-          },
-        )
-      })
-      getSocket().on(socketEvent.getMeet, (res) => {
-        this.$nextTick(
-          () => this.handleGetMeet(res),
-        )
-      })
-      getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
-      getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
-      getSocket().on(socketEvent.addComponent, this.handleAddComponent)
-      getSocket().on(socketEvent.updateComponentState, this.handleUpdateComponentState)
-      getSocket().on(socketEvent.broadcast, ({ msg }) => {
-        let { event } = JSON.parse(msg)
-        switch (event) {
-        case 'refresh':
-          if (!this.$globalConf.isSpeaker) this.onRefresh()
-          break
-        case 'speakerOnline':
-          if (this.$globalConf.isSpeaker) destroySocket()
-          break
-        default:
-          break
-        }
-      })
+      let socket = getSocket()
+      socket
+        .on(socketEvent.getComponent, ({ components }) => {
+          this.$nextTick(
+            () => {
+              this.initComponents(components)
+            },
+          )
+        })
+        .on(socketEvent.getMeet, (res) => {
+          this.$nextTick(
+            () => this.handleGetMeet(res),
+          )
+        })
+        .on(socketEvent.updateComponent, this.handleUpdateComponent)
+        .on(socketEvent.clearBoard, this.handleClearBoard)
+        .on(socketEvent.addComponent, this.handleAddComponent)
+        .on(socketEvent.updateComponentState, this.handleUpdateComponentState)
+        .on(socketEvent.broadcast, ({ msg }) => {
+          let { event } = JSON.parse(msg)
+          switch (event) {
+          case 'refresh':
+            if (!this.$globalConf.isSpeaker) this.onRefresh()
+            break
+          case 'speakerOnline':
+            if (this.$globalConf.isSpeaker) destroySocket()
+            break
+          case 'updateDocumentList':
+            this.$refs['tool-bar'].getDocumentList()
+            break
+          default:
+            break
+          }
+        })
+        .on(socketEvent.deleteDocument, this.handleDeleteDocument)
     },
     stopListener() {
       let socket = getSocket()
       let events = [socketEvent.getComponent, socketEvent.getMeet,
         socketEvent.updateComponent, socketEvent.clearBoard,
-        socketEvent.addComponent, socketEvent.updateComponentState, socketEvent.broadcast]
+        socketEvent.addComponent, socketEvent.updateComponentState, socketEvent.broadcast, socketEvent.deleteDocument]
       events.map((event) => {
         if (socket) socket.off(event)
       })
+    },
+    // 删除文档封面组件
+    handleDeleteDocument({ componentId }) {
+      if (componentId && this.$globalConf.mode === 'board') {
+        const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
+        let node = bgLayer.find(`#${componentId}`)[0]
+        if (node) {
+          node.destroy()
+          bgLayer.draw()
+          this.$refs['tool-bar'].getDocumentList()
+          // 通知副屏更新文档列表
+          socketUtil.broadcast({
+            meetingId: this.$globalConf.meetingId,
+            msg: JSON.stringify({
+              event: 'updateDocumentList',
+            }),
+          })
+        }
+      }
     },
     handleGetMeet(res) {
       this.$globalConf.mode = 'board'
