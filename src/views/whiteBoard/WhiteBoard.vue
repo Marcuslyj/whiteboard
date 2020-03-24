@@ -409,7 +409,7 @@ export default {
           const meetingInfo = {
             theme: '',
             meetingId: this.$globalConf.meetingId,
-            nickName: this.$globalConf.user.username,
+            realName: this.$globalConf.user.realName,
             userId: this.$globalConf.user.userId,
           }
           socketUtil.joinMeet(meetingInfo)
@@ -709,6 +709,8 @@ export default {
 
     this.$globalConf.mode = ''
     destroyTool()
+    this.$globalConf.board.clearCache()
+    this.$globalConf.board.destroy()
 
     this.stopListener()
     Vue.eventBus.$off('setTbMask')
