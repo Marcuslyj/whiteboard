@@ -150,7 +150,7 @@ Description
                        <span class="title">{{file.documentName}}</span>
                        <span class="btns">
                           <Icon type="md-download" @click.stop.prevent="downloadFile(file)"/>
-                          <!-- <Icon type="ios-trash" /> -->
+                          <Icon type="ios-trash" @click.stop.prevent="deleteFile(file)"/>
                        </span>
                      </div>
                   </div>
@@ -185,13 +185,15 @@ Description
 
 <script>
 import { Upload, Message } from 'view-design'
-import common, { api, fileService } from '@common/common'
+import common, { api, fileService, socketEvent } from '@common/common'
 import Vue from 'vue'
 import cManager from '@common/componentManager'
 import {
   formateUrl, fullscreen, exitFullscreen, fileLinkToStreamDownload,
 } from '@common/utils'
 import { openDocument } from '@common/tool/document'
+import { getSocket } from '@common/socketUtil'
+import _data from './data'
 
 export default {
   props: {
@@ -207,71 +209,7 @@ export default {
   data() {
     return {
       common,
-      // 笔
-      pencilColorArr: ['#333333', '#d81e06', '#f4ea2a', '#0abf53', '#1296db'],
-      widthArr: [
-        {
-          width: 0.4,
-          lineWidth: 4,
-        },
-        {
-          width: 0.6,
-          lineWidth: 8,
-        },
-        {
-          width: 1,
-          lineWidth: 14,
-        },
-        {
-          width: 1.2,
-          lineWidth: 18,
-        },
-        {
-          width: 1.6,
-          lineWidth: 22,
-        },
-      ],
-      pencilToolArr: [
-        {
-          name: 'pen',
-          icon: 'icon-gangbi',
-        },
-        {
-          name: 'markPencil',
-          icon: 'icon-makebi',
-        },
-        {
-          name: 'arrow',
-          icon: 'icon-arrow',
-        },
-      ],
-
-      // eraserToolArr
-      eraserToolArr: [
-        {
-          name: 'eraser',
-          icon: 'icon-eraser',
-        },
-        {
-          name: 'deleteGraphic',
-          icon: 'icon-qingkong',
-        },
-        {
-          name: 'clearBoard',
-          icon: 'icon-clear',
-        },
-      ],
-      boxName: '',
-      files: [],
-      // MsgUploading: []
-      // 关联一级菜单栏和实际工具的
-      menuRef: {
-        'pan-tool': ['pan'],
-        'select-tool': ['select'],
-        'pencil-tool': ['pen', 'markPencil', 'arrow'],
-        'eraser-tool': ['eraser', 'deleteGraphic', 'clearBoard'],
-        'text-tool': ['text'],
-      },
+      ..._data,
     }
   },
   mounted() {
@@ -475,6 +413,18 @@ export default {
       openDocument({
         documentId,
         documentPath,
+      })
+    },
+    // 删除文档
+    deleteFile({ documentId, documentName = '-' }) {
+      this.$confirm(`确定删除文档[${documentName}]?不可撤销!`, () => {
+        let socket = getSocket()
+        // 删除文档
+        socket.emit(socketEvent.deleteDocument, {
+          meetingId: this.$globalConf.meetingId,
+          whiteboardId: this.$globalConf.whiteboardId,
+          documentId,
+        })
       })
     },
     // 获取文档
