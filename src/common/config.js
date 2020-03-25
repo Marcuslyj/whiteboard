@@ -1,12 +1,17 @@
 import Vue from 'vue'
 
 export default Vue.observable({
+  // 房主
+  owner: false,
+  // 主讲权限
+  speakerPermission: true,
+  // 下载权限
+  downloadPermission: false,
   user: {},
   meetingId: null,
   whiteboardId: null,
   documentId: null,
   documentPath: null,
-  isSpeaker: true,
   // 主讲屏大小
   speakerSize: {},
   // 第一笔绘制时的基准宽度

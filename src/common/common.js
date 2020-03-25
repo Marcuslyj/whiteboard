@@ -50,6 +50,10 @@ export const socketEvent = {
    * 删除文档
    */
   deleteDocument: 'delete-document',
+  /**
+   * 获取用户列表
+   */
+  getUsers: 'get-sessions',
 }
 
 /**

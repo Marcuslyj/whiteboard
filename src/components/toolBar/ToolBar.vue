@@ -7,7 +7,7 @@ Description
 <template>
   <div class="toolbar" @mousedown.stop="" @touchstart.stop="">
     <!-- 工具条能否起作用的遮罩 -->
-    <div class="mask" v-show="!$globalConf.isSpeaker"></div>
+    <div class="mask" v-show="!$globalConf.speakerPermission"></div>
     <!-- <div
       class="left part"
       v-if="isHome"
@@ -16,7 +16,7 @@ Description
       <span><i class="iconfont icon-boards"></i></span>
     </div> -->
     <div class="center">
-      <ul class="group draw-tool">
+      <ul class="group draw-tool" v-if="$globalConf.speakerPermission">
         <li v-if="$globalConf.mode==='board'" ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
           <div class="inner">
             <Tooltip content="拖动" placement="top-end">
@@ -148,7 +148,7 @@ Description
        </Tooltip>
       </ul>
       <ul class="group bussiness-tool">
-        <li v-if="$globalConf.isSpeaker && $globalConf.mode==='board'">
+        <li v-if="$globalConf.speakerPermission && $globalConf.mode==='board'">
           <div class="inner">
             <Tooltip content="导入文档" placement="top-end">
             <Upload
@@ -199,14 +199,14 @@ Description
         </li>
       </ul>
       <ul class="group other-tool">
-        <li @click.stop="back">
+        <li @click.stop="back" v-if="$globalConf.speakerPermission">
           <div class="inner">
           <Tooltip content="撤销" placement="top-end">
             <i class="iconfont icon-houtui"></i>
           </Tooltip>
           </div>
         </li>
-        <li @click.stop="goAhead">
+        <li @click.stop="goAhead" v-if="$globalConf.speakerPermission">
           <div class="inner">
             <Tooltip content="恢复" placement="top-end">
               <i class="iconfont icon-qianjin"></i>
@@ -223,7 +223,7 @@ Description
       </ul>
     </div>
     <div class="right part">
-      <span v-show="$globalConf.mode === 'document'" @click="gotoBoard"
+      <span v-show="$globalConf.mode === 'document'" @click="gotoBoard" v-if="$globalConf.speakerPermission"
         ><i class="iconfont icon-shangyiye1"></i
       ></span>
       <span @click="handleFullscreen"
