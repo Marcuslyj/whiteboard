@@ -36,7 +36,10 @@ export default {
       if (res.ret.retCode === '0') {
         const { hasMeetingAuth } = res.data
         if (hasMeetingAuth) {
-          this.$globalConf.user = res.data.user
+          this.$globalConf.user = {
+            ...this.$globalConf.user,
+            ...res.data.user,
+          }
           this.showBoard = true
         } else if (res.data.hasLogin) {
           this.$confirm('用户没有此会议的权限!,是否重新登录', () => {

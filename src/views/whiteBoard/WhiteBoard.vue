@@ -7,7 +7,7 @@ Description
 <template>
   <div class="board-page">
     <section class="board-container-wrapper">
-    <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.isSpeaker" @click="savePostil"><i class="iconfont icon-save"></i></div>
+    <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.speakerPermission" @click="savePostil"><i class="iconfont icon-save"></i></div>
     <div id="board-container"
       ref="board-container">
     </div>
@@ -76,8 +76,6 @@ import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
 import MiniMenu from '@/components/miniMenu/MiniMenu'
 import SideDrawer from '@/components/side-drawer/SideDrawer'
-// import pdfjsLib from 'pdfjsLib'
-// import common from '@common/common'
 
 export default {
   components: {
@@ -107,37 +105,38 @@ export default {
       showSideDrawer: false,
     }
   },
-  mounted() {
-    console.log('mounted')
-    this.$globalConf.mode = 'board'
-    // 创建stage
-    const el = document.querySelector('.board-container-wrapper')
-    this.$globalConf.board = this.stage = new Konva.Stage({
-      container: 'board-container',
-      width: el.clientWidth,
-      height: el.clientHeight,
-    })
-
-    Object.keys(this.$globalConf.layerIds).map((layerId) => {
-      const layer = new Konva.Layer({
-        id: layerId,
+  created() {
+    this.$nextTick(() => {
+      this.$globalConf.mode = 'board'
+      // 创建stage
+      const el = document.querySelector('.board-container-wrapper')
+      this.$globalConf.board = this.stage = new Konva.Stage({
+        container: 'board-container',
+        width: el.clientWidth,
+        height: el.clientHeight,
       })
-      this.$globalConf.layerManager[layerId] = layer
-      this.$globalConf.layerManager.BG_LAYER.listening(false)
-      this.stage.add(layer)
+
+      Object.keys(this.$globalConf.layerIds).map((layerId) => {
+        const layer = new Konva.Layer({
+          id: layerId,
+        })
+        this.$globalConf.layerManager[layerId] = layer
+        this.$globalConf.layerManager.BG_LAYER.listening(false)
+        this.stage.add(layer)
+      })
+      initTool()
+      Vue.eventBus.$on('setTbMask', (visible) => {
+        this.tbMask = visible
+      })
+      Vue.eventBus.$on('setMiniMenu', (params) => {
+        const { miniMenuType = '', miniMenuStyle, textColor } = params
+        this.miniMenuType = miniMenuType
+        this.miniMenuStyle = miniMenuStyle
+        this.textColor = textColor
+      })
+      this.initConvertCanvas()
+      this.startMeeting()
     })
-    initTool()
-    Vue.eventBus.$on('setTbMask', (visible) => {
-      this.tbMask = visible
-    })
-    Vue.eventBus.$on('setMiniMenu', (params) => {
-      const { miniMenuType = '', miniMenuStyle, textColor } = params
-      this.miniMenuType = miniMenuType
-      this.miniMenuStyle = miniMenuStyle
-      this.textColor = textColor
-    })
-    this.initConvertCanvas()
-    this.startMeeting()
   },
   methods: {
     // 同步批注
@@ -158,7 +157,7 @@ export default {
     // 更新stage
     updateStageInfo() {
       const wrapper = document.querySelector('.board-container-wrapper')
-      if (this.$globalConf.isSpeaker) {
+      if (this.$globalConf.speakerPermission) {
         // 主讲屏
         // 先记录
         const baseStageXY = this.$globalConf.stageXY
@@ -276,6 +275,8 @@ export default {
           content: '转换中...',
           duration: 0,
         }))
+        // 封面组件id
+        let componentId = generateUID()
         // 文档转pdf，获取文档路径和文档id
         let result = await new Promise((resolve, reject) => {
           this.$api.post(
@@ -286,6 +287,9 @@ export default {
             {
               docPath: data.filePath,
               docName: data.fileName,
+              componentId,
+              // 封面组件，componentType是1
+              componentType: 1,
             },
             (res) => resolve(res),
             (err) => reject(err),
@@ -299,7 +303,17 @@ export default {
           }))
           const pdf = await loadPdf({ url: result.data.url })
           if (this.Msgloading.length) this.Msgloading.pop()()
-          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId })
+          // 添加封面组件
+          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId, componentId })
+          // 更新文档列表
+          this.$refs['tool-bar'].getDocumentList()
+          // 通知副屏更新文档列表
+          socketUtil.broadcast({
+            meetingId: this.$globalConf.meetingId,
+            msg: JSON.stringify({
+              event: 'updateDocumentList',
+            }),
+          })
         }
       }
     },
@@ -336,7 +350,7 @@ export default {
           if (specialType.includes(component.type)) {
             this.$globalConf[component.type] = component[component.type]
             hasSpecial = true
-          } else if (this.$globalConf.isSpeaker) {
+          } else if (this.$globalConf.speakerPermission) {
             component.visible = true
             componentState === 1 && this.renderComponent.push(component)
           } else {
@@ -349,7 +363,7 @@ export default {
       if (hasSpecial) {
         this.updateStageInfo()
         // 主讲屏
-        if (this.$globalConf.isSpeaker) {
+        if (this.$globalConf.speakerPermission) {
           const params = {
             state: 0,
             componentTypes: [0],
@@ -409,16 +423,22 @@ export default {
           const meetingInfo = {
             theme: '',
             meetingId: this.$globalConf.meetingId,
-            nickName: this.$globalConf.user.username,
+            realName: this.$globalConf.user.realName,
             userId: this.$globalConf.user.userId,
           }
           socketUtil.joinMeet(meetingInfo)
           // 获取会议
           getSocket().on(socketEvent.joinMeet, (res) => {
-            this.$globalConf.isSpeaker = res.isSpeaker
-            console.log(`isSpeaker:${res.isSpeaker}`)
+            this.$globalConf.speakerPermission = res.speakerPermission
+            this.$globalConf.downloadPermission = res.downloadPermission
+            this.$globalConf.owner = res.owner
+            this.$globalConf.user = {
+              ...this.$globalConf.user,
+              ...res,
+            }
+            console.log(`speakerPermission:${res.speakerPermission}`)
             // 防止多个主讲屏，通知其他的主讲屏断连
-            if (this.$globalConf.isSpeaker) {
+            if (this.$globalConf.speakerPermission) {
               socketUtil.broadcast({
                 meetingId: this.$globalConf.meetingId,
                 msg: JSON.stringify({ event: 'speakerOnline' }),
@@ -437,44 +457,69 @@ export default {
       }
     },
     startListener() {
-      getSocket().on(socketEvent.getComponent, ({ components }) => {
-        this.$nextTick(
-          () => {
-            this.initComponents(components)
-          },
-        )
-      })
-      getSocket().on(socketEvent.getMeet, (res) => {
-        this.$nextTick(
-          () => this.handleGetMeet(res),
-        )
-      })
-      getSocket().on(socketEvent.updateComponent, this.handleUpdateComponent)
-      getSocket().on(socketEvent.clearBoard, this.handleClearBoard)
-      getSocket().on(socketEvent.addComponent, this.handleAddComponent)
-      getSocket().on(socketEvent.updateComponentState, this.handleUpdateComponentState)
-      getSocket().on(socketEvent.broadcast, ({ msg }) => {
-        let { event } = JSON.parse(msg)
-        switch (event) {
-        case 'refresh':
-          if (!this.$globalConf.isSpeaker) this.onRefresh()
-          break
-        case 'speakerOnline':
-          if (this.$globalConf.isSpeaker) destroySocket()
-          break
-        default:
-          break
-        }
-      })
+      let socket = getSocket()
+      socket
+        .on(socketEvent.getComponent, ({ components }) => {
+          this.$nextTick(
+            () => {
+              this.initComponents(components)
+            },
+          )
+        })
+        .on(socketEvent.getMeet, (res) => {
+          this.$nextTick(
+            () => this.handleGetMeet(res),
+          )
+        })
+        .on(socketEvent.updateComponent, this.handleUpdateComponent)
+        .on(socketEvent.clearBoard, this.handleClearBoard)
+        .on(socketEvent.addComponent, this.handleAddComponent)
+        .on(socketEvent.updateComponentState, this.handleUpdateComponentState)
+        .on(socketEvent.broadcast, ({ msg }) => {
+          let { event } = JSON.parse(msg)
+          switch (event) {
+          case 'refresh':
+            if (!this.$globalConf.speakerPermission) this.onRefresh()
+            break
+          case 'speakerOnline':
+            if (this.$globalConf.speakerPermission) destroySocket()
+            break
+          case 'updateDocumentList':
+            this.$refs['tool-bar'].getDocumentList()
+            break
+          default:
+            break
+          }
+        })
+        .on(socketEvent.deleteDocument, this.handleDeleteDocument)
     },
     stopListener() {
       let socket = getSocket()
       let events = [socketEvent.getComponent, socketEvent.getMeet,
         socketEvent.updateComponent, socketEvent.clearBoard,
-        socketEvent.addComponent, socketEvent.updateComponentState, socketEvent.broadcast]
+        socketEvent.addComponent, socketEvent.updateComponentState, socketEvent.broadcast, socketEvent.deleteDocument]
       events.map((event) => {
         if (socket) socket.off(event)
       })
+    },
+    // 删除文档封面组件
+    handleDeleteDocument({ componentId }) {
+      if (componentId && this.$globalConf.mode === 'board') {
+        const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
+        let node = bgLayer.find(`#${componentId}`)[0]
+        if (node) {
+          node.destroy()
+          bgLayer.draw()
+          this.$refs['tool-bar'].getDocumentList()
+          // 通知副屏更新文档列表
+          socketUtil.broadcast({
+            meetingId: this.$globalConf.meetingId,
+            msg: JSON.stringify({
+              event: 'updateDocumentList',
+            }),
+          })
+        }
+      }
     },
     handleGetMeet(res) {
       this.$globalConf.mode = 'board'
@@ -500,7 +545,7 @@ export default {
           }
           socketUtil.getComponent(params)
         } else {
-          if (!this.$globalConf.isSpeaker) {
+          if (!this.$globalConf.speakerPermission) {
             return
           }
           // 没有就默认首个板
@@ -631,7 +676,7 @@ export default {
         layer.batchDraw()
       })
       const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
-      if (this.$globalConf.isSpeaker) {
+      if (this.$globalConf.speakerPermission) {
         // 没有文档封面，（这个判断有时会导致异常，等文档列表搞定之后，换成文档接口，内存中做判断）
         if (!bgLayer.findOne('Image')) {
           syncArea.updateBaseWidth('')
@@ -709,6 +754,8 @@ export default {
 
     this.$globalConf.mode = ''
     destroyTool()
+    this.$globalConf.board.clearCache()
+    this.$globalConf.board.destroy()
 
     this.stopListener()
     Vue.eventBus.$off('setTbMask')

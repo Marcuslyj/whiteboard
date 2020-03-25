@@ -8,38 +8,37 @@ Description
   <transition name="fade">
     <div class="drawer" v-show="visible">
       <div class="wrapper" v-click-outside="handleClickOutside">
-        <section class="leage-one">
-          <h3>会议成员</h3>
+        <h3>会议成员</h3>
+        <ul class="leage-one">
+          <li
+            v-for="user in users"
+            :key="user.userId"
+            @mouseenter="handleMouseenter($event, user)"
+            @mouseleave="handleMouseleave()"
+            :class="{'active':cur_user.userId===user.userId}"
+          >
+            <span class="icon"
+              ><i :class="['iconfont', getRoleIcon(user)]"></i
+            ></span>
+            <span class="name">{{ user.realName }}</span>
+            <span class="remark">{{user.speakerPermission ? "（主讲人）" : (user.userId===$globalConf.user.userId? '（我）':'')}}</span>
+          </li>
+        </ul>
+        <section ref="subMenu" class="leage-two" v-show="cur_user.userId" @mouseenter="inSubMenu=true"  @mouseleave="mouseleaveFromSub">
           <ul>
-            <li v-for="(user, index) in userList" :key="index">
-              <span class="icon"
-                ><i :class="['iconfont', getRole(user)]"></i
-              ></span>
-              <span class="name">{{ user.name }}</span>
-              <span class="remark">{{
-                user.name === curPerson.name
-                  ? "（演示者）"
-                  : user.role === "admin"
-                  ? "（我）"
-                  : ""
-              }}</span>
-              <section class="leage-two">
-                <ul ref="admin" v-if="user.role === 'admin'">
-                  <li @click="closeMeeting">关闭会议</li>
-                  <li v-show="!user.isSpeaker">设为演示者</li>
-                </ul>
-                <ul ref="user" v-if="user.role === 'user'">
-                  <li>
-                    {{ user.isSpeaker ? "取消演示者" : "设为演示者" }}
-                  </li>
-                  <li>{{ user.hasDownload ? "禁止下载" : "开放下载" }}</li>
-                  <li>踢出会议</li>
-                </ul>
-                <ul ref="vistor" v-show="user.role === 'vistor'">
-                  <li>踢出会议</li>
-                </ul>
-              </section>
-            </li>
+            <template v-if="$globalConf.user.owner">
+              <template v-if="!cur_user.vistor">
+                <li v-if="!cur_user.speakerPermission">设为演示者</li>
+                <li v-else-if="!cur_user.owner">取消演示者</li>
+              </template>
+
+              <template v-if="!cur_user.owner">
+                <li v-if="!cur_user.downloadPermission">开放下载</li>
+                <li v-else>禁止下载</li>
+              </template>
+            </template>
+            <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li>
+            <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !cur_user.speakerPermission">踢出会议</li>
           </ul>
         </section>
       </div>
@@ -50,6 +49,9 @@ Description
 
 <script>
 import { directive as clickOutside } from 'v-click-outside-x'
+import { getSocket, getUsers } from '@common/socketUtil'
+import { socketEvent } from '@common/common'
+import Vue from 'vue'
 
 export default {
   model: {
@@ -61,143 +63,90 @@ export default {
       type: Boolean,
       default: false,
     },
-    userList: {
-      type: Array,
-      default: () => [
-        {
-          name: '房管',
-          role: 'admin',
-          isSpeaker: false,
-        },
-        {
-          name: 'aaaa',
-          role: 'user',
-          isSpeaker: true,
-          hasDownload: false,
-        },
-        {
-          name: 'bbb',
-          role: 'vistor',
-        },
-      ],
-    },
   },
   directives: { clickOutside },
   data() {
     return {
       showLeageTwo: false,
-      curPerson: this.userList[0],
+      // curPerson: this.users[0],
+      connect_callback: null,
+      users: [],
+      cur_user: {},
+      inSubMenu: false,
+      timeout: null,
     }
   },
+  created() {
+    this.$nextTick(() => {
+      this.init()
+    })
+  },
+
+  beforeDestroy() {
+    this.listenStop()
+  },
   methods: {
-    closeMeeting() {},
-    getRole(user) {
-      let cls = ''
-      switch (user.role) {
-      case 'admin':
-        cls = 'icon-admin'
-        break
-      case 'user':
-        cls = 'icon-user'
-        break
-      case 'vistor':
-        cls = 'icon-vistor'
-        break
-      default:
-        break
+    // 初始化工作
+    init() {
+      this.listenStart()
+      // 获取用户列表
+      getUsers()
+    },
+    listenStart() {
+      let socket = getSocket()
+      if (!socket) return
+      socket.on(socketEvent.getUsers, (users) => {
+        if (users && users.length) {
+          this.users = users
+          console.log(users)
+          console.log(this.$globalConf.user)
+        }
+      })
+    },
+    listenStop() {
+      if (this.connect_callback) {
+        Vue.eventBus.$off('socket_connect', this.connect_callback)
       }
-      return cls
+    },
+    closeMeeting() {},
+    getRoleIcon(user) {
+      let icons = {
+        owner: 'icon-admin',
+        user: 'icon-user',
+        visitor: 'icon-vistor',
+      }
+      let key = user.owner ? 'owner' : 'user'
+      return icons[key]
     },
     handleClickOutside() {
+      this.inSubMenu = false
+      this.timeout = null
+      this.cur_user = {}
       this.$emit('showVisible', false)
+    },
+    handleMouseenter($event, user) {
+      const target = $event.currentTarget
+      const { scrollTop } = document.querySelector('.leage-one')
+      this.$refs.subMenu.style.left = `${target.offsetLeft}px`
+      this.$refs.subMenu.style.top = `${Math.max(target.offsetTop - scrollTop + 40, 40)}px`
+      this.cur_user = user
+      clearTimeout(this.timeout)
+    },
+    handleMouseleave() {
+      this.timeout = setTimeout(() => {
+        if (!this.inSubMenu) {
+          this.cur_user = {}
+        }
+      }, 200)
+    },
+    mouseleaveFromSub() {
+      console.log(true)
+      this.inSubMenu = false
+      this.cur_user = {}
     },
   },
 }
 </script>
 
-<style lang="scss" scoped>
-.drawer {
-  z-index: 99;
-  position: fixed;
-  right: 0;
-  top: 15vh;
-  height: 70vh;
-  width: 300px;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
-  border: 1px solid #e8eaec;
-  background: #fff;
-  .wrapper {
-    position: relative;
-    z-index: 2;
-    .iconfont {
-      font-size: 18px;
-    }
-    h3 {
-      height: 40px;
-      line-height: 40px;
-      border-bottom: 1px solid #eee;
-      padding-left: 10px;
-    }
-    li {
-      padding: 8px 20px;
-      font-size: 14px;
-      cursor: pointer;
-      .name {
-        margin-left: 10px;
-      }
-      &:hover {
-        background: #2d8cf0;
-      }
-    }
-    .leage-one {
-      li {
-        position: relative;
-        &:hover {
-          .icon,.name,.remark{
-            color: #fff;
-          }
-        }
-        .leage-two {
-          position: absolute;
-          right: 100%;
-          top: 0;
-          display: none;
-          width: fit-content;
-          border: 1px solid #e8eaec;
-          box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
-          li:hover {
-              color: #fff;
-           }
-        }
-         &:hover {
-            .leage-two {
-              display: block;
-            }
-          }
-      }
-    }
-  }
-  .mask {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    opacity: 0;
-    z-index: 1;
-  }
-}
-.fade-enter,
-.fade-leave-to {
-  width: 0;
-  opacity: 0;
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s;
-}
-.fade-enter-to,
-.fade-leave {
-  opacity: 1;
-}
-</style>
+
+<style lang="scss" src="./SideDrawer.scss" scoped></style>

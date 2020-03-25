@@ -30,7 +30,9 @@
         position: relative;
         // overflow:hidden;
         height:3vw;
-        padding:0 0.5vw;
+        .inner{
+          padding:0 0.5vw;
+        }
         .iconfont{
           font-size:2vw;
         }
@@ -207,7 +209,7 @@
               }
               .btns{
                 display:inline-block;
-                width:25px;
+                width:50px;
               }
             }
           }

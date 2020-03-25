@@ -12,6 +12,12 @@ let currentLayer
 let startPoi
 let mode
 let currentTarget
+
+const global = typeof global !== 'undefined' ? global
+  : typeof window !== 'undefined' ? window : {}
+
+const TOUCH_DEVICE = 'ontouchstart' in global
+
 function create(params) {
   const { stage, layer } = params
   currentStage = stage
@@ -160,8 +166,9 @@ function add(newPoi) {
     fill: config.text.color,
     x: newPoi.x,
     y: newPoi.y + 5,
-    hitStrokeWidth: 40,
-    dash: [10, 5],
+    width: editorDom.clientWidth,
+    hitStrokeWidth: TOUCH_DEVICE ? 10 : 'auto',
+    // dash: [10, 5],
     keepRatio: true,
   })
   currentLayer.add(shape)
@@ -187,7 +194,6 @@ function update() {
   })
   currentTarget.visible(true)
   currentLayer.draw()
-  currentTarget.cache({ drawBorder: true })
   editorDom.value = ''
   // 检测组件是否发生了改变，是否需要保存到后台和缓存
   const newAttrs = currentTarget.getAttrs()

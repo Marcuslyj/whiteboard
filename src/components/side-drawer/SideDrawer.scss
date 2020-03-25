@@ -1,0 +1,81 @@
+.drawer {
+  z-index: 99;
+  position: fixed;
+  right: 0;
+  top: 15vh;
+  height: 50vh;
+  width: 300px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e8eaec;
+  background: #fff;
+  .wrapper {
+    position: relative;
+    height: 100%;
+    z-index: 2;
+    .iconfont {
+      font-size: 18px;
+    }
+    h3 {
+      height: 40px;
+      line-height: 40px;
+      border-bottom: 1px solid #eee;
+      padding-left: 10px;
+    }
+    li {
+      padding: 8px 20px;
+      font-size: 14px;
+      height:40px;
+      cursor: pointer;
+      .name {
+        margin-left: 10px;
+      }
+      &:hover,&.active{
+        background: #2d8cf0;
+        color:#fff;
+      }
+    }
+    .leage-one {
+      height: calc(100% - 40px);
+      overflow-y: auto;
+      position: relative;
+    }
+    .leage-two {
+      position: absolute;
+      width: fit-content;
+      border: 1px solid #e8eaec;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+      background: #ffffff;
+      transform:translate(-100%);
+      li:hover {
+        color: #fff;
+      }
+      &:hover {
+        .leage-two {
+          display: block;
+        }
+      }
+    }
+  }
+  .mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0;
+    z-index: 1;
+  }
+}
+.fade-enter,
+.fade-leave-to {
+  width: 0;
+  opacity: 0;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s;
+}
+.fade-enter-to,
+.fade-leave {
+  opacity: 1;
+}

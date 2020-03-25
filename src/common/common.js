@@ -46,6 +46,14 @@ export const socketEvent = {
    * 获取未同步批注页页码
    */
   getDocumentPages: 'get-document-pages',
+  /**
+   * 删除文档
+   */
+  deleteDocument: 'delete-document',
+  /**
+   * 获取用户列表
+   */
+  getUsers: 'get-sessions',
 }
 
 /**

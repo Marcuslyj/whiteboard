@@ -21,17 +21,19 @@ function create(params) {
       centeredScaling: true,
       resizeEnabled: false,
       rotateEnabled: false,
-      padding: 40,
+      padding: 20,
       borderStrokeWidth: 2,
     })
 
     const selfRect = evt.target.getSelfRect()
-    label = new Konva.Label({
-      position: {
-        x: selfRect.x + selfRect.width + 40 - 8,
-        y: selfRect.y - 40 - 15,
-      },
-    })
+    console.log(selfRect.width)
+    const props = {
+      x: tr.getX() + tr.getWidth() + 40,
+      y: tr.getY() - 20,
+      rotation: tr.getRotation(),
+    }
+    console.log(props)
+    label = new Konva.Label(props)
 
     // 增加一个删除按钮
     label.add(new Konva.Tag({
