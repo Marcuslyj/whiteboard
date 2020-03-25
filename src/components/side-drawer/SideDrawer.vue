@@ -8,38 +8,41 @@ Description
   <transition name="fade">
     <div class="drawer" v-show="visible">
       <div class="wrapper" v-click-outside="handleClickOutside">
-        <section class="leage-one">
-          <h3>会议成员</h3>
-          <ul>
-            <li v-for="(user, index) in userList" :key="index">
-              <span class="icon"
-                ><i :class="['iconfont', getRole(user)]"></i
-              ></span>
-              <span class="name">{{ user.name }}</span>
-              <span class="remark">{{
-                user.name === curPerson.name
-                  ? "（演示者）"
-                  : user.role === "admin"
-                  ? "（我）"
-                  : ""
-              }}</span>
-              <section class="leage-two">
-                <ul ref="admin" v-if="user.role === 'admin'">
-                  <li @click="closeMeeting">关闭会议</li>
-                  <li v-show="!user.isSpeaker">设为演示者</li>
-                </ul>
-                <ul ref="user" v-if="user.role === 'user'">
-                  <li>
-                    {{ user.isSpeaker ? "取消演示者" : "设为演示者" }}
-                  </li>
-                  <li>{{ user.hasDownload ? "禁止下载" : "开放下载" }}</li>
-                  <li>踢出会议</li>
-                </ul>
-                <ul ref="vistor" v-show="user.role === 'vistor'">
-                  <li>踢出会议</li>
-                </ul>
-              </section>
+        <h3>会议成员</h3>
+        <ul class="leage-one">
+          <li
+            v-for="(user, index) in userList"
+            :key="index"
+            @mouseover="handleMouseover($event, user)"
+            @mouseout="handleMouseleave()"
+          >
+            <span class="icon"
+              ><i :class="['iconfont', getRole(user)]"></i
+            ></span>
+            <span class="name">{{ user.name }}</span>
+            <span class="remark">{{
+              user.name === curPerson.name
+                ? "（演示者）"
+                : user.role === "admin"
+                ? "（我）"
+                : ""
+            }}</span>
+          </li>
+        </ul>
+        <section ref="subMenu" class="leage-two" v-show="cur_user.role" @mouseover="inSubMenu=true" @mouseout.self.stop="mouseoutFromSub">
+          <ul ref="admin" v-if="cur_user.role === 'admin'" >
+            <li @click="closeMeeting">关闭会议</li>
+            <li v-show="!cur_user.isSpeaker">设为演示者</li>
+          </ul>
+          <ul ref="user" v-if="cur_user.role === 'user'">
+            <li>
+              {{ cur_user.isSpeaker ? "取消演示者" : "设为演示者" }}
             </li>
+            <li>{{ cur_user.hasDownload ? "禁止下载" : "开放下载" }}</li>
+            <li>踢出会议</li>
+          </ul>
+          <ul ref="vistor" v-show="cur_user.role === 'vistor'">
+            <li>踢出会议</li>
           </ul>
         </section>
       </div>
@@ -87,6 +90,9 @@ export default {
     return {
       showLeageTwo: false,
       curPerson: this.userList[0],
+      cur_user: {},
+      inSubMenu: false,
+      timeout: null,
     }
   },
   methods: {
@@ -111,6 +117,26 @@ export default {
     handleClickOutside() {
       this.$emit('showVisible', false)
     },
+    handleMouseover($event, user) {
+      const target = $event.currentTarget
+      const { scrollTop } = document.querySelector('.leage-one')
+      this.$refs.subMenu.style.left = `${target.offsetLeft}px`
+      this.$refs.subMenu.style.top = `${Math.max(target.offsetTop - scrollTop + 40, 40)}px`
+      this.cur_user = user
+      clearTimeout(this.timeout)
+    },
+    handleMouseleave() {
+      this.timeout = setTimeout(() => {
+        if (!this.inSubMenu) {
+          this.cur_user = {}
+        }
+      }, 100)
+    },
+    mouseoutFromSub() {
+      console.log(true)
+      this.inSubMenu = false
+      this.cur_user = {}
+    },
   },
 }
 </script>
@@ -121,13 +147,14 @@ export default {
   position: fixed;
   right: 0;
   top: 15vh;
-  height: 70vh;
+  height: 50vh;
   width: 300px;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
   border: 1px solid #e8eaec;
   background: #fff;
   .wrapper {
     position: relative;
+    height: 100%;
     z-index: 2;
     .iconfont {
       font-size: 18px;
@@ -150,30 +177,34 @@ export default {
       }
     }
     .leage-one {
+      height: calc(100% - 40px);
+      overflow-y: auto;
+      position: relative;
       li {
-        position: relative;
         &:hover {
-          .icon,.name,.remark{
+          .icon,
+          .name,
+          .remark {
             color: #fff;
           }
         }
+      }
+    }
+    .leage-two {
+      position: absolute;
+
+      width: fit-content;
+      border: 1px solid #e8eaec;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+      background: #ffffff;
+      transform:translate(-100%);
+      li:hover {
+        color: #fff;
+      }
+      &:hover {
         .leage-two {
-          position: absolute;
-          right: 100%;
-          top: 0;
-          display: none;
-          width: fit-content;
-          border: 1px solid #e8eaec;
-          box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
-          li:hover {
-              color: #fff;
-           }
+          display: block;
         }
-         &:hover {
-            .leage-two {
-              display: block;
-            }
-          }
       }
     }
   }

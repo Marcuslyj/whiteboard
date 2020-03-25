@@ -192,7 +192,7 @@ export function formatCoverUrl(url) {
  * @param {*} param1
  */
 export async function addCover(pdf, {
-  documentPath, documentId,
+  documentPath, documentId, componentId,
 }) {
   let stage = getStage()
   const page = await pdf.getPage(1)
@@ -237,6 +237,7 @@ export async function addCover(pdf, {
     })
     if (result && Number(result.ret.retCode) === 0) {
       let options = {
+        id: componentId,
         documentId,
         documentPath,
         x,
