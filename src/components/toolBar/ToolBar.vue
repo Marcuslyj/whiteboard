@@ -7,7 +7,7 @@ Description
 <template>
   <div class="toolbar" @mousedown.stop="" @touchstart.stop="">
     <!-- 工具条能否起作用的遮罩 -->
-    <div class="mask" v-show="!$globalConf.speakerPermission"></div>
+    <!-- <div class="mask" v-show="!$globalConf.speakerPermission"></div> -->
     <!-- <div
       class="left part"
       v-if="isHome"
