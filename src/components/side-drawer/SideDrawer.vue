@@ -21,14 +21,11 @@ Description
               ><i :class="['iconfont', getRoleIcon(user)]"></i
             ></span>
             <span class="name">{{ user.realName }}</span>
-            <!-- <span class="remark">{{
-              user.userId === curPerson.userId ? "（演示者）" : (user.owner ? "（我）" : "")
-            }}</span> -->
+            <span class="remark">{{user.speakerPermission ? "（主讲人）" : (user.userId===$globalConf.user.userId? '（我）':'')}}</span>
           </li>
         </ul>
         <section ref="subMenu" class="leage-two" v-show="cur_user.userId" @mouseenter="inSubMenu=true"  @mouseleave="mouseleaveFromSub">
           <ul>
-            <li v-if="$globalConf.user.owner" @click="closeMeeting">关闭会议</li>
             <template v-if="$globalConf.user.owner">
               <template v-if="!cur_user.vistor">
                 <li v-if="!cur_user.speakerPermission">设为演示者</li>
@@ -40,6 +37,7 @@ Description
                 <li v-else>禁止下载</li>
               </template>
             </template>
+            <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li>
             <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !cur_user.speakerPermission">踢出会议</li>
           </ul>
         </section>
