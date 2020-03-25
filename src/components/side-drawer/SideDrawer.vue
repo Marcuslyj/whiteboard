@@ -13,8 +13,9 @@ Description
           <li
             v-for="(user, index) in userList"
             :key="index"
-            @mouseover="handleMouseover($event, user)"
-            @mouseout="handleMouseleave()"
+            @mouseenter="handleMouseenter($event, user)"
+            @mouseleave="handleMouseleave()"
+            :class="{'active':cur_user.name===user.name}"
           >
             <span class="icon"
               ><i :class="['iconfont', getRole(user)]"></i
@@ -29,7 +30,7 @@ Description
             }}</span>
           </li>
         </ul>
-        <section ref="subMenu" class="leage-two" v-show="cur_user.role" @mouseover="inSubMenu=true" @mouseout.self.stop="mouseoutFromSub">
+        <section ref="subMenu" class="leage-two" v-show="cur_user.role" @mouseenter="inSubMenu=true"  @mouseleave="mouseleaveFromSub">
           <ul ref="admin" v-if="cur_user.role === 'admin'" >
             <li @click="closeMeeting">关闭会议</li>
             <li v-show="!cur_user.isSpeaker">设为演示者</li>
@@ -41,7 +42,7 @@ Description
             <li>{{ cur_user.hasDownload ? "禁止下载" : "开放下载" }}</li>
             <li>踢出会议</li>
           </ul>
-          <ul ref="vistor" v-show="cur_user.role === 'vistor'">
+          <ul ref="vistor" v-if="cur_user.role === 'vistor'">
             <li>踢出会议</li>
           </ul>
         </section>
@@ -115,9 +116,12 @@ export default {
       return cls
     },
     handleClickOutside() {
+      this.inSubMenu = false
+      this.timeout = null
+      this.cur_user = {}
       this.$emit('showVisible', false)
     },
-    handleMouseover($event, user) {
+    handleMouseenter($event, user) {
       const target = $event.currentTarget
       const { scrollTop } = document.querySelector('.leage-one')
       this.$refs.subMenu.style.left = `${target.offsetLeft}px`
@@ -130,9 +134,9 @@ export default {
         if (!this.inSubMenu) {
           this.cur_user = {}
         }
-      }, 100)
+      }, 200)
     },
-    mouseoutFromSub() {
+    mouseleaveFromSub() {
       console.log(true)
       this.inSubMenu = false
       this.cur_user = {}
@@ -168,31 +172,23 @@ export default {
     li {
       padding: 8px 20px;
       font-size: 14px;
+      height:40px;
       cursor: pointer;
       .name {
         margin-left: 10px;
       }
-      &:hover {
+      &:hover,&.active{
         background: #2d8cf0;
+        color:#fff;
       }
     }
     .leage-one {
       height: calc(100% - 40px);
       overflow-y: auto;
       position: relative;
-      li {
-        &:hover {
-          .icon,
-          .name,
-          .remark {
-            color: #fff;
-          }
-        }
-      }
     }
     .leage-two {
       position: absolute;
-
       width: fit-content;
       border: 1px solid #e8eaec;
       box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
