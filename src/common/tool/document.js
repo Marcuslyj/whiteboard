@@ -110,7 +110,7 @@ export function init(documentId, documentPath) {
       if (stage) {
         stage.setAttrs({
           // 可拖动：是主讲且工具是'pan'
-          draggable: config.activeTool === toolCanDrag && config.isSpeaker,
+          draggable: config.activeTool === toolCanDrag && config.speakerPermission,
         })
       }
     },
@@ -259,7 +259,7 @@ export async function addCoverImage(options, broadcast = false) {
   options.width = Math.floor(config.baseWidth / 10)
   delete options.height
   // 是否可拖动
-  options.draggable = !!config.isSpeaker
+  options.draggable = !!config.speakerPermission
   let img = new Image()
   img.src = await getURLBase64(formatCoverUrl(options.imgUrl))
   await new Promise((resolve) => {
@@ -271,7 +271,7 @@ export async function addCoverImage(options, broadcast = false) {
   options.image = img
 
   let konvaImage = image.create(layer, options)
-  if (config.isSpeaker) {
+  if (config.speakerPermission) {
   // 事件
     // konvaImage.on('mouseover', ({ target }) => {
     //   target.contrast(20)
@@ -597,7 +597,7 @@ export function enableScroll(enable = true) {
     stage.setAttrs({
       // select tool fired，stage set draggable true
       // draggable: this.toolConfig.currentTool === 'select',
-      draggable: toolCanDrag === config.activeTool && config.isSpeaker,
+      draggable: toolCanDrag === config.activeTool && config.speakerPermission,
       dragBoundFunc(pos) {
         return {
           x: this.absolutePosition().x,
@@ -606,7 +606,7 @@ export function enableScroll(enable = true) {
       },
     })
 
-    if (config.isSpeaker) {
+    if (config.speakerPermission) {
     // 滚轮滚动
       stage.on('wheel dragmove', (ev) => {
         clearTimeout(timerScroll)

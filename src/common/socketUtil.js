@@ -143,6 +143,17 @@ function reportDocumentAction(params) {
   socket.emit(socketEvent.reportDocumentAction, params)
 }
 
+/**
+ * 获取用户列表
+ */
+export function getUsers() {
+  let { meetingId } = config
+  let params = {
+    meetingId,
+  }
+  socket.emit(socketEvent.getUsers, params)
+}
+
 export default {
   getSocket,
   initSocket,
