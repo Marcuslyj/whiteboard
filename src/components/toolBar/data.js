@@ -44,10 +44,10 @@ export default {
       name: 'eraser',
       icon: 'icon-eraser',
     },
-    {
-      name: 'deleteGraphic',
-      icon: 'icon-qingkong',
-    },
+    // {
+    //   name: 'deleteGraphic',
+    //   icon: 'icon-qingkong',
+    // },
     {
       name: 'clearBoard',
       icon: 'icon-clear',

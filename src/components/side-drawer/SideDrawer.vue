@@ -8,39 +8,39 @@ Description
   <transition name="fade">
     <div class="drawer" v-show="visible">
       <div class="wrapper" v-click-outside="handleClickOutside">
-        <section class="leage-one">
-          <h3>会议成员</h3>
+        <h3>会议成员</h3>
+        <ul class="leage-one">
+          <li
+            v-for="user in users"
+            :key="user.userId"
+            @mouseenter="handleMouseenter($event, user)"
+            @mouseleave="handleMouseleave()"
+            :class="{'active':cur_user.userId===user.userId}"
+          >
+            <span class="icon"
+              ><i :class="['iconfont', getRoleIcon(user)]"></i
+            ></span>
+            <span class="name">{{ user.realName }}</span>
+            <!-- <span class="remark">{{
+              user.userId === curPerson.userId ? "（演示者）" : (user.owner ? "（我）" : "")
+            }}</span> -->
+          </li>
+        </ul>
+        <section ref="subMenu" class="leage-two" v-show="cur_user.userId" @mouseenter="inSubMenu=true"  @mouseleave="mouseleaveFromSub">
           <ul>
-            <li v-for="(user, index) in users" :key="index">
-              <span class="icon"
-                ><i :class="['iconfont', getRoleIcon(user)]"></i
-              ></span>
-              <span class="name">{{ user.realName }}</span>
-              <!-- <span class="remark">{{
-                user.userId === curPerson.name
-                  ? "（演示者）"
-                  : user.role === "admin"
-                  ? "（我）"
-                  : ""
-              }}</span> -->
-              <section class="leage-two">
-                <ul>
-                  <li v-if="$globalConf.user.owner" @click="closeMeeting">关闭会议</li>
-                  <template v-if="$globalConf.user.owner">
-                    <template v-if="!user.vistor">
-                      <li v-if="!user.speakerPermission">设为演示者</li>
-                      <li v-else-if="!user.owner">取消演示者</li>
-                    </template>
+            <li v-if="$globalConf.user.owner" @click="closeMeeting">关闭会议</li>
+            <template v-if="$globalConf.user.owner">
+              <template v-if="!cur_user.vistor">
+                <li v-if="!cur_user.speakerPermission">设为演示者</li>
+                <li v-else-if="!cur_user.owner">取消演示者</li>
+              </template>
 
-                    <template v-if="!user.owner">
-                      <li v-if="!user.downloadPermission">开放下载</li>
-                      <li v-else>禁止下载</li>
-                    </template>
-                  </template>
-                  <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !user.speakerPermission">踢出会议</li>
-                </ul>
-              </section>
-            </li>
+              <template v-if="!cur_user.owner">
+                <li v-if="!cur_user.downloadPermission">开放下载</li>
+                <li v-else>禁止下载</li>
+              </template>
+            </template>
+            <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !cur_user.speakerPermission">踢出会议</li>
           </ul>
         </section>
       </div>
@@ -73,6 +73,9 @@ export default {
       // curPerson: this.users[0],
       connect_callback: null,
       users: [],
+      cur_user: {},
+      inSubMenu: false,
+      timeout: null,
     }
   },
   created() {
@@ -118,7 +121,30 @@ export default {
       return icons[key]
     },
     handleClickOutside() {
+      this.inSubMenu = false
+      this.timeout = null
+      this.cur_user = {}
       this.$emit('showVisible', false)
+    },
+    handleMouseenter($event, user) {
+      const target = $event.currentTarget
+      const { scrollTop } = document.querySelector('.leage-one')
+      this.$refs.subMenu.style.left = `${target.offsetLeft}px`
+      this.$refs.subMenu.style.top = `${Math.max(target.offsetTop - scrollTop + 40, 40)}px`
+      this.cur_user = user
+      clearTimeout(this.timeout)
+    },
+    handleMouseleave() {
+      this.timeout = setTimeout(() => {
+        if (!this.inSubMenu) {
+          this.cur_user = {}
+        }
+      }, 200)
+    },
+    mouseleaveFromSub() {
+      console.log(true)
+      this.inSubMenu = false
+      this.cur_user = {}
     },
   },
 }
