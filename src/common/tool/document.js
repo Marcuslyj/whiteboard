@@ -311,7 +311,7 @@ export function openDocument({ documentId, documentPath }) {
   // 清空缓存操作队列
   cManager.clearCache()
   // 激活工具重新配置成钢笔
-  config.activeTool = 'pen'
+  config.activeTool = 'pan'
   // 同步动作
   // 1.设置全局信息
   let syncAction = {
