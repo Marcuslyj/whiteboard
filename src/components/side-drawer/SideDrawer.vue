@@ -148,10 +148,8 @@ export default {
                     this.$globalConf.speakerPermission = this.$globalConf.user.speakerPermission = false
                   }
                 } else if (this.$globalConf.owner) {
-                  this.$globalConf.speakerPermission = this.$globalConf.user.speakerPermission = true
-                  this.toggleRouter = setTimeout(() => {
-                    this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-                  }, 300)
+                  // 授权房主自己
+                  this.auth(this.$globalConf.user, { k: 'speakerPermission', v: true })
                 }
               }
             }
