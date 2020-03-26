@@ -180,8 +180,8 @@ Description
                      <div class="file-item" v-for="(file,index) in files" :key="index" @click.stop.prevent="openFile(file)">
                        <span class="title">{{file.documentName}}</span>
                        <span class="btns">
-                          <Icon type="md-download" @click.stop.prevent="downloadFile(file)"/>
-                          <Icon type="ios-trash" @click.stop.prevent="deleteFile(file)"/>
+                          <Icon type="md-download" @click.stop.prevent="downloadFile(file)" v-if="$globalConf.downloadPermission"/>
+                          <Icon type="ios-trash" @click.stop.prevent="deleteFile(file)" v-if="$globalConf.owner"/>
                        </span>
                      </div>
                   </div>
@@ -465,6 +465,7 @@ export default {
     },
     // 打开文档
     openFile({ documentId, url: documentPath }) {
+      if (!this.$globalConf.speakerPermission) return
       openDocument({
         documentId,
         documentPath,
