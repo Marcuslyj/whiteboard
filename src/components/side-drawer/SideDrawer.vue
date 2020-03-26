@@ -38,7 +38,7 @@ Description
               </template>
             </template>
             <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li>
-            <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !cur_user.speakerPermission">踢出会议</li>
+            <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !cur_user.speakerPermission" @click="kick(cur_user)">踢出会议</li>
           </ul>
         </section>
       </div>
@@ -51,7 +51,8 @@ Description
 import { directive as clickOutside } from 'v-click-outside-x'
 import { getSocket, getUsers } from '@common/socketUtil'
 import { socketEvent } from '@common/common'
-import Vue from 'vue'
+
+let eventsToDestroy
 
 export default {
   model: {
@@ -69,7 +70,6 @@ export default {
     return {
       showLeageTwo: false,
       // curPerson: this.users[0],
-      connect_callback: null,
       users: [],
       cur_user: {},
       inSubMenu: false,
@@ -78,12 +78,14 @@ export default {
   },
   created() {
     this.$nextTick(() => {
+      eventsToDestroy = []
       this.init()
     })
   },
 
   beforeDestroy() {
     this.listenStop()
+    eventsToDestroy = null
   },
   methods: {
     // 初始化工作
@@ -93,20 +95,40 @@ export default {
       getUsers()
     },
     listenStart() {
-      let socket = getSocket()
-      if (!socket) return
-      socket.on(socketEvent.getUsers, (users) => {
+      this.socketOn(socketEvent.getUsers, (users) => {
         if (users && users.length) {
           this.users = users
-          console.log(users)
-          console.log(this.$globalConf.user)
+        }
+      })
+      // 有用户上下线，更新用户列表
+      this.socketOn(socketEvent.sessionAction, (user) => {
+        if (user.onlineState) {
+          let exist = this.users.filter((u) => u.userId === user.userId)
+          if (!exist.length) {
+            this.users.push(user)
+          } else {
+            // 防止session不同一
+            exist.sessionId = user.sessionId
+          }
+        } else {
+          for (let i = 0; i < this.users.length; i++) {
+            if (this.users[i].sessionId === user.sessionId) {
+              this.users.splice(i, 1)
+              i--
+            }
+          }
         }
       })
     },
+    socketOn(event, cb) {
+      let socket = getSocket()
+      socket.on(event, cb)
+      eventsToDestroy.push(event)
+    },
     listenStop() {
-      if (this.connect_callback) {
-        Vue.eventBus.$off('socket_connect', this.connect_callback)
-      }
+      let socket = getSocket()
+      if (!socket) return
+      eventsToDestroy && eventsToDestroy.map((event) => socket.off(event))
     },
     closeMeeting() {},
     getRoleIcon(user) {
@@ -142,6 +164,15 @@ export default {
     mouseleaveFromSub() {
       console.log(true)
       this.inSubMenu = false
+      this.cur_user = {}
+    },
+    // 踢人
+    kick(user) {
+      let { meetingId } = this.$globalConf
+      getSocket().emit(socketEvent.kickingSession, {
+        meetingId,
+        kickingSessionId: user.sessionId,
+      })
       this.cur_user = {}
     },
   },
