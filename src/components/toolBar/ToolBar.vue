@@ -503,9 +503,18 @@ export default {
           documentId: file.documentId,
         }),
         null,
-        ({ data }) => {
-          let url = fileService + data.url
-          fileLinkToStreamDownload(url, file.documentName, 'pdf')
+        ({ data, ret: { retCode, retMsg } }) => {
+          console.log(retCode, retMsg)
+          if (Number(retCode) === 0) {
+            let url = fileService + data.url
+            fileLinkToStreamDownload(url, file.documentName, 'pdf')
+          } else {
+            Vue.prototype.$Message.error({
+              content: retMsg,
+              duration: 10,
+              closable: true,
+            })
+          }
         },
       )
     },
