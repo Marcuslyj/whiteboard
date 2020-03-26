@@ -513,7 +513,7 @@ const AuthorityMeetingComponent = {
         people: [{ validator: validatorUsers }],
       },
       firstIn: true,
-      attend: 0,
+      attend: 1,
       label: (h) => h('div', [
         h('span', '待参加会议'),
         h('Badge', {
@@ -595,7 +595,7 @@ const AuthorityMeetingComponent = {
         {
           meetingType: type ? parseInt(type) : this.cates[this.active],
           queryParam: this.search.subject,
-          ...this.pagination.mine,
+          ...this.pagination[this.active],
         },
         (res) => {
           if (res.ret.retCode === '0') {
@@ -606,15 +606,15 @@ const AuthorityMeetingComponent = {
                 '',
               )}index.html#/whiteboard/${cur.meetingId}`
             }
-            this.total[this.active] = res.data.pagination.count
-            this.meeting[this.active] = res.data.meetings
-            if (this.cates[this.active] !== 2 && this.firstIn) {
+            if (this.firstIn) {
               this.firstIn = false
-              this.getMeeting(2);
-            } else if (this.cates[this.active] === 2 || parseInt(type) === 2) {
-              this.attend = res.data.pagination.count
+              this.getMeeting(2)
             }
-            if (!this.firstIn) {
+            if (type) {
+              this.attend = res.data.pagination.count
+            } else {
+              this.total[this.active] = res.data.pagination.count
+              this.meeting[this.active] = res.data.meetings
               this.$nextTick(() => {
                 this.setHeight()
               })
@@ -850,9 +850,13 @@ const AuthorityMeetingComponent = {
     } else {
       const active = this.getCookie('meeting-active-type')
       if (active) this.active = active
+    }
+  },
+  mounted() {
+    this.$nextTick(() => {
       this.getUsers()
       this.getMeeting()
-    }
+    })
   },
   destroyed() {
     this.delCookie('meeting-active-type')
