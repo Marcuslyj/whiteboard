@@ -28,13 +28,13 @@ Description
           <ul>
             <template v-if="$globalConf.user.owner">
               <template v-if="!cur_user.vistor">
-                <li v-if="!cur_user.speakerPermission">设为演示者</li>
-                <li v-else-if="!cur_user.owner">取消演示者</li>
+                <li v-if="!cur_user.speakerPermission" @click="auth(cur_user,{k:'speakerPermission',v:true})">设为演示者</li>
+                <li v-else-if="!cur_user.owner" @click="auth(cur_user,{k:'speakerPermission',v:false})">取消演示者</li>
               </template>
 
               <template v-if="!cur_user.owner">
-                <li v-if="!cur_user.downloadPermission">开放下载</li>
-                <li v-else>禁止下载</li>
+                <li v-if="!cur_user.downloadPermission" @click="auth(cur_user,{k:'downloadPermission',v:true})">开放下载</li>
+                <li v-else @click="auth(cur_user,{k:'downloadPermission',v:false})">禁止下载</li>
               </template>
             </template>
             <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li>
@@ -74,6 +74,7 @@ export default {
       cur_user: {},
       inSubMenu: false,
       timeout: null,
+      toggleRouter: null,
     }
   },
   created() {
@@ -119,6 +120,42 @@ export default {
           }
         }
       })
+      // 监听授权
+      this.socketOn(socketEvent.authPermission, (params) => {
+        // 被授权的是自己
+        let permissions = ['downloadPermission', 'speakerPermission']
+        if (params.permissionSessionId === this.$globalConf.user.sessionId) {
+          permissions.forEach((p) => {
+            if (p in params) {
+              this.$globalConf[p] = this.$globalConf.user[p] = params[p]
+              clearTimeout(this.toggleRouter)
+              if (p === 'speakerPermission' && params[p]) {
+                this.toggleRouter = setTimeout(() => {
+                  this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+                }, 300)
+              }
+            }
+          })
+        } else {
+          permissions.forEach((p) => {
+            if (p in params) {
+              let user = this.users.filter((u) => u.userId === params.permissionUserId)
+              if (user.length) user[0][p] = params[p]
+              if (p === 'speakerPermission') {
+                clearTimeout(this.toggleRouter)
+                if (params[p]) {
+                  if (this.$globalConf.speakerPermission) {
+                    this.$globalConf.speakerPermission = this.$globalConf.user.speakerPermission = false
+                  }
+                } else if (this.$globalConf.owner) {
+                  // 授权房主自己
+                  this.auth(this.$globalConf.user, { k: 'speakerPermission', v: true })
+                }
+              }
+            }
+          })
+        }
+      })
     },
     socketOn(event, cb) {
       let socket = getSocket()
@@ -147,12 +184,12 @@ export default {
       this.$emit('showVisible', false)
     },
     handleMouseenter($event, user) {
+      clearTimeout(this.timeout)
       const target = $event.currentTarget
       const { scrollTop } = document.querySelector('.leage-one')
       this.$refs.subMenu.style.left = `${target.offsetLeft}px`
       this.$refs.subMenu.style.top = `${Math.max(target.offsetTop - scrollTop + 40, 40)}px`
       this.cur_user = user
-      clearTimeout(this.timeout)
     },
     handleMouseleave() {
       this.timeout = setTimeout(() => {
@@ -174,6 +211,16 @@ export default {
         kickingSessionId: user.sessionId,
       })
       this.cur_user = {}
+    },
+    // 授权
+    auth(user, { k, v }) {
+      getSocket().emit(socketEvent.authPermission, {
+        meetingId: this.$globalConf.meetingId,
+        permissionSessionId: user.sessionId,
+        permissionUserId: user.userId,
+        permissionRealName: user.realName,
+        [k]: v,
+      })
     },
   },
 }

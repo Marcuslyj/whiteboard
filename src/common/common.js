@@ -62,6 +62,10 @@ export const socketEvent = {
    * 踢人
    */
   kickingSession: 'kicking-session',
+  /**
+   * 授权
+   */
+  authPermission: 'auth-permission-session',
 }
 
 /**
