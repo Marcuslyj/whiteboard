@@ -28,7 +28,7 @@ function base(method, url, params, success, failure, config) {
     url,
     data: params,
     baseURL: baseUrl,
-    timeout: 30000,
+    timeout: 0,
   }
   if (method === 'GET' && params !== null) {
     delete configuration.data
