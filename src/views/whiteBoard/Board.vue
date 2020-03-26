@@ -54,6 +54,14 @@ export default {
     })
   },
   mounted() {
+    // 第一次打开就是文档
+    setTimeout(() => {
+      if (this.$globalConf.mode === 'document') {
+        // 打开文档默认手掌
+        this.$globalConf.activeTool = 'pan'
+        console.log('set')
+      }
+    }, 1000)
     Vue.eventBus.$on('resize', () => {
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {

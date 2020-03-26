@@ -17,7 +17,7 @@ Description
     </div> -->
     <div class="center">
       <ul class="group draw-tool" v-if="$globalConf.speakerPermission">
-        <li v-if="$globalConf.mode==='board'" ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
+        <li ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
           <div class="inner">
             <Tooltip content="拖动" placement="top-end">
             <i class="iconfont icon-shou"></i>
@@ -504,7 +504,6 @@ export default {
         }),
         null,
         ({ data, ret: { retCode, retMsg } }) => {
-          console.log(retCode, retMsg)
           if (Number(retCode) === 0) {
             let url = fileService + data.url
             fileLinkToStreamDownload(url, file.documentName, 'pdf')
@@ -611,6 +610,8 @@ export default {
       this.boxName = ''
     },
     gotoBoard() {
+      // 打开文档默认手掌
+      this.$globalConf.activeTool = 'pen'
       this.$emit('gotoBoard')
     },
     handleFullscreen() {

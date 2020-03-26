@@ -209,10 +209,10 @@ export async function addCover(pdf, {
 
   // 还原缩放和偏移的处理
   // 封面宽度是baseWidth/10
-  const widthSafe = Math.floor(0.9 * config.baseWidth - stage.getAttr('x') / config.scale)
-  const heightSafe = Math.floor((stage.height() / config.scale - (0.1 * config.baseWidth * viewport.height) / viewport.width) - stage.getAttr('y') / config.scale)
-  const x = Math.floor(Math.random() * widthSafe)
-  const y = Math.floor(Math.random() * heightSafe)
+  const widthSafe = Math.floor(0.9 * config.baseWidth)
+  const heightSafe = Math.floor((stage.height() / config.scale - (0.1 * config.baseWidth * viewport.height) / viewport.width))
+  const x = Math.floor(Math.random() * widthSafe - stage.getAttr('x') / config.scale)
+  const y = Math.floor(Math.random() * heightSafe - stage.getAttr('y') / config.scale)
 
   const render = async (_page, _renderContext) => {
     await _page.render(_renderContext).promise
@@ -311,7 +311,7 @@ export function openDocument({ documentId, documentPath }) {
   // 清空缓存操作队列
   cManager.clearCache()
   // 激活工具重新配置成钢笔
-  config.activeTool = 'pen'
+  config.activeTool = 'pan'
   // 同步动作
   // 1.设置全局信息
   let syncAction = {
