@@ -54,6 +54,14 @@ export const socketEvent = {
    * 获取用户列表
    */
   getUsers: 'get-sessions',
+  /**
+   * 上下线通知
+   */
+  sessionAction: 'session-action',
+  /**
+   * 踢人
+   */
+  kickingSession: 'kicking-session',
 }
 
 /**
