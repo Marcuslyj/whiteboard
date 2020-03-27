@@ -534,10 +534,8 @@ const AuthorityMeetingComponent = {
         {},
         (res) => {
           if (res.ret.retCode === '0') {
-            const d = new Date()
-            d.setTime(d.getTime() - 24 * 60 * 60 * 1000)
-            const expire = `expires=${d.toUTCString()}`
-            document.cookie = `sid="";${expire}`
+            this.delCookie('sid', '.tvflnet.com')
+            this.delCookie('visitor', '.tvflnet.com')
             this.$router.push({ name: 'login' })
           } else {
             this.$Message.error(res.ret.retMsg)
@@ -842,13 +840,7 @@ const AuthorityMeetingComponent = {
   created() {
     const visitor = this.getCookie('visitor')
     this.sid = this.getCookie('sid')
-    if (
-      !this.sid
-      || visitor === ''
-      || visitor === undefined
-      || visitor === null
-      || visitor === false
-    ) {
+    if (!this.sid || visitor === 'true') {
       this.$router.push({ name: 'login' })
     } else {
       const active = this.getCookie('meeting-active-type')
