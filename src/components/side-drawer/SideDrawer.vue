@@ -37,7 +37,7 @@ Description
                 <li v-else @click="auth(cur_user,{k:'downloadPermission',v:false})">禁止下载</li>
               </template>
             </template>
-            <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li>
+            <!-- <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li> -->
             <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !(cur_user.speakerPermission||cur_user.owner)" @click="kick(cur_user)">踢出会议</li>
           </ul>
         </section>
