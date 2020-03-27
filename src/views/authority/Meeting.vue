@@ -892,6 +892,9 @@ export default AuthorityMeetingComponent
 }
 .@{mi-meeting} {
   position: relative;
+  .ivu-tabs {
+    overflow: visible;
+  }
   &-search {
     margin-bottom: 32px;
     padding-bottom: 32px;
