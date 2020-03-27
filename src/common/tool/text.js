@@ -166,7 +166,7 @@ function add(newPoi) {
     fill: config.text.color,
     x: newPoi.x,
     y: newPoi.y + 5,
-    width: editorDom.clientWidth,
+    // width: editorDom.clientWidth,
     hitStrokeWidth: TOUCH_DEVICE ? 10 : 'auto',
     // dash: [10, 5],
     keepRatio: true,
