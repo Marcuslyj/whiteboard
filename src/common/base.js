@@ -171,10 +171,13 @@ exports.install = function (Vue) {
      * delete cookie
      * @param name
      */
-  Vue.prototype.delCookie = function (name) {
+  Vue.prototype.delCookie = function (name, domain = null, path = '/') {
     const d = new Date()
     d.setTime(d.getTime() - (24 * 60 * 60 * 1000))
     const expire = `expires=${d.toUTCString()}`
-    document.cookie = `${name}="";${expire}`
+    let c = `${name}="";${expire}`
+    if (domain) c += `;domain=${domain}`
+    c += `;Path=${path}`
+    document.cookie = c
   }
 }
