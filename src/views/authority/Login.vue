@@ -183,16 +183,11 @@ const AuthorityLoginComponent = {
     }
     const visitor = this.getCookie('visitor')
     const sid = this.getCookie('sid')
-    if (
-      sid
-      && visitor !== ''
-      && visitor !== undefined
-      && visitor !== null
-      && !visitor
-    ) {
+    if (sid && this.link) {
+      window.location.href = this.link
+    } else if (sid && visitor === 'false') {
       this.$router.push({ name: 'meeting' })
     }
-    if (visitor && sid && this.link) window.location.href = this.link
   },
 }
 export default AuthorityLoginComponent

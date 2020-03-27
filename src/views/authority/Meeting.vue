@@ -122,6 +122,7 @@
                 @on-page-size-change="setPaginationSize"
                 show-elevator
                 show-sizer
+                transfer
               ></Page>
             </div>
           </div>
@@ -174,6 +175,7 @@
                 @on-page-size-change="setPaginationSize"
                 show-elevator
                 show-sizer
+                transfer
               ></Page>
             </div>
           </div>
@@ -230,6 +232,7 @@
                 @on-page-size-change="setPaginationSize"
                 show-elevator
                 show-sizer
+                transfer
               ></Page>
             </div>
           </div>
@@ -892,9 +895,6 @@ export default AuthorityMeetingComponent
 }
 .@{mi-meeting} {
   position: relative;
-  .ivu-tabs {
-    overflow: visible;
-  }
   &-search {
     margin-bottom: 32px;
     padding-bottom: 32px;
