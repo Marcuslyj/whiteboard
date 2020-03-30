@@ -24,13 +24,13 @@ Description
             <span class="remark">{{user.speakerPermission ? "（主讲人）" : (user.userId===$globalConf.user.userId? '（我）':'')}}</span>
           </li>
         </ul>
-        <section ref="subMenu" class="leage-two" v-show="cur_user.userId" @mouseenter="inSubMenu=true"  @mouseleave="mouseleaveFromSub">
+        <section ref="subMenu" class="leage-two" v-show="cur_user.sessionId" @mouseenter="inSubMenu=true"  @mouseleave="mouseleaveFromSub">
           <ul>
-            <template v-if="$globalConf.user.owner">
-              <template v-if="!cur_user.vistor">
+            <template v-if="$globalConf.user.owner && !cur_user.visitor">
+              <!-- <template v-if="!cur_user.visitor"> -->
                 <li v-if="!cur_user.speakerPermission" @click="auth(cur_user,{k:'speakerPermission',v:true})">设为演示者</li>
                 <li v-else-if="!cur_user.owner" @click="auth(cur_user,{k:'speakerPermission',v:false})">取消演示者</li>
-              </template>
+              <!-- </template> -->
 
               <template v-if="!cur_user.owner">
                 <li v-if="!cur_user.downloadPermission" @click="auth(cur_user,{k:'downloadPermission',v:true})">开放下载</li>
