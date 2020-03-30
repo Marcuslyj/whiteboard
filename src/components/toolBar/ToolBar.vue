@@ -202,14 +202,14 @@ Description
         <li @click.stop="back" v-if="$globalConf.speakerPermission">
           <div class="inner">
           <Tooltip content="撤销" placement="top-end">
-            <i class="iconfont icon-houtui"></i>
+            <i class="iconfont icon-chexiao"></i>
           </Tooltip>
           </div>
         </li>
         <li @click.stop="goAhead" v-if="$globalConf.speakerPermission">
           <div class="inner">
             <Tooltip content="恢复" placement="top-end">
-              <i class="iconfont icon-qianjin"></i>
+              <i class="iconfont icon-huitui"></i>
             </Tooltip>
           </div>
         </li>
@@ -224,7 +224,7 @@ Description
     </div>
     <div class="right part">
       <span v-show="$globalConf.mode === 'document'" @click="gotoBoard" v-if="$globalConf.speakerPermission"
-        ><i class="iconfont icon-shangyiye1"></i
+        ><i class="iconfont icon-shangyiye"></i
       ></span>
       <span @click="handleFullscreen"
         ><i
