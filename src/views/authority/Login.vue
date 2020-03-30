@@ -1,6 +1,6 @@
 <template>
   <Row type="flex" justify="center" align="middle" class="mi-login">
-    <Col span="8" class="mi-login-box" v-if="!tourist">
+    <Col span="8" class="mi-login-box">
       <Tabs>
         <TabPane label="账号登录" name="account">
           <Form :model="accountForm.validate" :rules="accountForm.rules" ref="accountForm">
@@ -88,13 +88,9 @@ const AuthorityLoginComponent = {
       }
     }
     return {
-      account: '',
-      password: '',
-      message: null,
-      tourist: false,
-      showTourist: false,
       link: null,
       mid: 0,
+      tourist: false,
       accountForm: {
         validate: {
           account: '',
@@ -130,12 +126,6 @@ const AuthorityLoginComponent = {
           })
         }
       })
-    },
-    setTourist() {
-      this.tourist = !this.tourist
-      this.account = null
-      this.password = null
-      this.message = null
     },
     touristLogin() {
       this.$refs.touristForm.validate((valid) => {
@@ -191,15 +181,11 @@ const AuthorityLoginComponent = {
       this.link = window.atob(params.link)
       this.tourist = true
     }
-    if (this.mid && this.link) this.showTourist = true
     const visitor = this.getCookie('visitor')
-    if (
-      this.getCookie('sid')
-      && visitor !== ''
-      && visitor !== undefined
-      && visitor !== null
-      && !visitor
-    ) {
+    const sid = this.getCookie('sid')
+    if (sid && this.link) {
+      window.location.href = this.link
+    } else if (sid && visitor === 'false') {
       this.$router.push({ name: 'meeting' })
     }
   },
