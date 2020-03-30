@@ -192,7 +192,7 @@ Description
         </li>
         <li @click="clip">
           <div class="inner">
-            <Tooltip content="剪切" placement="top-end">
+            <Tooltip content="截屏" placement="top-end">
               <i class="iconfont icon-clip"></i>
             </Tooltip>
           </div>
