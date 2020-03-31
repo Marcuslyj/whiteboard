@@ -590,14 +590,17 @@ export default {
             this.addSpecialComponent()
 
             // 记录打开的画板id，文档id， 副屏打开时可以初始化
+            let syncAction = {
+              whiteboardId: ret.data.whiteboardId,
+              documentId: null,
+            }
             const params = {
               meetingId: this.$globalConf.meetingId,
-              syncAction: JSON.stringify({
-                whiteboardId: ret.data.whiteboardId,
-                documentId: null,
-              }),
+              syncAction: JSON.stringify(syncAction),
             }
             socketUtil.syncAction(params)
+            //
+            this.$globalConf.syncAction = syncAction
             this.updateStageInfo()
           } else {
             this.$error('创建白板失败')
