@@ -7,7 +7,6 @@ import {
   imageService, fileService, api, fbId, unObs, socketEvent, webService,
 } from '@common/common'
 import pdfjsLib from 'pdfjsLib'
-// import { debounce } from 'throttle-debounce'
 import image from '@common/tool/image'
 import Vue from 'vue'
 import syncArea from '@common/syncArea'
@@ -17,22 +16,19 @@ import cManager from '../componentManager'
 /**
  * 正在查阅的pdf
  * @key pdf
- * @key stage
  * @key viewport
- * @key layer
- * @key convertCanvas
  */
 let docOpened
+// 标记那些页面已经渲染
 let pageSigned
-// let rendering = false
 let wacherDrag
 let toolCanDrag = 'pan'
 let elWrapper
-// let flushing = false
 
-const getStage = () => config.board
+export const getDocument = () => docOpened
+export const getStage = () => config.board
 // 多个转换板切换用，防止同时操作一个
-const getConvertCanvas = (() => {
+export const getConvertCanvas = (() => {
   let index = -1
   return async (width, height) => {
     index++
@@ -53,7 +49,6 @@ const getConvertCanvas = (() => {
   }
 })()
 const getLayer = () => config.layerManager[config.layerIds.BG_LAYER]
-// const getDocumentId = () => config.documentId
 const getDocumentPath = () => config.documentPath
 let timerBroadcast
 let timerScroll
@@ -61,17 +56,6 @@ let timerPostil
 let postilErrorCount = 0
 let shouldSavePostil = false
 let postilSaving = false
-/**
- * 防抖
- */
-// let resizeDebounce = function () {
-//   // if (config.mode !== 'document') return
-//   // getElWrapper().classList.add('invisible')
-//   // _resizeDebounce()
-// }
-// let _resizeDebounce = debounce(500, () => {
-//   onResize()
-// })
 
 function getElWrapper() {
   return elWrapper || document.querySelector('#board-container>.konvajs-content')
@@ -135,7 +119,6 @@ export function destroy({ all = false } = {}) {
   if (docOpened) {
     let stage = getStage()
     docOpened = pageSigned = elWrapper = null
-    // rendering = false
     stage.off('wheel dragmove')
     stage.setAttrs({
       y: 0,
@@ -187,6 +170,41 @@ export function formatCoverUrl(url) {
 }
 
 /**
+ * 获取转换图片
+ * @param {*} pdf
+ * @param {*} param1
+ */
+async function getConvertImage({
+  pdf, page, pageIndex = 1, type = 'file',
+}) {
+  page = page || await pdf.getPage(pageIndex)
+  const viewport = await getViewport({ pdf, page })
+  const { width, height } = viewport
+
+  // 获取转换画板，设置转换画板尺寸
+  const convertCanvas = await getConvertCanvas(width, height)
+  convertCanvas.rendering = true
+  const renderContext = {
+    canvasContext: convertCanvas.layer.getContext(),
+    viewport,
+  }
+  // 渲染
+  await page.render(renderContext).promise
+  const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
+  convertCanvas.rendering = false
+  convertCanvas.destroyChildren()
+  return type === 'file' ? blobToFile(base64UrlToBlob(imgUrl))
+    : type === 'html'
+      ? (new Promise((resolve) => {
+        let img = new Image()
+        img.src = imgUrl
+        img.onload = () => {
+          resolve(img)
+        }
+      })) : imgUrl
+}
+
+/**
  * 文档cover添加到首页
  * @param {*} pdf
  * @param {*} param1
@@ -196,16 +214,8 @@ export async function addCover(pdf, {
 }) {
   let stage = getStage()
   const page = await pdf.getPage(1)
-  const viewport = getCoverViewport(page)
-  const { width } = viewport
-  const { height } = viewport
-  // 获取转换画板，设置转换画板尺寸
-  const convertCanvas = await getConvertCanvas(width, height)
-
-  const renderContext = {
-    canvasContext: convertCanvas.layer.getContext(),
-    viewport,
-  }
+  const viewport = await getCoverViewport({ pdf, page })
+  const img = await getConvertImage({ pdf, pageIndex: 1 })
 
   // 还原缩放和偏移的处理
   // 封面宽度是baseWidth/10
@@ -214,43 +224,37 @@ export async function addCover(pdf, {
   const x = Math.floor(Math.random() * widthSafe - stage.getAttr('x') / config.scale)
   const y = Math.floor(Math.random() * heightSafe - stage.getAttr('y') / config.scale)
 
-  const render = async (_page, _renderContext) => {
-    await _page.render(_renderContext).promise
-    const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
-    // 上传封面图片
-    let result = await new Promise((resolve, reject) => {
-      let param = new FormData()
-      param.append('fbId', fbId.docCover)
-      param.append('file', blobToFile(base64UrlToBlob(imgUrl)))
-      Vue.prototype.$api.post(
-        api.upload,
-        param,
-        (res) => resolve(res),
-        (err) => reject(err),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          baseURL: webService,
+  // 上传封面图片
+  let result = await new Promise((resolve, reject) => {
+    let param = new FormData()
+    param.append('fbId', fbId.docCover)
+    param.append('file', img)
+    Vue.prototype.$api.post(
+      api.upload,
+      param,
+      (res) => resolve(res),
+      (err) => reject(err),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-      )
-    })
-    if (result && Number(result.ret.retCode) === 0) {
-      let options = {
-        id: componentId,
-        documentId,
-        documentPath,
-        x,
-        y,
-        componentType: '1',
-        type: 'cover',
-        imgUrl: result.data.filePath,
-      }
-      addCoverImage(options, true)
+        baseURL: webService,
+      },
+    )
+  })
+  if (result && Number(result.ret.retCode) === 0) {
+    let options = {
+      id: componentId,
+      documentId,
+      documentPath,
+      x,
+      y,
+      componentType: '1',
+      type: 'cover',
+      imgUrl: result.data.filePath,
     }
+    await addCoverImage(options, true)
   }
-  // 渲染
-  render(page, renderContext)
 }
 
 export async function addCoverImage(options, broadcast = false) {
@@ -337,7 +341,6 @@ export async function open() {
 
   // 参数暂时是文档地址
   let pdf = await loadPdf({
-    // url: documentId._transport._params.url.substring(documentId._transport._params.url.indexOf('/file')),
     url: documentPath,
   })
   docOpened.pdf = pdf
@@ -658,35 +661,26 @@ function broadcastScroll() {
  * 获取文档封面viewport
  * @param {*} page
  */
-function getCoverViewport(page) {
-  let viewport = page.getViewport({
-    scale: 1,
-  })
-  // const stage = getStage()
+async function getCoverViewport({ pdf, page }) {
   // 封面宽度，屏宽1600对应160,即画布宽度十分之一
   // baseWidth的十分之一,最小宽度暂定300
   const width = Math.max(Math.floor(config.baseWidth / 10), 300)
-  if (viewport.width !== width) {
-    viewport = page.getViewport({
-      // width * 1 / viewport.width
-      scale: width / viewport.width,
-    })
-  }
-  return viewport
+  return getViewport({ pdf, width, page })
 }
 
 // 获取与stage尺寸一致的viewport
-async function getViewport() {
-  let { pdf } = docOpened
-  let stage = getStage()
+async function getViewport({ pdf, width, page } = {}) {
+  // let { pdf } = docOpened
+  pdf = pdf || docOpened.pdf
+  width = width || getStage().width()
 
   // 获取第一页
-  const page1 = await pdf.getPage(1)
+  const page1 = page || await pdf.getPage(1)
   let scale = 1
   let viewport = await page1.getViewport({ scale })
   // 修正viewport
-  if (viewport.width !== stage.width()) {
-    scale = stage.width() / viewport.width
+  if (viewport.width !== width) {
+    scale = width / viewport.width
     viewport = await page1.getViewport({
       scale,
     })
@@ -696,9 +690,6 @@ async function getViewport() {
 
 // 按需添加页面
 export function renderPages() {
-  // if (rendering) return
-  // rendering = true
-
   let {
     pdf, viewport,
   } = docOpened
@@ -729,71 +720,37 @@ async function renderPage({
     let {
       pdf, viewport,
     } = docOpened
-    let convertCanvas = await getConvertCanvas(viewport.width, viewport.height)
-
-    convertCanvas.rendering = true
-    const context = convertCanvas.layer.getContext()
-    let renderContext = {
-      canvasContext: context,
-      viewport,
-    }
     let layer = getLayer()
 
     const y = (from - 1) * viewport.height
-    let page = await pdf.getPage(from)
-    await page.render(renderContext).promise
-    page = null
+    let img = await getConvertImage({ pdf, pageIndex: from, type: 'html' })
 
-    let imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
-    let img = new Image()
-    img.src = imgUrl
-    img.onload = () => {
-      // 防止渲染到首页
-      if (config.mode === 'document') {
-        // 渲染完成后，rendering标志为false
-        convertCanvas.rendering = false
-        // 清图片
-        convertCanvas.destroyChildren()
+    if (config.mode === 'document') {
+      const imgK = new Konva.Image({
+        x: 0,
+        y,
+        image: img,
+        width: viewport.width,
+        height: viewport.height,
+        // 白底,防止透明背景
+        fill: '#fff',
+        stroke: '#ccc',
+      })
+      layer.add(imgK)
 
-        const imgK = new Konva.Image({
-          x: 0,
-          y,
-          image: img,
-          width: viewport.width,
-          height: viewport.height,
-          // 白底,防止透明背景
-          fill: '#fff',
-          stroke: '#ccc',
-        })
-        layer.add(imgK)
+      // 防止已经destroy
+      if (!pageSigned) return
+      pageSigned[from] = true
 
-        // 防止已经destroy
-        if (!pageSigned) return
-        pageSigned[from] = true
+      layer.draw()
 
-        layer.draw()
-
-        from++
-        renderPage({ from, to })
-
-        imgUrl = img = pdf = viewport = renderContext = null
-      }
+      from++
+      renderPage({ from, to })
     }
   }
   // 显示
   if (first) getElWrapper().classList.remove('invisible')
 }
-/**
- * resize
- */
-// function onResize() {
-// init(config.documentId, config.documentPath)
-// }
-
-// 定时截图上传
-// function updatePostil() {
-
-// }
 
 export default {
   addCover,

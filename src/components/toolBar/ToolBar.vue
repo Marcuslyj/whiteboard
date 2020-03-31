@@ -293,6 +293,8 @@ export default {
       return this.menuRef[classname].indexOf(this.$globalConf.activeTool) >= 0
     },
     beforeUpload() {
+      // 遮罩
+      this.$root.showMask(true)
       this.MsgUploading = this.MsgUploading || []
       this.MsgUploading.push(
         Message.loading({
@@ -516,6 +518,9 @@ export default {
           }
         },
       )
+    },
+    deleteDocument(documentId) {
+      this.files = this.files.filter((document) => document.documentId !== documentId)
     },
     // 裁剪
     clip() {
