@@ -202,14 +202,14 @@ Description
         <li @click.stop="back" v-if="$globalConf.speakerPermission">
           <div class="inner">
           <Tooltip content="撤销" placement="top-end">
-            <i class="iconfont icon-houtui"></i>
+            <i class="iconfont icon-chexiao"></i>
           </Tooltip>
           </div>
         </li>
         <li @click.stop="goAhead" v-if="$globalConf.speakerPermission">
           <div class="inner">
             <Tooltip content="恢复" placement="top-end">
-              <i class="iconfont icon-qianjin"></i>
+              <i class="iconfont icon-huitui"></i>
             </Tooltip>
           </div>
         </li>
@@ -224,7 +224,7 @@ Description
     </div>
     <div class="right part">
       <span v-show="$globalConf.mode === 'document'" @click="gotoBoard" v-if="$globalConf.speakerPermission"
-        ><i class="iconfont icon-shangyiye1"></i
+        ><i class="iconfont icon-shangyiye"></i
       ></span>
       <span @click="handleFullscreen"
         ><i
@@ -293,6 +293,8 @@ export default {
       return this.menuRef[classname].indexOf(this.$globalConf.activeTool) >= 0
     },
     beforeUpload() {
+      // 遮罩
+      this.$root.showMask(true)
       this.MsgUploading = this.MsgUploading || []
       this.MsgUploading.push(
         Message.loading({
@@ -516,6 +518,9 @@ export default {
           }
         },
       )
+    },
+    deleteDocument(documentId) {
+      this.files = this.files.filter((document) => document.documentId !== documentId)
     },
     // 裁剪
     clip() {

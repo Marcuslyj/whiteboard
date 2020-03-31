@@ -278,43 +278,50 @@ export default {
         // 封面组件id
         let componentId = generateUID()
         // 文档转pdf，获取文档路径和文档id
-        let result = await new Promise((resolve, reject) => {
-          this.$api.post(
-            formateUrl(api.docToPdf, {
-              meetingId: this.$globalConf.meetingId,
-              whiteboardId: this.$globalConf.whiteboardId,
-            }),
-            {
-              docPath: data.filePath,
-              docName: data.fileName,
-              componentId,
-              // 封面组件，componentType是1
-              componentType: 1,
-            },
-            (res) => resolve(res),
-            (err) => reject(err),
-          )
-        })
-        if (this.Msgloading.length) this.Msgloading.pop()()
-        if (Number(result.ret.retCode) === 0) {
-          this.Msgloading.push(Message.loading({
-            content: '读取中...',
-            duration: 0,
-          }))
-          const pdf = await loadPdf({ url: result.data.url })
-          if (this.Msgloading.length) this.Msgloading.pop()()
-          // 添加封面组件
-          addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId, componentId })
-          // 更新文档列表
-          this.$refs['tool-bar'].getDocumentList()
-          // 通知副屏更新文档列表
-          socketUtil.broadcast({
-            meetingId: this.$globalConf.meetingId,
-            msg: JSON.stringify({
-              event: 'updateDocumentList',
-            }),
+        try {
+          let result = await new Promise((resolve, reject) => {
+            this.$api.post(
+              formateUrl(api.docToPdf, {
+                meetingId: this.$globalConf.meetingId,
+                whiteboardId: this.$globalConf.whiteboardId,
+              }),
+              {
+                docPath: data.filePath,
+                docName: data.fileName,
+                componentId,
+                // 封面组件，componentType是1
+                componentType: 1,
+              },
+              (res) => resolve(res),
+              (err) => reject(err),
+            )
           })
+          if (this.Msgloading.length) this.Msgloading.pop()()
+          if (Number(result.ret.retCode) === 0) {
+            this.Msgloading.push(Message.loading({
+              content: '读取中...',
+              duration: 0,
+            }))
+            const pdf = await loadPdf({ url: result.data.url })
+            if (this.Msgloading.length) this.Msgloading.pop()()
+            // 添加封面组件
+            await addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId, componentId })
+            // 更新文档列表
+            this.$refs['tool-bar'].getDocumentList()
+            // 通知副屏更新文档列表
+            socketUtil.broadcast({
+              meetingId: this.$globalConf.meetingId,
+              msg: JSON.stringify({
+                event: 'updateDocumentList',
+              }),
+            })
+          }
+        } finally {
+          this.$root.showMask(false)
         }
+      } else {
+      // 遮罩
+        this.$root.showMask(false)
       }
     },
     // 点击画板，弹窗消失
@@ -503,21 +510,21 @@ export default {
       })
     },
     // 删除文档封面组件
-    handleDeleteDocument({ componentId }) {
+    handleDeleteDocument({ componentId, documentId }) {
+      this.$refs['tool-bar'].deleteDocument(documentId)
+      // 通知副屏更新文档列表
+      socketUtil.broadcast({
+        meetingId: this.$globalConf.meetingId,
+        msg: JSON.stringify({
+          event: 'updateDocumentList',
+        }),
+      })
       if (componentId && this.$globalConf.mode === 'board') {
         const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
         let node = bgLayer.find(`#${componentId}`)[0]
         if (node) {
           node.destroy()
           bgLayer.draw()
-          this.$refs['tool-bar'].getDocumentList()
-          // 通知副屏更新文档列表
-          socketUtil.broadcast({
-            meetingId: this.$globalConf.meetingId,
-            msg: JSON.stringify({
-              event: 'updateDocumentList',
-            }),
-          })
         }
       }
     },
