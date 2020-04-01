@@ -3,11 +3,12 @@ import config from '@common/config'
 import { getPoiWithOffset, setStyle } from '@common/utils'
 
 let currentStage
-export function setCustomCursor(stage, props, icon) {
+let cursor
+export function setCustomCursor(stage, props, icon = 'icon-eraser', key = 'eraser') {
   // 指针使用圆来显示
   currentStage = stage
   let layer = config.layerManager[config.layerIds.CUSTOM_CURSOR_LAYER]
-  props = { ...props, x: -100, y: -100 }
+  props = { ...props, x: -1000, y: -1000 }
   const circle = new Konva.Circle(props)
   layer.add(circle)
   layer.draw()
@@ -15,33 +16,37 @@ export function setCustomCursor(stage, props, icon) {
     const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     circle.position(poi)
     circle.fill('red')
-    circle.radius(config.eraser.lineWidth / 2)
+    circle.radius(config[key].lineWidth / 2)
     layer.draw()
+    setStyle(cursor, {
+      left: `${stage.getPointerPosition().x}px`,
+      top: `${stage.getPointerPosition().y}px`,
+    })
   })
 
-  let cursor = document.querySelector('.tool-cursor')
+  cursor = document.querySelector('.tool-cursor')
   if (!cursor) {
     cursor = document.createElement('div')
+    cursor.className = 'tool-cursor'
   }
 
-  cursor.innerHTML = `<i class="iconfont  ${icon}"></i>`
+  cursor.innerHTML = `<i class="iconfont  ${icon}" style="font-size:24px"></i>`
   setStyle(cursor, {
+    display: 'block',
     position: 'absolute',
-    width: '20px',
-    height: '',
     background: 'transparent',
     outline: 'none',
     border: 'none',
+    transform: 'translateY(-100%)',
+    'z-index': 99,
   })
 
   const konvaContent = stage.content
   // 增加到当前面板
   konvaContent.insertBefore(cursor, konvaContent.firstElementChild)
 
-  //   const de = document.querySelector('.board-container-wrapper')
-  //   de.addEventListener('mousemove touchmove', (evt) => {
-
-//   })
+  const de = document.querySelector('.board-container-wrapper')
+  de.style.cursor = 'none'
 }
 
 export function cancelCustomCursor() {
@@ -51,4 +56,7 @@ export function cancelCustomCursor() {
     layer.batchDraw()
     currentStage.off('mousemove touchmove')
   }
+  const de = document.querySelector('.board-container-wrapper')
+  de && (de.style.cursor = 'default')
+  cursor.style.display = 'none'
 }

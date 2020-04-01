@@ -2,6 +2,7 @@ import Konva from 'konva'
 import Vue from 'vue'
 import { generateUID, getPoiWithOffset } from '@common/utils'
 import cManager from '@common/componentManager'
+import { setCustomCursor, cancelCustomCursor } from './customCursor'
 
 let currentStage
 function create(params) {
@@ -59,11 +60,19 @@ function create(params) {
       line = null
     }
   })
+  setCustomCursor(stage, {
+    x: -1,
+    y: -1,
+    radius: 2,
+    stroke: '#ffffff',
+    strokeWidth: 2,
+  }, 'icon-makebi', 'pencil')
 }
 
 function destroy() {
   if (!currentStage) return
   currentStage.off('mousedown touchstart mousemove touchmove mouseup touchend')
+  cancelCustomCursor(currentStage)
 }
 
 export default {

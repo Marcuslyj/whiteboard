@@ -179,10 +179,11 @@ Description
                   <div class="file-list" v-else>
                      <div class="file-item" v-for="(file,index) in files" :key="index" @click.stop.prevent="openFile(file)">
                        <span class="title">{{file.documentName}}</span>
-                       <span class="btns">
-                          <Icon type="md-download" @click.stop.prevent="downloadFile(file)" v-if="$globalConf.downloadPermission"/>
-                          <Icon type="ios-trash" @click.stop.prevent="deleteFile(file)" v-if="$globalConf.owner"/>
-                       </span>
+                       <div class="btns">
+                        <Icon class="download" type="md-download" @click.stop.prevent="downloadFile(file)" v-if="$globalConf.downloadPermission"/>
+                        <span class="split-line" v-if="$globalConf.downloadPermission&&$globalConf.owner"></span>
+                        <Icon class="del" type="ios-trash" @click.stop.prevent="deleteFile(file)" v-if="$globalConf.owner"/>
+                       </div>
                      </div>
                   </div>
                 </div>
