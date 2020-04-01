@@ -315,6 +315,8 @@ export default {
                 event: 'updateDocumentList',
               }),
             })
+          } else {
+            this.$error(result.ret.retMsg)
           }
         } finally {
           this.$root.showMask(false)
