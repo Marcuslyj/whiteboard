@@ -700,6 +700,7 @@ export default {
         if (!bgLayer.findOne('Image')) {
           syncArea.updateBaseWidth('')
           this.$globalConf.hasValidComponent = false
+          syncArea.setScale()
         }
         // 清掉缓存队列
         cManager.clearCache()
@@ -716,7 +717,7 @@ export default {
       socketUtil.clearBoard(params)
     },
     gotoBoard() {
-      this.$globalConf.activeTool = 'pen'
+      this.$globalConf.activeTool = 'pan'
       cManager.clearCache()
       const params = {
         meetingId: this.$globalConf.meetingId,

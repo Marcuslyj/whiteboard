@@ -24,7 +24,8 @@ import { formateComponent } from './utils'
 function addComponent(graphic, componentType = 0, type = 'remark') {
   let params
   if (!config.hasValidComponent) {
-    syncArea.updateBaseWidth(config.board.getAttr('width'))
+    const width = config.board.getAttr('width')
+    syncArea.updateBaseWidth(width < 1000 ? 1000 : width)
   }
   params = {
     componentType,
@@ -146,7 +147,6 @@ function renderUpdateComponent(graphic, type) {
         nAttrs[e.name] = e.value
       }
     })
-    node.setAttrs(nAttrs)
     node.clearCache()
     layer.draw()
     node.className === 'Arrow' ? node.cache({ offset: 5 }) : node.cache()

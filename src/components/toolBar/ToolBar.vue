@@ -615,8 +615,6 @@ export default {
       this.boxName = ''
     },
     gotoBoard() {
-      // 打开文档默认手掌
-      this.$globalConf.activeTool = 'pen'
       this.$emit('gotoBoard')
     },
     handleFullscreen() {

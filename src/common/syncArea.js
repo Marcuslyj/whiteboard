@@ -8,16 +8,14 @@ import { formateComponent, isEmpty } from './utils'
 // 设置scale
 function setLayerScale() {
   console.log(`layer 缩放${config.scale}`)
-  const textLayer = config.layerManager[config.layerIds.TEXT_LAYER]
-  const remarkLayer = config.layerManager[config.layerIds.REMARK_LAYER]
   const bgLayer = config.layerManager[config.layerIds.BG_LAYER]
-  textLayer.scale({
-    x: config.scale,
-    y: config.scale,
-  })
-  remarkLayer.scale({
-    x: config.scale,
-    y: config.scale,
+  const layers = [config.layerManager[config.layerIds.TEXT_LAYER], config.layerManager[config.layerIds.REMARK_LAYER], config.layerManager[config.layerIds.CUSTOM_CURSOR_LAYER]]
+  layers.forEach((layer) => {
+    layer.scale({
+      x: config.scale,
+      y: config.scale,
+    })
+    layer.draw()
   })
   // 首页背景层做缩放
   if (config.mode === 'board') {
@@ -27,8 +25,6 @@ function setLayerScale() {
     })
     bgLayer.draw()
   }
-  textLayer.draw()
-  remarkLayer.draw()
 }
 
 function setStageXY() {
