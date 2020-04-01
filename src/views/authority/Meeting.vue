@@ -297,6 +297,7 @@
                 v-model="name"
                 suffix="ios-search"
                 placeholder="搜索用户名"
+                @on-enter="searchUser"
                 :max-length="64"
               />
             </div>
@@ -505,6 +506,7 @@ const AuthorityMeetingComponent = {
         people: {
           type: '0',
           list: [],
+          search: [],
         },
         users: [],
       },
@@ -589,6 +591,24 @@ const AuthorityMeetingComponent = {
           this.$Message.error(err.message)
         },
       )
+    },
+    searchUser() {
+      // this.$api.get(
+      //   '/user-manager/user-tree',
+      //   {
+      //     queryParam: this.name,
+      //   },
+      //   (res) => {
+      //     if (res.ret.retCode === '0') {
+      //       console.log(res)
+      //     } else {
+      //       this.$Message.error(res.ret.retMsg)
+      //     }
+      //   },
+      //   (err) => {
+      //     this.$Message.error(err.message)
+      //   },
+      // )
     },
     getMeeting(type = null) {
       this.$api.get(
