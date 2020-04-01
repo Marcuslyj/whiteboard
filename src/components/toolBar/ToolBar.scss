@@ -29,12 +29,12 @@
         box-sizing: border-box;
         position: relative;
         // overflow:hidden;
-        height:3vw;
+        height:2.8vw;
         .inner{
-          padding:0 0.5vw;
+          padding:0 0.6vw;
         }
         .iconfont{
-          font-size:2vw;
+          font-size:1.8vw;
         }
         &:hover {
           overflow: visible;
@@ -186,10 +186,9 @@
           }
           .file-list{
             .file-item{
-              padding:5px 0px;
               display: flex;
               flex-flow: row nowrap;
-              height:35px;
+              padding:5px;
               &:not(:last-child){
                 border-bottom:1px solid #eee;
               }
@@ -202,14 +201,35 @@
                 text-overflow: ellipsis;
                 overflow: hidden;
                 margin-right:10px;
-                padding-left:10px;
+                height:100%;
+                line-height:45px;
+                padding:0 5px;
+                background:#fff;
+                border:2px solid #e8e8e8;
+                border-radius:10px;
+                font-size:16px;
                 &:hover,&:active{
                   color:#2d8cf0;
                 }
               }
               .btns{
-                display:inline-block;
-                width:50px;
+                display: flex;
+                align-items: center;
+                // width:fit-content;
+                .del,.download{
+                  font-size: 28px;
+                  color:rgba(31,56,88,.6);
+                  &:hover{
+                    color:#2d8cf0;
+                  }
+                }
+                .split-line{
+                  display: inline-block;
+                  margin:0 5px;
+                  width:1px;
+                  height:20px;
+                  background:#e8e8e8;
+                }
               }
             }
           }
@@ -235,21 +255,26 @@
     }
   }
   .part{
+    display:flex;
+    align-items: center;
     >span{
       display:inline-block;
       box-sizing: border-box;
       cursor: pointer;
-      background:#f0f0f0;;
-      height:3vw;
-      padding:0 0.5vw;
+      background:#f0f0f0;
+      width:2.4vw;
+      height:2.4vw;
+      // padding:0.3vw;
+      text-align: center;
+      line-height: 2.4vw;
       border-radius:0.5vw;
-      box-shadow: 0 0 6px #919191;
+      // box-shadow: 0 0 6px #919191;
       &:not(:first-child) {
         margin-left: 1vw;
       }
       .iconfont {
         vertical-align: middle;
-        font-size: 2vw;
+        font-size: 1.4vw;
       }
       &:hover {
         background:#D6D6D6

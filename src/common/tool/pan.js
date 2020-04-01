@@ -1,6 +1,7 @@
 import syncArea from '@common/syncArea'
 import config from '../config'
 
+
 let currentStage
 function create(params) {
   const { stage } = params
