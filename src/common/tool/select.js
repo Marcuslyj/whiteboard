@@ -30,13 +30,26 @@ function create(params) {
     origin = JSON.parse(target.toJSON())
     opeTarget = target
     opeTarget.draggable(true)
-    const tr = new Konva.Transformer({
-      node: target,
-      borderStrokeWidth: 2,
-      anchorStrokeWidth: 2,
-      // padding: 40,
-      enabledAnchors: ['bottom-right', 'top-right', 'bottom-left', 'top-left'],
-    })
+    let tr
+    if (opeTarget.className === 'Text') {
+      tr = new Konva.Transformer({
+        node: target,
+        borderStrokeWidth: 2,
+        anchorStrokeWidth: 2,
+        // padding: 40,
+        rotateEnabled: false,
+        enabledAnchors: ['bottom-right', 'top-right', 'bottom-left', 'top-left'],
+      })
+    } else {
+      tr = new Konva.Transformer({
+        node: target,
+        borderStrokeWidth: 2,
+        anchorStrokeWidth: 2,
+        // padding: 40,
+        enabledAnchors: ['bottom-right', 'top-right', 'bottom-left', 'top-left'],
+      })
+    }
+
     tr.on('transform', () => {
       setMenu()
     })
@@ -59,11 +72,11 @@ function save() {
   Vue.eventBus.$emit('setMiniMenu', { miniMenuType: 'select-others', miniMenuStyle: { display: 'none' } })
   if (opeTarget) {
     console.log(opeTarget.getAttrs())
+    opeTarget.draggable(false)
     // 此处opeTarget 可能新增了transformed 属性
     if (!isSameObject(origin.attrs, opeTarget.getAttrs(), ['fill', 'stroke', 'x', 'y', 'rotation', 'scaleX', 'scaleY'])) {
       add()
     }
-    opeTarget.draggable(false)
     origin = opeTarget = null
   }
 }

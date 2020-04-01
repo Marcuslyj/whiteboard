@@ -147,7 +147,6 @@ function renderUpdateComponent(graphic, type) {
         nAttrs[e.name] = e.value
       }
     })
-    node.setAttrs(nAttrs)
     node.clearCache()
     layer.draw()
     node.className === 'Arrow' ? node.cache({ offset: 5 }) : node.cache()
