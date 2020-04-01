@@ -691,6 +691,7 @@ export default {
         if (!bgLayer.findOne('Image')) {
           syncArea.updateBaseWidth('')
           this.$globalConf.hasValidComponent = false
+          syncArea.setScale()
         }
         // 清掉缓存队列
         cManager.clearCache()

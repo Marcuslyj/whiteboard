@@ -28,6 +28,7 @@ export default Vue.observable({
     BG_LAYER: 'BG_LAYER',
     TEXT_LAYER: 'TEXT_LAYER',
     REMARK_LAYER: 'REMARK_LAYER',
+    CUSTOM_CURSOR_LAYER: 'CUSTOM_CURSOR_LAYER',
   },
   layerManager: {},
   // 缓存队列管理，用于撤销还原,直接存toObject() 的数据,所以不用component 命名
@@ -46,7 +47,7 @@ export default Vue.observable({
   },
   text: {
     color: '#333333',
-    fontSize: 14,
+    fontSize: 20,
   },
   convertCanvas: [],
   // board 和 document两种模式
