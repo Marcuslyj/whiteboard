@@ -176,11 +176,11 @@ export function formatCoverUrl(url) {
  * @param {*} pdf
  * @param {*} param1
  */
-async function getConvertImage({
-  pdf, page, pageIndex = 1, type = 'file',
+export async function getConvertImage({
+  pdf, page, pageIndex = 1, type = 'file', viewport,
 }) {
   page = page || await pdf.getPage(pageIndex)
-  const viewport = await getViewport({ pdf, page })
+  viewport = viewport || await getViewport({ pdf, page })
   const { width, height } = viewport
 
   // 获取转换画板，设置转换画板尺寸
@@ -194,7 +194,8 @@ async function getConvertImage({
   await page.render(renderContext).promise
   const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
   convertCanvas.rendering = false
-  convertCanvas.destroyChildren()
+  // convertCanvas.destroyChildren()
+  convertCanvas.clear()
   return type === 'file' ? blobToFile(base64UrlToBlob(imgUrl))
     : type === 'html'
       ? (new Promise((resolve) => {
@@ -396,19 +397,20 @@ function getRangeToRender(stage, viewport, pdf) {
     leftPageHeight = y > 0 ? viewport.height - (y % viewport.height) : viewport.height
     if (leftPageHeight < stageHeight) {
       to = from + 1
-      target = leftPageHeight > stageHeight * 0.5 ? to : from
+      target = leftPageHeight < stageHeight * 0.5 ? to : from
     }
   } else {
     leftPageHeight = y >= viewport.height ? viewport.height - (y % viewport.height) : viewport.height - y
     leftHeight = stageHeight - leftPageHeight
     let leftCount = Math.ceil(leftHeight / viewport.height)
     to = from + leftCount
+    target = leftPageHeight < viewport.height * 0.3 ? (from + 1) : from
   }
 
   to = Math.min(to, pdf.numPages)
-  // 通知document-navigator组件
-  Vue.eventBus.$emit('pageScroll', { from, to, target })
-  return { from, to }
+  target = Math.min(target, pdf.numPages)
+
+  return { from, to, target }
 }
 
 // 缓存待更新批注页面
@@ -697,18 +699,20 @@ export async function getViewport({ pdf, width, page } = {}) {
 }
 
 // 按需添加页面
-export function renderPages() {
+export async function renderPages() {
   let {
     pdf, viewport,
   } = docOpened
   const stage = getStage()
-  let { from, to } = getRangeToRender(stage, viewport, pdf)
-  loopRender({ from, to })
+  let { from, to, target } = getRangeToRender(stage, viewport, pdf)
+  await loopRender({ from, to })
+  // 通知document-navigator组件
+  Vue.eventBus.$emit('pageScroll', { from, to, target })
 }
 
 // 加载所有页面
-function loopRender({ from, to }) {
-  renderPage({
+async function loopRender({ from, to }) {
+  await renderPage({
     from, to, first: true,
   })
 }
