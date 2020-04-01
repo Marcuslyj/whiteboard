@@ -7,6 +7,7 @@ Description
 <template>
   <div class="board-page">
     <section class="board-container-wrapper">
+      <!-- <document-navigator v-if="$globalConf.mode === 'document'" :pdf="pdf" class="document-navigator"></document-navigator> -->
     <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.speakerPermission" @click="savePostil"><i class="iconfont icon-save"></i></div>
     <div id="board-container"
       ref="board-container">
@@ -76,12 +77,14 @@ import syncArea from '@common/syncArea'
 import ToolBar from '@/components/toolBar/ToolBar'
 import MiniMenu from '@/components/miniMenu/MiniMenu'
 import SideDrawer from '@/components/side-drawer/SideDrawer'
+import DocumentNavigator from '@/components/document-navigator/DocumentNavigator'
 
 export default {
   components: {
     ToolBar,
     MiniMenu,
     SideDrawer,
+    DocumentNavigator,
   },
   data() {
     return {
@@ -103,6 +106,8 @@ export default {
       convertCanvas: [],
       timerSavePostil: null,
       showSideDrawer: false,
+      // pdfjs对象，传给documentNavigator
+      pdf: null,
     }
   },
   created() {
@@ -342,11 +347,13 @@ export default {
 
       let hasSpecial
       // 有特殊组件
-      cManager.clearLayer(bgLayer, textLayer, remarkLayer)
+      cManager.clearLayer(bgLayer, textLayer, remarkLayer);
       // 初始化文档
-      if (this.$globalConf.documentPath && `${this.$globalConf.documentId}`) {
-        initDocument(this.$globalConf.documentId, this.$globalConf.documentPath)
-      }
+      (async () => {
+        if (this.$globalConf.documentPath && `${this.$globalConf.documentId}`) {
+          this.pdf = await initDocument(this.$globalConf.documentId, this.$globalConf.documentPath)
+        }
+      })()
       // 初始化画笔数据
       this.renderComponent = []
       let shape

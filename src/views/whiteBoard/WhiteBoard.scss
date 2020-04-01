@@ -102,4 +102,14 @@
       left: 0;
     }
   }
+
+  .document-navigator{
+    position: absolute;
+    z-index: 99;
+    top: 0;
+    bottom:0;
+    left: 0;
+    border-right: 1px solid #eee;
+    width: 10%;
+  }
 }
