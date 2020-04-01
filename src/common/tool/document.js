@@ -67,7 +67,7 @@ function getElWrapper() {
  * @param {*} documentId
  * @param {*} param1
  */
-export function init(documentId, documentPath) {
+export async function init(documentId, documentPath) {
   // stage y
   let stage = getStage()
   stage.setAttrs({ x: 0 })
@@ -83,7 +83,7 @@ export function init(documentId, documentPath) {
   clearBoard()
 
   // 载入文档
-  open()
+  let pdf = await open()
 
   // 监听工具变化设置是否可拖动
   wacherDrag = Vue.eventBus.$watch(
@@ -99,6 +99,8 @@ export function init(documentId, documentPath) {
       }
     },
   )
+
+  return pdf
 }
 
 /**
@@ -375,6 +377,8 @@ export async function open() {
 
   // 定时检查待更新批注页
   watchPostil.watch()
+  // 返回pdfjs对象
+  return pdf
 }
 
 // 获取可视区中涉及页面
@@ -385,12 +389,14 @@ function getRangeToRender(stage, viewport, pdf) {
   let stageHeight = stage.height()
   let leftPageHeight
   let leftHeight
+  let target = from
   // 页高度大于stage高度
   if (stageHeight <= viewport.height) {
     // 展示页剩余的高度小于窗口高度
     leftPageHeight = y > 0 ? viewport.height - (y % viewport.height) : viewport.height
     if (leftPageHeight < stageHeight) {
       to = from + 1
+      target = leftPageHeight > stageHeight * 0.5 ? to : from
     }
   } else {
     leftPageHeight = y >= viewport.height ? viewport.height - (y % viewport.height) : viewport.height - y
@@ -400,6 +406,8 @@ function getRangeToRender(stage, viewport, pdf) {
   }
 
   to = Math.min(to, pdf.numPages)
+  // 通知document-navigator组件
+  Vue.eventBus.$emit('pageScroll', { from, to, target })
   return { from, to }
 }
 
@@ -669,7 +677,7 @@ async function getCoverViewport({ pdf, page }) {
 }
 
 // 获取与stage尺寸一致的viewport
-async function getViewport({ pdf, width, page } = {}) {
+export async function getViewport({ pdf, width, page } = {}) {
   // let { pdf } = docOpened
   pdf = pdf || docOpened.pdf
   width = width || getStage().width()
