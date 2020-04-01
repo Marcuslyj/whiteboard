@@ -707,7 +707,7 @@ export default {
       socketUtil.clearBoard(params)
     },
     gotoBoard() {
-      this.$globalConf.activeTool = 'pen'
+      this.$globalConf.activeTool = 'pan'
       cManager.clearCache()
       const params = {
         meetingId: this.$globalConf.meetingId,

@@ -33,7 +33,7 @@ export default Vue.observable({
   // 缓存队列管理，用于撤销还原,直接存toObject() 的数据,所以不用component 命名
   cacheGraphics: [],
   cPIndex: -1, // 操作缓存时游标位置
-  activeTool: 'pen',
+  activeTool: 'pan',
   pencil: {
     activePencilTool: 'pen',
     color: '#333333',
