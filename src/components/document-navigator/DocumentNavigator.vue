@@ -126,6 +126,7 @@ export default {
       return pages
     },
     async render({ from, to }) {
+      console.log(from, to)
       if (from <= to) {
         if (!this.rendered[from]) {
           let imgUrl = await getConvertImage({
@@ -142,12 +143,12 @@ export default {
       }
     },
     ulScroll: throttle(300, function () {
-      let { scrollTop } = this.$refs.ul
-      let from = Math.ceil(scrollTop / this.itemHeight)
-      from = Math.max(from, 1)
-      let to = from + this.visibleCount - 1
-      to = Math.min(to, this.numPages)
-      this.scroll({ from, to })
+      // let { scrollTop } = this.$refs.ul
+      // let from = Math.ceil(scrollTop / this.itemHeight)
+      // from = Math.max(from, 1)
+      // let to = from + this.visibleCount - 1
+      // to = Math.min(to, this.numPages)
+      // this.scroll({ from, to })
     }),
   },
 }
