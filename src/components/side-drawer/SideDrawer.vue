@@ -172,9 +172,9 @@ export default {
       let icons = {
         owner: 'icon-admin',
         user: 'icon-user',
-        visitor: 'icon-vistor',
+        visitor: 'icon-youkeyonghu',
       }
-      let key = user.owner ? 'owner' : 'user'
+      let key = user.owner ? 'owner' : (user.visitor ? 'visitor' : 'user')
       return icons[key]
     },
     handleClickOutside() {

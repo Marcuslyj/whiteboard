@@ -81,8 +81,6 @@ const AuthorityLoginComponent = {
     const checkAccount = (rule, value, callback) => {
       if (!value) {
         callback(new Error('请输入工号'))
-      } else if (!/[a-zA-Z]([0-9]{1,20})$/.test(value)) {
-        callback(new Error('工号格式不正确 ( 示例：A0001 )'))
       } else {
         callback()
       }
