@@ -7,7 +7,7 @@ Description
 <template>
   <div class="board-page">
     <section class="board-container-wrapper">
-      <!-- <document-navigator v-if="$globalConf.mode === 'document'" :pdf="pdf" class="document-navigator"></document-navigator> -->
+      <document-navigator v-if="$globalConf.mode === 'document'" :pdf="pdf" class="document-navigator"></document-navigator>
     <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.speakerPermission" @click="savePostil"><i class="iconfont icon-save"></i></div>
     <div id="board-container"
       ref="board-container">
