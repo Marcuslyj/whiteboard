@@ -384,7 +384,7 @@ export async function open() {
         y: -(pageNum - 1) * viewport.height,
       })
       stage.draw()
-      renderPages({ target: pageNum })
+      renderPages()
       broadcastScroll()
     }
   })
@@ -719,7 +719,7 @@ export async function renderPages({ ...args }) {
     pdf, viewport,
   } = docOpened
   const stage = getStage()
-  let { from, to, target } = getRangeToRender({
+  let { from, to } = getRangeToRender({
     ...args, stage, viewport, pdf,
   })
   // // 通知document-navigator组件
