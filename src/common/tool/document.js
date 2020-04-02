@@ -362,7 +362,6 @@ export async function open() {
   cachePostils(stage, viewport, pdf)
   Vue.eventBus.$on('savePostil', () => {
     if (!docOpened.viewport) { return }
-    // debugger
     if (postilSaving) {
       Vue.prototype.$Message.success('正在保存')
       shouldSavePostil = true
@@ -384,7 +383,8 @@ export async function open() {
       stage.setAttrs({
         y: -(pageNum - 1) * viewport.height,
       })
-      renderPages()
+      stage.draw()
+      renderPages({ target: pageNum })
       broadcastScroll()
     }
   })
@@ -394,33 +394,33 @@ export async function open() {
 }
 
 // 获取可视区中涉及页面
-function getRangeToRender(stage, viewport, pdf) {
+function getRangeToRender({
+  stage, viewport, pdf, target,
+}) {
   const y = Math.abs(stage.getAttr('y'))
   const from = Math.floor(y / viewport.height) + 1
   let to = from
   let stageHeight = stage.height()
   let leftPageHeight
   let leftHeight
-  let target = from
   // 页高度大于stage高度
   if (stageHeight <= viewport.height) {
     // 展示页剩余的高度小于窗口高度
     leftPageHeight = y > 0 ? viewport.height - (y % viewport.height) : viewport.height
     if (leftPageHeight < stageHeight) {
       to = from + 1
-      target = leftPageHeight < stageHeight * 0.5 ? to : from
+      if (!target) target = leftPageHeight < stageHeight * 0.5 ? to : from
     }
   } else {
     leftPageHeight = y >= viewport.height ? viewport.height - (y % viewport.height) : viewport.height - y
     leftHeight = stageHeight - leftPageHeight
     let leftCount = Math.ceil(leftHeight / viewport.height)
     to = from + leftCount
-    target = leftPageHeight < viewport.height * 0.3 ? (from + 1) : from
+    if (!target) target = leftPageHeight < viewport.height * 0.3 ? (from + 1) : from
   }
 
   to = Math.min(to, pdf.numPages)
   target = Math.min(target, pdf.numPages)
-
   return { from, to, target }
 }
 
@@ -439,7 +439,7 @@ function cachePostils(stage, viewport, pdf) {
 
 
   Vue.eventBus.$on('updatePostil', () => {
-    let { from, to } = getRangeToRender(stage, viewport, pdf)
+    let { from, to } = getRangeToRender({ stage, viewport, pdf })
 
     // 中等粒度记录当前可视区的页码
     for (let i = from; i <= to; i++) {
@@ -710,15 +710,17 @@ export async function getViewport({ pdf, width, page } = {}) {
 }
 
 // 按需添加页面
-export async function renderPages() {
+export async function renderPages({ ...args }) {
   let {
     pdf, viewport,
   } = docOpened
   const stage = getStage()
-  let { from, to, target } = getRangeToRender(stage, viewport, pdf)
-  await loopRender({ from, to })
+  let { from, to, target } = getRangeToRender({
+    ...args, stage, viewport, pdf,
+  })
   // 通知document-navigator组件
   Vue.eventBus.$emit('pageScroll', { from, to, target })
+  await loopRender({ from, to })
 }
 
 // 加载所有页面

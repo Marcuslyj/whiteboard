@@ -36,7 +36,6 @@ export default {
       //
       itemHeight: 1,
       showNavigator: false,
-      firstTime: true,
       zHide: false,
     }
   },
@@ -52,14 +51,9 @@ export default {
   mounted() {
     Vue.eventBus.$on('pageScroll', ({ from, to, target }) => {
       if (this.pdf_) {
-        if (!this.firstTime) {
-          this.showNavigator = true
-          clearTimeout(this.timerNavigator)
-          this.timeoutHide()
-        } else {
-          this.firstTime = false
-        }
-
+        this.showNavigator = true
+        clearTimeout(this.timerNavigator)
+        this.timeoutHide()
         this.scroll({ from, to, target })
       } else {
         this.waitToRender = { from, to, target }
