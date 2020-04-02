@@ -673,7 +673,7 @@ export default {
         shape = new Konva[component.className](component.attrs)
         textLayer.add(shape)
         textLayer.batchDraw()
-        shape.cache()
+        // shape.cache()
       } else if (component.type === 'cover') {
         shape = addCoverImage(component.attrs)
       } else {

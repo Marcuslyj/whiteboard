@@ -60,13 +60,7 @@ function create(params) {
       line = null
     }
   })
-  setCustomCursor(stage, {
-    x: -1,
-    y: -1,
-    radius: 2,
-    stroke: '#ffffff',
-    strokeWidth: 2,
-  }, 'icon-makebi', 'pencil')
+  setCustomCursor(stage, 'markPencil')
 }
 
 function destroy() {

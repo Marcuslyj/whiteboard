@@ -148,7 +148,7 @@ Description
        </Tooltip>
       </ul>
       <ul class="group bussiness-tool">
-        <li v-if="$globalConf.speakerPermission && $globalConf.mode==='board'">
+        <li v-if="$globalConf.speakerPermission && $globalConf.mode==='board'" >
           <div class="inner">
             <Tooltip content="导入文档" placement="top-end">
             <Upload
@@ -160,7 +160,7 @@ Description
               :data="{ fbId: common.fbId.upload }"
               :show-upload-list="false"
             >
-              <i class="iconfont icon-upload"></i>
+              <i class="iconfont icon-upload"  @click.prevent="clickUpload"></i>
             </Upload>
            </Tooltip>
           </div>
@@ -457,6 +457,9 @@ export default {
         stage,
         layer,
       })
+    },
+    clickUpload() {
+      this.setBoxName('')
     },
     clickFile() {
       // this.setLiStyle('file-tool')
