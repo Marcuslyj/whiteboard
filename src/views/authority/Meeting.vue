@@ -1,9 +1,14 @@
 <template>
   <Row type="flex" justify="center" align="middle">
     <div class="mi-header">
-      <Tooltip content="退出" placement="bottom" class="mi-header-user">
-        <icon type="ios-contact" @click="logout" />
-      </Tooltip>
+      <Dropdown class="mi-header-user" trigger="hover" placement="bottom">
+        <icon type="ios-contact" />
+        <DropdownMenu slot="list">
+          <DropdownItem v-html="user.realName"></DropdownItem>
+          <DropdownItem><a href="javascript:void(0);" @click="setPwdModal">修改密码</a></DropdownItem>
+          <DropdownItem><a href="javascript:void(0);" @click="logout">退出登录</a></DropdownItem>
+        </DropdownMenu>
+      </Dropdown>
     </div>
     <Col span="16" class="mi-meeting">
       <Tabs :value="active" @on-click="changeTab">
@@ -269,6 +274,7 @@
             @on-change="setDate"
             clearable
             :editable="false"
+            style="width: 180px;"
           ></DatePicker>
           <TimePicker
             type="timerange"
@@ -277,7 +283,7 @@
             format="HH:mm"
             @on-change="setTime"
             :editable="false"
-            style="margin-left: 16px;"
+            style="width: 180px;margin-left: 16px;"
           ></TimePicker>
         </FormItem>
         <FormItem prop="address" label="会议地点">
@@ -354,6 +360,23 @@
         <Button type="primary" @click="deleteMeeting">确定</Button>
       </div>
     </Modal>
+    <Modal class-name="mi-modal" title="修改密码" v-model="pwdModal.show" @on-ok="setPassword" footer-hide>
+      <Form :model="pwdModal.validate" :rules="pwdModal.rules" :label-width="120" ref="pwd-form">
+        <FormItem label="旧密码" prop="opwd">
+          <Input v-model="pwdModal.validate.opwd" :max-length="32" type="password" password></Input>
+        </FormItem>
+        <FormItem label="新密码" prop="npwd">
+          <Input v-model="pwdModal.validate.npwd" :max-length="32" type="password" password></Input>
+        </FormItem>
+        <FormItem label="确认新密码" prop="rpwd">
+          <Input v-model="pwdModal.validate.rpwd" :max-length="32" type="password" password></Input>
+        </FormItem>
+        <FormItem style="margin-bottom: 0">
+          <Button @click="setPassword" type="primary">确定</Button>
+          <Button @click="setPwdModal()" style="margin-left: 16px;">取消</Button>
+        </FormItem>
+      </Form>
+    </Modal>
   </Row>
 </template>
 
@@ -380,6 +403,9 @@ import {
   RadioGroup,
   Radio,
   Tooltip,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
 } from 'view-design'
 
 Vue.use(VueClipboard)
@@ -404,6 +430,9 @@ const components = {
   RadioGroup,
   Radio,
   Tooltip,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
 }
 Object.keys(components).forEach((key) => {
   Vue.component(key, components[key])
@@ -438,7 +467,17 @@ const AuthorityMeetingComponent = {
       }
       callback()
     }
+    const validatePassword = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error('请再次确认新密码'))
+      } else if (this.pwdModal.validate.npwd !== value) {
+        callback(new Error('两次密码输入不一致，请重新输入'))
+      } else {
+        callback()
+      }
+    }
     return {
+      user: {},
       sid: null,
       salt: 'LOlKxO0wSRrnxgSA',
       active: 'mine',
@@ -518,6 +557,19 @@ const AuthorityMeetingComponent = {
         people: [{ validator: validatorUsers }],
       },
       firstIn: true,
+      pwdModal: {
+        show: false,
+        validate: {
+          opwd: null,
+          npwd: null,
+          rpwd: null,
+        },
+        rules: {
+          opwd: [{ required: true, message: '请输入旧密码' }],
+          npwd: [{ required: true, message: '请输入新密码' }],
+          rpwd: [{ required: true, validator: validatePassword }],
+        },
+      },
       attend: 1,
       label: (h) => h('div', [
         h('span', '待参加会议'),
@@ -572,6 +624,17 @@ const AuthorityMeetingComponent = {
         }
         this.getMeeting()
       }, 300)
+    },
+    getUser() {
+      this.$api.get('/user-manager/login-user', {}, (res) => {
+        if (res.ret.retCode === '0') {
+          this.user = res.data
+        } else {
+          this.$Message.error(res.ret.retMsg)
+        }
+      }, (err) => {
+        this.$Message.error(err.message)
+      })
     },
     getUsers() {
       this.$api.get(
@@ -823,6 +886,14 @@ const AuthorityMeetingComponent = {
         this.share.link = null
       }
     },
+    setPwdModal() {
+      if (this.user.userId) {
+        this.pwdModal.show = !this.pwdModal.show
+        this.$refs['pwd-form'].resetFields()
+      } else {
+        this.$Message.error('用户信息有误，请刷新后再试')
+      }
+    },
     setDeleteModal(id) {
       this.confirm.modal = !this.confirm.modal
       if (id) this.confirm.id = id
@@ -845,6 +916,35 @@ const AuthorityMeetingComponent = {
       }
       this.model.users = users
       this.model.people.list = users
+    },
+    setPassword() {
+      this.$refs['pwd-form'].validate((valid) => {
+        if (valid) {
+          this.$api.post(`/user-manager/user/${this.user.userId}/password/valid`, {
+            password: this.pwdModal.validate.opwd,
+          }, (res) => {
+            if (res.ret.retCode === '0' && res.data === true) {
+              this.$api.put(`/user-manager/user/${this.user.userId}/password`, {
+                oldPassword: this.pwdModal.validate.opwd,
+                password: this.pwdModal.validate.npwd,
+              }, (response) => {
+                if (response.ret.retCode === '0' && response.data === true) {
+                  this.pwdModal.show = false
+                  this.$Message.success('密码修改成功')
+                } else {
+                  this.$Message.error(response.ret.retMsg)
+                }
+              }, (err) => {
+                this.$Message.error(err.message)
+              })
+            } else {
+              this.$Message.error('旧密码输入有误，请重新输入')
+            }
+          }, (err) => {
+            this.$Message.error(err.message)
+          })
+        }
+      })
     },
     setPagination(type, key, value) {
       this.$set(this.pagination[type], key, value)
@@ -869,6 +969,7 @@ const AuthorityMeetingComponent = {
   },
   mounted() {
     this.$nextTick(() => {
+      this.getUser()
       this.getUsers()
       this.getMeeting()
     })
@@ -896,12 +997,25 @@ export default AuthorityMeetingComponent
   z-index: 1;
   &-user {
     position: absolute;
-    right: 20px;
+    right: 42px;
     top: 10px;
     cursor: pointer;
     .ivu-icon {
       font-size: 40px;
       color: #999;
+    }
+  }
+  .ivu-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 32px;
+    &:first-child {
+      color: #a5a5a5;
+      cursor: not-allowed;
+      &:hover {
+        background: #FFF;
+      }
     }
   }
 }

@@ -21,6 +21,7 @@
                 @on-enter="login"
                 password />
             </FormItem>
+            <span v-html="message" style="position: absolute;bottom: 42px;left: 0;color: #ed4014;" v-if="message"></span>
             <FormItem style="margin-bottom: 8px;">
               <Button
                 type="primary"
@@ -85,9 +86,18 @@ const AuthorityLoginComponent = {
         callback()
       }
     }
+    const checkPassword = (rule, value, callback) => {
+      if (!value) {
+        this.message = null
+        callback(new Error('请输入密码'))
+      } else {
+        callback()
+      }
+    }
     return {
       link: null,
       mid: 0,
+      message: null,
       tourist: false,
       accountForm: {
         validate: {
@@ -96,7 +106,7 @@ const AuthorityLoginComponent = {
         },
         rules: {
           account: [{ required: true, validator: checkAccount }],
-          password: [{ required: true, message: '请输入密码' }],
+          password: [{ required: true, validator: checkPassword }],
         },
       },
       touristForm: {
