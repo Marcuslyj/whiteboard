@@ -146,14 +146,18 @@ export default {
     async render({ from, to }) {
       if (from <= to) {
         if (!this.rendered[from]) {
-          let imgUrl = await getConvertImage({
-            pdf: this.pdf_,
-            pageIndex: from,
-            viewport: this.viewport,
-            type: 'url',
-          })
           this.rendered[from] = 1
-          this.pages[from - 1].img = imgUrl
+          try {
+            let imgUrl = await getConvertImage({
+              pdf: this.pdf_,
+              pageIndex: from,
+              viewport: this.viewport,
+              type: 'url',
+            })
+            this.pages[from - 1].img = imgUrl
+          } catch (error) {
+            this.rendered[from] = null
+          }
         }
         from++
         this.render({ from, to })

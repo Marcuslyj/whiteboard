@@ -194,9 +194,9 @@ export async function getConvertImage({
   // 渲染
   await page.render(renderContext).promise
   const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
-  convertCanvas.rendering = false
   // convertCanvas.destroyChildren()
   convertCanvas.clear()
+  convertCanvas.rendering = false
   return type === 'file' ? blobToFile(base64UrlToBlob(imgUrl))
     : type === 'html'
       ? (new Promise((resolve) => {
@@ -418,7 +418,7 @@ function getRangeToRender({
     to = from + leftCount
     if (!target) target = leftPageHeight < viewport.height * 0.3 ? (from + 1) : from
   }
-
+  target = target || from
   to = Math.min(to, pdf.numPages)
   target = Math.min(target, pdf.numPages)
   return { from, to, target }
@@ -633,8 +633,13 @@ export function enableScroll(enable = true) {
     if (config.speakerPermission) {
     // 滚轮滚动
       stage.on('wheel dragmove', (ev) => {
-        clearTimeout(timerScroll)
+        let { from, to, target } = getRangeToRender({
+          stage, viewport, pdf,
+        })
+        // 通知document-navigator组件
+        Vue.eventBus.$emit('pageScroll', { from, to, target })
 
+        clearTimeout(timerScroll)
         let { type } = ev
         if (type === 'wheel') {
           let { deltaY } = ev.evt
@@ -655,7 +660,6 @@ export function enableScroll(enable = true) {
         timerScroll = setTimeout(() => {
           // 加载页面
           renderPages()
-
           // 触发副屏滚动
           broadcastScroll()
         }, 300)
@@ -718,8 +722,8 @@ export async function renderPages({ ...args }) {
   let { from, to, target } = getRangeToRender({
     ...args, stage, viewport, pdf,
   })
-  // 通知document-navigator组件
-  Vue.eventBus.$emit('pageScroll', { from, to, target })
+  // // 通知document-navigator组件
+  // Vue.eventBus.$emit('pageScroll', { from, to, target })
   await loopRender({ from, to })
 }
 
@@ -742,36 +746,37 @@ async function renderPage({
       from, to,
     })
   } else {
+    pageSigned[from] = true
     let {
       pdf, viewport,
     } = docOpened
     let layer = getLayer()
 
     const y = (from - 1) * viewport.height
-    let img = await getConvertImage({ pdf, pageIndex: from, type: 'html' })
-
-    if (config.mode === 'document') {
-      const imgK = new Konva.Image({
-        x: 0,
-        y,
-        image: img,
-        width: viewport.width,
-        height: viewport.height,
-        // 白底,防止透明背景
-        fill: '#fff',
-        stroke: '#ccc',
-      })
-      layer.add(imgK)
-
-      // 防止已经destroy
-      if (!pageSigned) return
-      pageSigned[from] = true
-
-      layer.draw()
-
-      from++
-      renderPage({ from, to })
+    let img
+    try {
+      img = await getConvertImage({ pdf, pageIndex: from, type: 'html' })
+      if (config.mode === 'document') {
+        const imgK = new Konva.Image({
+          x: 0,
+          y,
+          image: img,
+          width: viewport.width,
+          height: viewport.height,
+          // 白底,防止透明背景
+          fill: '#fff',
+          stroke: '#ccc',
+        })
+        layer.add(imgK)
+        // 防止已经destroy
+        if (!pageSigned) return
+        layer.draw()
+      }
+    } catch (error) {
+      pageSigned[from] = false
     }
+    from++
+    renderPage({ from, to })
   }
   // 显示
   if (first) getElWrapper().classList.remove('invisible')
