@@ -631,7 +631,7 @@ export function enableScroll(enable = true) {
     })
 
     if (config.speakerPermission) {
-    // 滚轮滚动
+      // 滚轮滚动
       stage.on('wheel dragmove', (ev) => {
         let { from, to, target } = getRangeToRender({
           stage, viewport, pdf,
@@ -662,7 +662,7 @@ export function enableScroll(enable = true) {
           renderPages()
           // 触发副屏滚动
           broadcastScroll()
-        }, 300)
+        }, 200)
       })
     }
   } else {
