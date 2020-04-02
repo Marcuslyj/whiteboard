@@ -18,7 +18,7 @@ export function setCustomCursor(stage, key = 'eraser') {
   const circle = new Konva.Circle(props)
   layer.add(circle)
   let mouseCursor = true
-  stage.on('mousemove touchmove', () => {
+  stage.on('mousemove touchmove wheel', () => {
     const de = document.querySelector('#board-container')
     if (mouseCursor) {
       de.style.cursor = 'none'
@@ -74,7 +74,7 @@ export function cancelCustomCursor() {
   if (layer) {
     layer.destroyChildren()
     layer.batchDraw()
-    currentStage.off('mousemove touchmove')
+    currentStage.off('mousemove touchmove wheel')
   }
   const de = document.querySelector('#board-container')
   de && (de.style.cursor = 'default')
