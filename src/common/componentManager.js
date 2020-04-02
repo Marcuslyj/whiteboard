@@ -144,7 +144,8 @@ function renderUpdateComponent(graphic, type) {
   if (node) {
     // 批量设置，新状态缺失的transformed属性没有覆盖到node 旧状态。
     const states = [{ name: 'x', value: 0 }, { name: 'y', value: 0 }, { name: 'rotation', value: 0 }, { name: 'scaleX', value: 1 }, { name: 'scaleY', value: 1 }]
-    let nAttrs = node.getAttrs()
+    // 做一个自己的克隆
+    let nAttrs = { ...node.getAttrs() }
     nAttrs = Object.assign(nAttrs, graphic.attrs)
     states.forEach((e) => {
       if (nAttrs[e.name] && !graphic.attrs[e.name]) {
