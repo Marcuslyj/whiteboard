@@ -2,6 +2,7 @@ import Konva from 'konva'
 import Vue from 'vue'
 import { generateUID, getPoiWithOffset } from '@common/utils'
 import cManager from '../componentManager'
+import { setCustomCursor, cancelCustomCursor } from './customCursor'
 
 let currentStage
 function create(params) {
@@ -45,10 +46,12 @@ function create(params) {
       }
     }
   })
+  setCustomCursor(stage, 'pen')
 }
 
 function destroy() {
   currentStage.off('mousedown touchstart mousemove touchmove mouseup touchend')
+  cancelCustomCursor(currentStage)
 }
 
 export default {
