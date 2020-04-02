@@ -32,7 +32,10 @@ function addComponent(graphic, componentType = 0, type = 'remark') {
     component: JSON.stringify(Object.assign(graphic, { type })),
     componentId: graphic.attrs.id,
   }
-  pushCache({ graphic, opeType: 'addComponent', type })
+  // 封面不需要撤销还原
+  if (type !== 'cover') {
+    pushCache({ graphic, opeType: 'addComponent', type })
+  }
   socketUtil.addComponent(formateComponent(params))
 }
 
@@ -135,12 +138,14 @@ function goAhead() {
 
 // 普通画笔进行界面更新
 function renderUpdateComponent(graphic, type) {
+  console.log('renderUpdateComponent')
   const layer = type === 'remark' ? config.layerManager[config.layerIds.REMARK_LAYER] : config.layerManager[config.layerIds.TEXT_LAYER]
   const node = layer.findOne(`#${graphic.attrs.id}`)
   if (node) {
     // 批量设置，新状态缺失的transformed属性没有覆盖到node 旧状态。
     const states = [{ name: 'x', value: 0 }, { name: 'y', value: 0 }, { name: 'rotation', value: 0 }, { name: 'scaleX', value: 1 }, { name: 'scaleY', value: 1 }]
-    let nAttrs = node.getAttrs()
+    // 做一个自己的克隆
+    let nAttrs = { ...node.getAttrs() }
     nAttrs = Object.assign(nAttrs, graphic.attrs)
     states.forEach((e) => {
       if (nAttrs[e.name] && !graphic.attrs[e.name]) {
@@ -148,6 +153,8 @@ function renderUpdateComponent(graphic, type) {
       }
     })
     node.clearCache()
+    // 有个大bug ，文本文字更新不了(值更新而界面不更新)
+    node.setAttrs(nAttrs)
     layer.draw()
     node.className === 'Arrow' ? node.cache({ offset: 5 }) : node.cache()
   }

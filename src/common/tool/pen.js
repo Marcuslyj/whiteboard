@@ -54,19 +54,12 @@ function create(params) {
         layer.draw()
       }
       // 性能优化
-      // line.cache()
+      line.cache()
       cManager.addComponent(JSON.parse(line.toJSON()))
       line = null
     }
   })
-
-  setCustomCursor(stage, {
-    x: -1,
-    y: -1,
-    radius: 2,
-    stroke: '#ffffff',
-    strokeWidth: 2,
-  }, 'icon-gangbi', 'pencil')
+  setCustomCursor(stage, 'pen')
 }
 
 function destroy() {
