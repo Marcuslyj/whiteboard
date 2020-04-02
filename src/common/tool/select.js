@@ -151,9 +151,9 @@ function changeColor(color) {
   } else if (opeTarget.className === 'Circle') {
     opeTarget.fill(color)
   }
-  // opeTarget.clearCache()
+  opeTarget.clearCache()
   currentLayer.draw()
-  // cache(opeTarget)
+  cache(opeTarget)
 }
 
 function changeFontsize(size) {

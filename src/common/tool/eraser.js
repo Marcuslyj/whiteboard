@@ -10,13 +10,7 @@ function create(params) {
   currentStage = stage
   let isDrawing = false
   let line
-  setCustomCursor(stage, {
-    x: -1,
-    y: -1,
-    radius: 2,
-    stroke: '#ffffff',
-    strokeWidth: 2,
-  })
+  setCustomCursor(stage)
   stage.on('mousedown touchstart', () => {
     isDrawing = true
     const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
