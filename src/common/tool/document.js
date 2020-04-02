@@ -132,6 +132,7 @@ export function destroy({ all = false } = {}) {
     // 记录待更新页码
     Vue.eventBus.$off('updatePostil')
     Vue.eventBus.$off('savePostil')
+    Vue.eventBus.$off('goPage')
     postilErrorCount = 0
     shouldSavePostil = false
     postilSaving = false
@@ -361,7 +362,6 @@ export async function open() {
   cachePostils(stage, viewport, pdf)
   Vue.eventBus.$on('savePostil', () => {
     if (!docOpened.viewport) { return }
-    console.log('save')
     // debugger
     if (postilSaving) {
       Vue.prototype.$Message.success('正在保存')
@@ -378,6 +378,17 @@ export async function open() {
 
   // 定时检查待更新批注页
   watchPostil.watch()
+  // 事件监听
+  Vue.eventBus.$on('goPage', (pageNum) => {
+    if (docOpened && config.mode === 'document') {
+      stage.setAttrs({
+        y: -(pageNum - 1) * viewport.height,
+      })
+      renderPages()
+      broadcastScroll()
+    }
+  })
+
   // 返回pdfjs对象
   return pdf
 }
