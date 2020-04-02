@@ -174,6 +174,7 @@ export default {
       }
     }),
     goPage(pageNum) {
+      this.activeIndex = pageNum - 1
       Vue.eventBus.$emit('goPage', pageNum)
     },
   },
