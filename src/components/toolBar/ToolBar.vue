@@ -70,7 +70,7 @@ Description
             </div>
             <div class="width-control row">
               <div class="width-level">{{ $globalConf.pencil.lineWidth }}</div>
-              <div
+              <!-- <div
                 v-for="(item, index) in widthArr"
                 :key="index"
                 :class="{
@@ -88,6 +88,9 @@ Description
                     backgroundColor: `${$globalConf.pencil.color}`
                   }"
                 ></span>
+              </div> -->
+              <div class="slider" @click.stop.prevent="()=>{}">
+               <Slider :min="8" :max="28" :value="$globalConf.pencil.lineWidth" @on-change="changePencilWidth" ></Slider>
               </div>
             </div>
           </div>
@@ -116,7 +119,7 @@ Description
             </div>
             <div class="row width-control">
               <div class="width-level">{{ $globalConf.eraser.lineWidth }}</div>
-              <div
+              <!-- <div
                 v-for="(item, index) in widthArr"
                 :key="index"
                 :class="{
@@ -133,6 +136,9 @@ Description
                     'border-radius': `${item.width / 2}vw`
                   }"
                 ></span>
+              </div> -->
+               <div class="slider" @click.stop.prevent="()=>{}">
+                <Slider :min="8" :max="28" :value="$globalConf.eraser.lineWidth" @on-change="changeEraserWidth" ></Slider>
               </div>
             </div>
           </div>
@@ -178,7 +184,7 @@ Description
                   <div class="nodata-tip" v-if="files.length===0">暂无文档</div>
                   <div class="file-list" v-else>
                      <div class="file-item" v-for="(file,index) in files" :key="index" @click.stop.prevent="openFile(file)">
-                       <span class="title">{{file.documentName}}</span>
+                       <span class="title" :title="file.documentName">{{file.documentName}}</span>
                        <div class="btns">
                         <Icon class="download" type="md-download" @click.stop.prevent="downloadFile(file)" v-if="$globalConf.downloadPermission"/>
                         <span class="split-line" v-if="$globalConf.downloadPermission&&$globalConf.owner"></span>

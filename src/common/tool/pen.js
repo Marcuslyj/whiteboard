@@ -65,7 +65,7 @@ function create(params) {
 function destroy() {
   if (!currentStage) return
   currentStage.off('mousedown touchstart mousemove touchmove mouseup touchend')
-  cancelCustomCursor(currentStage)
+  cancelCustomCursor()
 }
 
 export default {
