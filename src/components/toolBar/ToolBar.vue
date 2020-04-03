@@ -70,7 +70,7 @@ Description
             </div>
             <div class="width-control row">
               <div class="width-level">{{ $globalConf.pencil.lineWidth }}</div>
-              <div
+              <!-- <div
                 v-for="(item, index) in widthArr"
                 :key="index"
                 :class="{
@@ -88,6 +88,9 @@ Description
                     backgroundColor: `${$globalConf.pencil.color}`
                   }"
                 ></span>
+              </div> -->
+              <div class="slider" @click.stop.prevent="()=>{}">
+               <Slider :min="4" :max="32" :value="$globalConf.pencil.lineWidth" @on-change="changePencilWidth" ></Slider>
               </div>
             </div>
           </div>
@@ -116,7 +119,7 @@ Description
             </div>
             <div class="row width-control">
               <div class="width-level">{{ $globalConf.eraser.lineWidth }}</div>
-              <div
+              <!-- <div
                 v-for="(item, index) in widthArr"
                 :key="index"
                 :class="{
@@ -133,6 +136,9 @@ Description
                     'border-radius': `${item.width / 2}vw`
                   }"
                 ></span>
+              </div> -->
+               <div class="slider" @click.stop.prevent="()=>{}">
+                <Slider :min="4" :max="32" :value="$globalConf.eraser.lineWidth" @on-change="changeEraserWidth" ></Slider>
               </div>
             </div>
           </div>
