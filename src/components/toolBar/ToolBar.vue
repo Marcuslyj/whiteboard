@@ -485,15 +485,19 @@ export default {
     },
     // 删除文档
     deleteFile({ documentId, documentName = '-' }) {
-      this.$confirm(`确定删除文档[${documentName}]?不可撤销!`, () => {
-        let socket = getSocket()
-        // 删除文档
-        socket.emit(socketEvent.deleteDocument, {
-          meetingId: this.$globalConf.meetingId,
-          whiteboardId: this.$globalConf.whiteboardId,
-          documentId,
+      if (this.$globalConf.mode === 'document' && this.$globalConf.documentId === documentId) {
+        this.$error(`文档[${documentName}]打开中，请关闭再删除！`)
+      } else {
+        this.$confirm(`确定删除文档[${documentName}]?不可撤销!`, () => {
+          let socket = getSocket()
+          // 删除文档
+          socket.emit(socketEvent.deleteDocument, {
+            meetingId: this.$globalConf.meetingId,
+            whiteboardId: this.$globalConf.whiteboardId,
+            documentId,
+          })
         })
-      })
+      }
     },
     // 获取文档
     getDocumentList() {
