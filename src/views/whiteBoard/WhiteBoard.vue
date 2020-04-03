@@ -308,9 +308,9 @@ export default {
               duration: 0,
             }))
             const pdf = await loadPdf({ url: result.data.url })
-            if (this.Msgloading.length) this.Msgloading.pop()()
             // 添加封面组件
             await addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId, componentId })
+            if (this.Msgloading.length) this.Msgloading.pop()()
             // 更新文档列表
             this.$refs['tool-bar'].getDocumentList()
             // 通知副屏更新文档列表
