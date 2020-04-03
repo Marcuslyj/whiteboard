@@ -308,7 +308,6 @@ export default {
               duration: 0,
             }))
             const pdf = await loadPdf({ url: result.data.url })
-            if (this.Msgloading.length) this.Msgloading.pop()()
             // 添加封面组件
             await addCover(pdf, { documentPath: result.data.url, documentId: result.data.documentId, componentId })
             // 更新文档列表
@@ -323,6 +322,7 @@ export default {
           } else {
             this.$error(result.ret.retMsg)
           }
+          if (this.Msgloading.length) this.Msgloading.pop()()
         } finally {
           this.$root.showMask(false)
         }
