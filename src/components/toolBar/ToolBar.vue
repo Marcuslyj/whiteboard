@@ -90,7 +90,7 @@ Description
                 ></span>
               </div> -->
               <div class="slider" @click.stop.prevent="()=>{}">
-               <Slider :min="4" :max="32" :value="$globalConf.pencil.lineWidth" @on-change="changePencilWidth" ></Slider>
+               <Slider :min="8" :max="28" :value="$globalConf.pencil.lineWidth" @on-change="changePencilWidth" ></Slider>
               </div>
             </div>
           </div>
@@ -138,7 +138,7 @@ Description
                 ></span>
               </div> -->
                <div class="slider" @click.stop.prevent="()=>{}">
-                <Slider :min="4" :max="32" :value="$globalConf.eraser.lineWidth" @on-change="changeEraserWidth" ></Slider>
+                <Slider :min="8" :max="28" :value="$globalConf.eraser.lineWidth" @on-change="changeEraserWidth" ></Slider>
               </div>
             </div>
           </div>
@@ -184,7 +184,7 @@ Description
                   <div class="nodata-tip" v-if="files.length===0">暂无文档</div>
                   <div class="file-list" v-else>
                      <div class="file-item" v-for="(file,index) in files" :key="index" @click.stop.prevent="openFile(file)">
-                       <span class="title">{{file.documentName}}</span>
+                       <span class="title" :title="file.documentName">{{file.documentName}}</span>
                        <div class="btns">
                         <Icon class="download" type="md-download" @click.stop.prevent="downloadFile(file)" v-if="$globalConf.downloadPermission"/>
                         <span class="split-line" v-if="$globalConf.downloadPermission&&$globalConf.owner"></span>

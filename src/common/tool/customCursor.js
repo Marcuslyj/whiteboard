@@ -1,6 +1,6 @@
 import Konva from 'konva'
 import config from '@common/config'
-import { getPoiWithOffset, setStyle } from '@common/utils'
+import { getPoiWithOffset } from '@common/utils'
 
 let currentStage
 // let cursor
@@ -18,7 +18,7 @@ export function setCustomCursor(stage, key = 'eraser') {
   const circle = new Konva.Circle(props)
   layer.add(circle)
   let mouseCursor = true
-  stage.on('mousemove touchmove wheel', () => {
+  stage.on('mousemove.cursor touchmove.cursor wheel.cursor', () => {
     const de = document.querySelector('#board-container')
     if (mouseCursor) {
       de.style.cursor = 'none'
@@ -33,9 +33,9 @@ export function setCustomCursor(stage, key = 'eraser') {
     } else {
       circle.fill(config[newkey].color)
       circle.stroke(config[newkey].color)
-      // 箭头增加透明度
-      if (key === 'arrow') {
-        circle.opactiy(0.5)
+      // 马克笔增加透明度
+      if (key === 'markPencil') {
+        circle.opacity(0.5)
       }
     }
     circle.radius(config[newkey].lineWidth / 2)
@@ -74,7 +74,7 @@ export function cancelCustomCursor() {
   if (layer) {
     layer.destroyChildren()
     layer.batchDraw()
-    currentStage.off('mousemove touchmove wheel')
+    currentStage.off('mousemove.cursor touchmove.cursor wheel.cursor')
   }
   const de = document.querySelector('#board-container')
   de && (de.style.cursor = 'default')

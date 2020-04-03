@@ -46,12 +46,12 @@ function create(params) {
       }
     }
   })
-  setCustomCursor(stage, 'pen')
+  setCustomCursor(stage, 'arrow')
 }
 
 function destroy() {
   currentStage.off('mousedown touchstart mousemove touchmove mouseup touchend')
-  cancelCustomCursor(currentStage)
+  cancelCustomCursor()
 }
 
 export default {
