@@ -134,6 +134,7 @@ export default {
                   this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
                 }, 300)
               }
+              this.$Message.success('授权变更成功！')
             }
           })
         } else {
@@ -152,6 +153,7 @@ export default {
                   this.auth(this.$globalConf.user, { k: 'speakerPermission', v: true })
                 }
               }
+              this.$Message.success('授权变更成功！')
             }
           })
         }
@@ -205,22 +207,39 @@ export default {
     },
     // 踢人
     kick(user) {
-      let { meetingId } = this.$globalConf
-      getSocket().emit(socketEvent.kickingSession, {
-        meetingId,
-        kickingSessionId: user.sessionId,
+      this.$confirm(`确定踢除[${user.realName}]？`, () => {
+        let { meetingId } = this.$globalConf
+        getSocket().emit(socketEvent.kickingSession, {
+          meetingId,
+          kickingSessionId: user.sessionId,
+        })
+        this.cur_user = {}
       })
-      this.cur_user = {}
     },
     // 授权
     auth(user, { k, v }) {
-      getSocket().emit(socketEvent.authPermission, {
-        meetingId: this.$globalConf.meetingId,
-        permissionSessionId: user.sessionId,
-        permissionUserId: user.userId,
-        permissionRealName: user.realName,
-        [k]: v,
-      })
+      let tips = {
+        speakerPermission: {
+          true: `确定授权[${user.realName}]主讲权限？`,
+          false: `确定取消[${user.realName}]主讲权限？`,
+        },
+        downloadPermission: {
+          true: `确定授权[${user.realName}]下载权限？`,
+          false: `确定取消[${user.realName}]下载权限？`,
+        },
+      }
+      let tip = tips[k][v]
+      if (tip) {
+        this.$confirm(tip, () => {
+          getSocket().emit(socketEvent.authPermission, {
+            meetingId: this.$globalConf.meetingId,
+            permissionSessionId: user.sessionId,
+            permissionUserId: user.userId,
+            permissionRealName: user.realName,
+            [k]: v,
+          })
+        })
+      }
     },
   },
 }
