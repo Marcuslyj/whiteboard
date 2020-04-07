@@ -126,7 +126,6 @@ export default {
           id: layerId,
         })
         this.$globalConf.layerManager[layerId] = layer
-        this.$globalConf.layerManager.BG_LAYER.listening(false)
         this.stage.add(layer)
       })
       initTool()
