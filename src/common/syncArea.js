@@ -71,7 +71,7 @@ function addStageXY() {
       stageXY: { x: 0, y: 0 },
     }),
   }
-  config.stageXy = { x: 0, y: 0 }
+  config.stageXY = { x: 0, y: 0 }
   socketUtil.addComponent(formateComponent(params))
 }
 
@@ -86,7 +86,7 @@ function updateStageXY(obj) {
       stageXY: obj,
     }),
   }
-  config.stageXy = obj
+  config.stageXY = obj
   if (isEmpty(obj.x) || isEmpty(obj.y)) {
     // alert('警告！产生了异常偏移值，会导致应用异常！')
   }
