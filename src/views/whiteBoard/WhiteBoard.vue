@@ -544,7 +544,6 @@ export default {
         // 取出指定的board(whiteboardId+documentId)
         let { syncAction } = res
         syncAction = this.$globalConf.syncAction = !isEmpty(syncAction) ? JSON.parse(syncAction) : {}
-
         if (!isEmpty(syncAction.whiteboardId)) {
           const { whiteboardId, documentId, documentPath } = this.$globalConf.syncAction = JSON.parse(res.syncAction)
           this.$globalConf.mode = documentId == null ? 'board' : 'document'
@@ -661,7 +660,6 @@ export default {
       let { component } = res
       component = JSON.parse(component)
       let shape
-      const bgLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.BG_LAYER]
       const textLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.TEXT_LAYER]
       const remarkLayer = this.$globalConf.layerManager[this.$globalConf.layerIds.REMARK_LAYER]
       if (component.type === 'remark') {
@@ -676,10 +674,6 @@ export default {
         // shape.cache()
       } else if (component.type === 'cover') {
         shape = addCoverImage(component.attrs)
-      } else {
-        shape = new Konva.Image(component.attrs)
-        bgLayer.add(shape)
-        bgLayer.batchDraw()
       }
     },
     // 收到更新组件状态信息
@@ -700,7 +694,7 @@ export default {
         if (!bgLayer.findOne('Image')) {
           syncArea.updateBaseWidth('')
           this.$globalConf.hasValidComponent = false
-          syncArea.setScale()
+          syncArea.setLayerScale()
         }
         // 清掉缓存队列
         cManager.clearCache()
@@ -755,6 +749,7 @@ export default {
       this.tempLayer.batchDraw()
       const link = document.createElement('a')
       link.href = this.$globalConf.board.toDataURL()
+      console.log(this.$globalConf.stageXY.x)
       link.download = true
       document.body.appendChild(link)
       link.click()

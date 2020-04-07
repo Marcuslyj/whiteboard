@@ -35,7 +35,7 @@ export const getPoiWithOffset = (poi, stage) => {
   let scale = isEmpty(config.scale) ? 1 : config.scale
   if (isEmpty(aPoi.x) || isEmpty(poi.x) || isEmpty(poi.y) || isEmpty(aPoi.y)) {
     console.log('坐标异常值，此时同步参数：')
-    console.log(`scale:${config.scale},stage:${config.stageXy.x} ${config.stageXy.y},speakerSize:${config.speakerSize.width}`)
+    console.log(`scale:${config.scale},stage:${config.stageXY.x} ${config.stageXY.y},speakerSize:${config.speakerSize.width}`)
   }
   return {
     x: (poi.x - aPoi.x) / scale,
