@@ -1,6 +1,9 @@
 <template>
   <div class="wrapper" v-if="showBoard">
         <div class="toolbar-right">
+          <span @click="goHome">
+            <i class="iconfont icon-zhuye"></i>
+          </span>
           <span v-if="$globalConf.mode==='document' && $globalConf.speakerPermission" @click="savePostil">
             <i class="iconfont icon-save"></i>
           </span>
@@ -84,6 +87,9 @@ export default {
     })
   },
   methods: {
+    goHome() {
+      this.$router.push({ name: 'meeting' })
+    },
     handleFullscreen() {
       this.$globalConf.isFullscreen = !this.$globalConf.isFullscreen
       if (this.$globalConf.isFullscreen) {
