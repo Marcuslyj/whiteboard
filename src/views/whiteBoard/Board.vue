@@ -1,5 +1,13 @@
 <template>
   <div class="wrapper" v-if="showBoard">
+        <div class="toolbar-right">
+          <span v-if="$globalConf.mode==='document' && $globalConf.speakerPermission" @click="savePostil">
+            <i class="iconfont icon-save"></i>
+          </span>
+          <span @click="handleFullscreen">
+            <i class="iconfont" :class="[`icon-${$globalConf.isFullscreen ? 'normalscreen' : 'fullscreen'}`]"></i>
+          </span>
+        </div>
         <whiteboard v-if="$globalConf.toggleRouter" key='0' ref="board1"></whiteboard>
         <whiteboard v-if="!$globalConf.toggleRouter" key='1' ref="board2"></whiteboard>
   </div>
@@ -8,8 +16,10 @@
 <script>
 import { destroySocket } from '@common/socketUtil'
 import Vue from 'vue'
-import { formateUrl } from '@common/utils'
 import { api } from '@common/common'
+import {
+  formateUrl, fullscreen, exitFullscreen,
+} from '@common/utils'
 import whiteboard from './WhiteBoard'
 
 export default {
@@ -18,6 +28,7 @@ export default {
   data() {
     return {
       showBoard: false,
+      timerSavePostil: null,
     }
   },
   beforeDestroy() {
@@ -72,11 +83,50 @@ export default {
       }, 600)
     })
   },
+  methods: {
+    handleFullscreen() {
+      this.$globalConf.isFullscreen = !this.$globalConf.isFullscreen
+      if (this.$globalConf.isFullscreen) {
+        fullscreen()
+      } else {
+        exitFullscreen()
+      }
+    },
+    // 同步批注
+    savePostil() {
+      clearTimeout(this.timerSavePostil)
+      this.timerSavePostil = setTimeout(() => {
+        Vue.eventBus.$emit('savePostil')
+      }, 500)
+    },
+  },
 }
 </script>
 
 <style lang="scss" scoped>
 .wrapper {
     height: 100%;
+    position: relative;
+    .toolbar-right{
+      background: #f0f0f0;
+      position:absolute;
+      z-index: 20;
+      right: 20px;
+      top: 20px;
+      &>span{
+        display: block;
+        line-height: 2.4vw;
+        text-align: center;
+        width: 2.4vw;
+        height: 2.4vw;
+        cursor: pointer;
+        &:hover{
+          background: #D6D6D6;
+        }
+        .iconfont{
+          font-size: 1.4vw;
+        }
+      }
+    }
 }
 </style>
