@@ -12,10 +12,10 @@ Description
         <ul class="leage-one">
           <li
             v-for="user in users"
-            :key="user.userId"
+            :key="user.sessionId"
             @mouseenter="handleMouseenter($event, user)"
             @mouseleave="handleMouseleave()"
-            :class="{'active':cur_user.userId===user.userId}"
+            :class="{'active':cur_user.sessionId===user.sessionId}"
           >
             <span class="icon"
               ><i :class="['iconfont', getRoleIcon(user)]"></i
