@@ -88,7 +88,13 @@ export default {
   },
   methods: {
     goHome() {
-      this.$router.push({ name: 'meeting' })
+      if (this.$globalConf.user.visitor) {
+        this.delCookie('sid', '.tvflnet.com')
+        this.delCookie('visitor', '.tvflnet.com')
+        this.$router.push(`/auth/login/${this.$globalConf.meetingId}/${window.btoa(window.location.href)}`)
+      } else {
+        this.$router.push({ name: 'meeting' })
+      }
     },
     handleFullscreen() {
       this.$globalConf.isFullscreen = !this.$globalConf.isFullscreen
