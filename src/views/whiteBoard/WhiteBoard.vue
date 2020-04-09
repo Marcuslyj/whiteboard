@@ -147,7 +147,7 @@ export default {
       clearTimeout(this.timerRefresh)
       this.timerRefresh = setTimeout(() => {
         this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 600)
+      }, 200)
     },
     // 更新stage
     updateStageInfo() {
