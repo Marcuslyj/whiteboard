@@ -83,7 +83,7 @@ export default {
           let board = this.$refs.board1 || this.$refs.board2
           board && board.onRefresh()
         })
-      }, 100)
+      }, 120)
     })
   },
   methods: {

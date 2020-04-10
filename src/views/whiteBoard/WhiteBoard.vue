@@ -144,10 +144,10 @@ export default {
     // 接受刷新广播
     onRefresh() {
       this.$globalConf.resizeFlag = true
-      clearTimeout(this.timerRefresh)
-      this.timerRefresh = setTimeout(() => {
-        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 200)
+      // clearTimeout(this.timerRefresh)
+      // this.timerRefresh = setTimeout(() => {
+      this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+      // }, 200)
     },
     // 更新stage
     updateStageInfo() {

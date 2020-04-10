@@ -20,7 +20,7 @@ export default {
     this.$root.showMask = this.showMask.bind(this)
   },
   mounted() {
-    window.onresize = throttle(300, () => {
+    window.onresize = throttle(100, () => {
       Vue.eventBus.$emit('resize')
     })
   },
