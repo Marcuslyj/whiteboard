@@ -39,7 +39,7 @@ Description
             </template>
             <!-- <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li> -->
             <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !(cur_user.speakerPermission||cur_user.owner)" @click="kick(cur_user)">踢出会议</li>
-            <li v-if="!$globalConf.user.owner && $globalConf.user.userId == cur_user.userId && !cur_user.visitor && !cur_user.speaker_permission" @click="applyAuth(cur_user,{k:'speakerPermission'})">申请主讲人</li>
+            <li v-if="!$globalConf.user.owner && $globalConf.user.userId === cur_user.userId && !cur_user.visitor && !cur_user.speakerPermission" @click="applyAuth(cur_user,{k:'speakerPermission'})">申请主讲人</li>
           </ul>
         </section>
       </div>
