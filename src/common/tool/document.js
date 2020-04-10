@@ -85,20 +85,23 @@ export async function init(documentId, documentPath) {
   // 载入文档
   let pdf = await open()
 
+  if (pdf) {
   // 监听工具变化设置是否可拖动
-  wacherDrag = Vue.eventBus.$watch(
-    function () {
-      return config.activeTool
-    },
-    function () {
-      if (stage) {
-        stage.setAttrs({
+    wacherDrag = Vue.eventBus.$watch(
+      function () {
+        return config.activeTool
+      },
+      function () {
+        if (stage) {
+          stage.setAttrs({
           // 可拖动：是主讲且工具是'pan'
-          draggable: config.activeTool === toolCanDrag && config.speakerPermission,
-        })
-      }
-    },
-  )
+            draggable: config.activeTool === toolCanDrag && config.speakerPermission,
+          })
+        }
+      },
+    )
+  }
+
 
   return pdf
 }
@@ -340,57 +343,63 @@ export function openDocument({ documentId, documentPath }) {
  * 打开文档
  */
 export async function open() {
-  let documentPath = getDocumentPath()
-  let stage = getStage()
+  let result
+  try {
+    let documentPath = getDocumentPath()
+    let stage = getStage()
 
-  // 参数暂时是文档地址
-  let pdf = await loadPdf({
-    url: documentPath,
-  })
-  docOpened.pdf = pdf
-  let viewport = await getViewport()
-  docOpened.viewport = viewport
+    // 参数暂时是文档地址
+    let pdf = await loadPdf({
+      url: documentPath,
+    })
+    docOpened.pdf = pdf
+    let viewport = await getViewport()
+    docOpened.viewport = viewport
 
-  enableScroll()
+    enableScroll()
 
-  // 加载文档
-  pageSigned = {}
-  // 渲染页面
-  renderPages()
+    // 加载文档
+    pageSigned = {}
+    // 渲染页面
+    renderPages()
 
-  // 记录待更新页码
-  cachePostils(stage, viewport, pdf)
-  Vue.eventBus.$on('savePostil', () => {
-    if (!docOpened.viewport) { return }
-    if (postilSaving) {
-      Vue.prototype.$Message.success('正在保存')
-      shouldSavePostil = true
-    } else if (!unObs.postilsToUpdate.size) {
-      // alert
-      Vue.prototype.$Message.success('保存成功')
-    } else {
-      Vue.prototype.$Message.success('正在保存')
-      shouldSavePostil = true
-      flushPostils(true)
-    }
-  })
+    // 记录待更新页码
+    cachePostils(stage, viewport, pdf)
+    Vue.eventBus.$on('savePostil', () => {
+      if (!docOpened.viewport) { return }
+      if (postilSaving) {
+        Vue.prototype.$Message.success('正在保存')
+        shouldSavePostil = true
+      } else if (!unObs.postilsToUpdate.size) {
+        // alert
+        Vue.prototype.$Message.success('保存成功')
+      } else {
+        Vue.prototype.$Message.success('正在保存')
+        shouldSavePostil = true
+        flushPostils(true)
+      }
+    })
 
-  // 定时检查待更新批注页
-  watchPostil.watch()
-  // 事件监听
-  Vue.eventBus.$on('goPage', (pageNum) => {
-    if (docOpened && config.mode === 'document') {
-      stage.setAttrs({
-        y: -(pageNum - 1) * viewport.height,
-      })
-      stage.draw()
-      renderPages()
-      broadcastScroll()
-    }
-  })
+    // 定时检查待更新批注页
+    watchPostil.watch()
+    // 事件监听
+    Vue.eventBus.$on('goPage', (pageNum) => {
+      if (docOpened && config.mode === 'document') {
+        stage.setAttrs({
+          y: -(pageNum - 1) * viewport.height,
+        })
+        stage.draw()
+        renderPages()
+        broadcastScroll()
+      }
+    })
 
-  // 返回pdfjs对象
-  return pdf
+    // 返回pdfjs对象
+    result = pdf
+  } catch (error) {
+    result = null
+  }
+  return result
 }
 
 // 获取可视区中涉及页面
