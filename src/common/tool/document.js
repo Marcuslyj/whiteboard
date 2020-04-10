@@ -156,10 +156,8 @@ export function destroy({ all = false } = {}) {
  */
 export async function loadPdf({ url, documentId }) {
   let pdf
-  console.log(config.resizeFlag, docOpened)
   if (config.resizeFlag && docOpened && docOpened.pdf) {
     pdf = docOpened.pdf
-    console.log('旧的++++++++++++++++++++++++++')
   } else if (url) {
     if (process.env.NODE_ENV === 'development' && url.indexOf(fileService) !== 0) {
       url = `${fileService}${url}`
