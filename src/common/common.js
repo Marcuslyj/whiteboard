@@ -66,6 +66,11 @@ export const socketEvent = {
    * 授权
    */
   authPermission: 'auth-permission-session',
+  /**
+   * 申请授权
+   */
+  applyAuth: 'apply-permission-session',
+  authReply: 'reply-permission-session',
 }
 
 /**
