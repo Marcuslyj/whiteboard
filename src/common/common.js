@@ -78,6 +78,11 @@ export const socketEvent = {
    * 保存空白板可视范围内图片
    */
   reportWhiteboardAction: 'report-whiteboard-action',
+  /**
+    * 申请授权
+   */
+  applyAuth: 'apply-permission-session',
+  authReply: 'reply-permission-session',
 }
 
 /**

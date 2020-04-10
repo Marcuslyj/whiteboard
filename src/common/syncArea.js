@@ -18,13 +18,9 @@ function setLayerScale() {
     layer.draw()
   })
   // 首页背景层做缩放
-  if (config.mode === 'board') {
-    bgLayer.scale({
-      x: config.scale,
-      y: config.scale,
-    })
-    bgLayer.draw()
-  }
+  let bgScale = config.mode === 'board' ? { x: config.scale, y: config.scale } : { x: 1, y: 1 }
+  bgLayer.scale(bgScale)
+  bgLayer.draw()
 }
 
 function setStageXY() {

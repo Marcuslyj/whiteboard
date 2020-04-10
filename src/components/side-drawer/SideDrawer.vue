@@ -12,10 +12,10 @@ Description
         <ul class="leage-one">
           <li
             v-for="user in users"
-            :key="user.userId"
+            :key="user.sessionId"
             @mouseenter="handleMouseenter($event, user)"
             @mouseleave="handleMouseleave()"
-            :class="{'active':cur_user.userId===user.userId}"
+            :class="{'active':cur_user.sessionId===user.sessionId}"
           >
             <span class="icon"
               ><i :class="['iconfont', getRoleIcon(user)]"></i
@@ -28,8 +28,8 @@ Description
           <ul>
             <template v-if="$globalConf.user.owner && !cur_user.visitor">
               <!-- <template v-if="!cur_user.visitor"> -->
-                <li v-if="!cur_user.speakerPermission" @click="auth(cur_user,{k:'speakerPermission',v:true})">设为演示者</li>
-                <li v-else-if="!cur_user.owner" @click="auth(cur_user,{k:'speakerPermission',v:false})">取消演示者</li>
+                <li v-if="!cur_user.speakerPermission" @click="auth(cur_user,{k:'speakerPermission',v:true})">设为主讲人</li>
+                <li v-else-if="!cur_user.owner" @click="auth(cur_user,{k:'speakerPermission',v:false})">取消主讲人</li>
               <!-- </template> -->
 
               <template v-if="!cur_user.owner">
@@ -39,6 +39,7 @@ Description
             </template>
             <!-- <li v-if="$globalConf.user.owner && cur_user.owner" @click="closeMeeting">关闭会议</li> -->
             <li v-if="($globalConf.user.owner||$globalConf.user.speakerPermission) && !(cur_user.speakerPermission||cur_user.owner)" @click="kick(cur_user)">踢出会议</li>
+            <li v-if="!$globalConf.user.owner && $globalConf.user.userId === cur_user.userId && !cur_user.visitor && !cur_user.speakerPermission" @click="applyAuth(cur_user,{k:'speakerPermission'})">申请主讲人</li>
           </ul>
         </section>
       </div>
@@ -158,6 +159,41 @@ export default {
           })
         }
       })
+      // 监听授权请求
+      this.socketOn(socketEvent.applyAuth, (params) => {
+        if (!this.$globalConf.owner) return
+        let tip
+        if (params.speakerPermission) {
+          tip = `同意[${params.applyRealName}]申请成为主讲人？`
+          this.$confirm(tip,
+            () => {
+              console.log(params)
+              let user = this.users.filter((u) => u.sessionId === params.applySessionId)
+              if (user.length) user[0].speakerPermission = true
+              this.auth({
+                sessionId: params.applySessionId,
+                userId: params.userId,
+                realName: params.realName,
+              }, { k: 'speakerPermission', v: true, confirm: false })
+            // this.$Message.success('授权成功！')
+            },
+            () => {
+              // 拒绝
+              getSocket().emit(socketEvent.authReply, {
+                meetingId: this.$globalConf.meetingId,
+                applySessionId: params.applySessionId,
+                applyUserId: params.userId,
+                speakerPermission: false,
+              })
+            })
+        }
+      })
+      // 监听授权请求反馈
+      this.socketOn(socketEvent.authReply, (params) => {
+        if (params.applySessionId === this.$globalConf.user.sessionId && !params.speakerPermission) {
+          this.$error('主讲人申请被拒绝！')
+        }
+      })
     },
     socketOn(event, cb) {
       let socket = getSocket()
@@ -217,26 +253,49 @@ export default {
       })
     },
     // 授权
-    auth(user, { k, v }) {
-      let tips = {
-        speakerPermission: {
-          true: `确定授权[${user.realName}]主讲权限？`,
-          false: `确定取消[${user.realName}]主讲权限？`,
-        },
-        downloadPermission: {
-          true: `确定授权[${user.realName}]下载权限？`,
-          false: `确定取消[${user.realName}]下载权限？`,
-        },
+    auth(user, { k, v, confirm = true }) {
+      const emit = () => {
+        getSocket().emit(socketEvent.authPermission, {
+          meetingId: this.$globalConf.meetingId,
+          permissionSessionId: user.sessionId,
+          permissionUserId: user.userId,
+          permissionRealName: user.realName,
+          [k]: v,
+        })
       }
-      let tip = tips[k][v]
+      if (confirm) {
+        let tips = {
+          speakerPermission: {
+            true: `确定授权[${user.realName}]主讲权限？`,
+            false: `确定取消[${user.realName}]主讲权限？`,
+          },
+          downloadPermission: {
+            true: `确定授权[${user.realName}]下载权限？`,
+            false: `确定取消[${user.realName}]下载权限？`,
+          },
+        }
+        let tip = tips[k][v]
+        if (tip) {
+          this.$confirm(tip, () => {
+            emit()
+          })
+        }
+      } else {
+        emit()
+      }
+    },
+    applyAuth(user, { k }) {
+      let tips = {
+        speakerPermission: '确定申请授权主讲权限？',
+      }
+      let tip = tips[k]
       if (tip) {
         this.$confirm(tip, () => {
-          getSocket().emit(socketEvent.authPermission, {
+          getSocket().emit(socketEvent.applyAuth, {
             meetingId: this.$globalConf.meetingId,
-            permissionSessionId: user.sessionId,
-            permissionUserId: user.userId,
-            permissionRealName: user.realName,
-            [k]: v,
+            userId: user.userId,
+            realName: user.realName,
+            [k]: true,
           })
         })
       }

@@ -8,7 +8,6 @@ Description
   <div class="board-page">
     <section class="board-container-wrapper">
       <document-navigator v-if="$globalConf.mode === 'document'" :pdf="pdf" class="document-navigator"></document-navigator>
-    <div class="postilSave" v-if="$globalConf.mode==='document' && $globalConf.speakerPermission" @click="savePostil"><i class="iconfont icon-save"></i></div>
     <div id="board-container"
       ref="board-container">
     </div>
@@ -104,7 +103,6 @@ export default {
       },
       tempLayer: null,
       convertCanvas: [],
-      timerSavePostil: null,
       showSideDrawer: false,
       // pdfjs对象，传给documentNavigator
       pdf: null,
@@ -211,10 +209,10 @@ export default {
     // 接受刷新广播
     onRefresh() {
       this.$globalConf.resizeFlag = true
-      clearTimeout(this.timerRefresh)
-      this.timerRefresh = setTimeout(() => {
-        this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
-      }, 600)
+      // clearTimeout(this.timerRefresh)
+      // this.timerRefresh = setTimeout(() => {
+      this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+      // }, 200)
     },
     // 更新stage
     updateStageInfo() {

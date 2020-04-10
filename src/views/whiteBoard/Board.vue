@@ -1,17 +1,5 @@
 <template>
   <div class="wrapper" v-if="showBoard">
-    <whiteboard
-      class="whiteboard"
-      v-if="$globalConf.toggleRouter"
-      key="0"
-      ref="board1"
-    ></whiteboard>
-    <whiteboard
-      class="whiteboard"
-      v-if="!$globalConf.toggleRouter"
-      key="1"
-      ref="board2"
-    ></whiteboard>
     <div class="board-manager-wrapper">
       <div class="board-manager">
         <div @click.stop.prevent="clickBd" class="btn">
@@ -45,13 +33,28 @@
         </div>
       </div>
     </div>
+    <div class="toolbar-right">
+      <span @click="goHome">
+        <i class="iconfont icon-zhuye"></i>
+      </span>
+      <span v-if="$globalConf.mode==='document' && $globalConf.speakerPermission" @click="savePostil">
+        <i class="iconfont icon-save"></i>
+      </span>
+      <span @click="handleFullscreen">
+        <i class="iconfont" :class="[`icon-${$globalConf.isFullscreen ? 'normalscreen' : 'fullscreen'}`]"></i>
+      </span>
+    </div>
+    <whiteboard v-if="$globalConf.toggleRouter" key='0' ref="board1"></whiteboard>
+    <whiteboard v-if="!$globalConf.toggleRouter" key='1' ref="board2"></whiteboard>
   </div>
 </template>
 
 <script>
 import socketUtil, { destroySocket } from '@common/socketUtil'
 import Vue from 'vue'
-import { formateUrl, fileLinkToStreamDownload } from '@common/utils'
+import {
+  formateUrl, fileLinkToStreamDownload, fullscreen, exitFullscreen,
+} from '@common/utils'
 import { api, fileService } from '@common/common'
 import whiteboard from './WhiteBoard'
 
@@ -63,6 +66,7 @@ export default {
       showBoard: false,
       boxName: '',
       fileService,
+      timerSavePostil: null,
     }
   },
   watch: {
@@ -133,7 +137,7 @@ export default {
           let board = this.$refs.board1 || this.$refs.board2
           board && board.onRefresh()
         })
-      }, 600)
+      }, 120)
     })
   },
   methods: {
@@ -222,6 +226,30 @@ export default {
       // 2.主讲先跳转（所有数据都重新初始化）
       this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
     },
+    goHome() {
+      if (this.$globalConf.user.visitor) {
+        this.delCookie('sid', '.tvflnet.com')
+        this.delCookie('visitor', '.tvflnet.com')
+        this.$router.push(`/auth/login/${this.$globalConf.meetingId}/${window.btoa(window.location.href)}`)
+      } else {
+        this.$router.push({ name: 'meeting' })
+      }
+    },
+    handleFullscreen() {
+      this.$globalConf.isFullscreen = !this.$globalConf.isFullscreen
+      if (this.$globalConf.isFullscreen) {
+        fullscreen()
+      } else {
+        exitFullscreen()
+      }
+    },
+    // 同步批注
+    savePostil() {
+      clearTimeout(this.timerSavePostil)
+      this.timerSavePostil = setTimeout(() => {
+        Vue.eventBus.$emit('savePostil')
+      }, 500)
+    },
   },
 }
 </script>
@@ -236,7 +264,7 @@ export default {
     position: fixed;
     left:5vw;
     bottom:12px;
-    z-index: 12;
+    z-index: 20;
     .board-manager {
       position: relative;
       text-align: left;
@@ -348,6 +376,28 @@ export default {
       }
       &:hover {
         background:#D6D6D6
+      }
+    }
+  }
+  position: relative;
+  .toolbar-right{
+    background: #f0f0f0;
+    position:absolute;
+    z-index: 20;
+    right: 20px;
+    top: 20px;
+    &>span{
+      display: block;
+      line-height: 2.4vw;
+      text-align: center;
+      width: 2.4vw;
+      height: 2.4vw;
+      cursor: pointer;
+      &:hover{
+        background: #D6D6D6;
+      }
+      .iconfont{
+        font-size: 1.4vw;
       }
     }
   }

@@ -233,14 +233,6 @@ Description
       <span v-show="$globalConf.mode === 'document'" @click="gotoBoard" v-if="$globalConf.speakerPermission"
         ><i class="iconfont icon-shangyiye"></i
       ></span>
-      <span @click="handleFullscreen"
-        ><i
-          :class="[
-            'iconfont',
-            `icon-${$globalConf.isFullscreen ? 'normalscreen' : 'fullscreen'}`
-          ]"
-        ></i
-      ></span>
     </div>
   </div>
 </template>
@@ -251,7 +243,7 @@ import common, { api, fileService, socketEvent } from '@common/common'
 import Vue from 'vue'
 import cManager from '@common/componentManager'
 import {
-  formateUrl, fullscreen, exitFullscreen, fileLinkToStreamDownload,
+  formateUrl, fileLinkToStreamDownload,
 } from '@common/utils'
 import { openDocument } from '@common/tool/document'
 import { getSocket } from '@common/socketUtil'
@@ -643,14 +635,6 @@ export default {
     },
     gotoBoard() {
       this.$emit('gotoBoard')
-    },
-    handleFullscreen() {
-      this.$globalConf.isFullscreen = !this.$globalConf.isFullscreen
-      if (this.$globalConf.isFullscreen) {
-        fullscreen()
-      } else {
-        exitFullscreen()
-      }
     },
   },
 }
