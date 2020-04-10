@@ -121,7 +121,6 @@ function updateBaseWidth(baseWidth) {
   socketUtil.updateComponent(formateComponent(params))
 }
 
-
 export default ({
   setLayerScale,
   setStageXY,

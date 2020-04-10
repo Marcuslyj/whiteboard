@@ -38,7 +38,7 @@ function create(params) {
     layer.batchDraw()
   })
   // 清除事件
-  stage.on('mouseup touchend', () => {
+  stage.on('mouseup touchend mouseleave', () => {
     if (isDrawing) {
       isDrawing = false
       if (line.points().length === 2) {
@@ -65,7 +65,7 @@ function create(params) {
 
 function destroy() {
   if (!currentStage) return
-  currentStage.off('mousedown touchstart mousemove touchmove mouseup touchend')
+  currentStage.off('mousedown touchstart mousemove touchmove mouseup touchend mouseleave')
   cancelCustomCursor()
 }
 

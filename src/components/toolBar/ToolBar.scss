@@ -286,16 +286,8 @@
       text-align: center;
       line-height: 2.4vw;
       border-radius:0.5vw;
-      // box-shadow: 0 0 6px #919191;
-      &:not(:first-child) {
+      &:not(:first-child){
         margin-left: 1vw;
-      }
-      .iconfont {
-        vertical-align: middle;
-        font-size: 1.4vw;
-      }
-      &:hover {
-        background:#D6D6D6
       }
     }
   }
@@ -306,7 +298,7 @@
     margin-right: 5vw;
   }
   @media screen and(max-width:600px){
-    .part>span{
+    .part>.board-manager{
       height:6vw;
       line-height:6vw;
       .iconfont{

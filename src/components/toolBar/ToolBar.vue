@@ -8,13 +8,6 @@ Description
   <div class="toolbar" @mousedown.stop="" @touchstart.stop="">
     <!-- 工具条能否起作用的遮罩 -->
     <!-- <div class="mask" v-show="!$globalConf.speakerPermission"></div> -->
-    <!-- <div
-      class="left part"
-      v-if="isHome"
-    >
-      <span><i class="iconfont icon-add"></i></span>
-      <span><i class="iconfont icon-boards"></i></span>
-    </div> -->
     <div class="center">
       <ul class="group draw-tool" v-if="$globalConf.speakerPermission">
         <li ref="pan-tool" @click.stop.prevent="clickPanTool" :class="{'activeTool':isActive('pan-tool')}">
@@ -93,6 +86,13 @@ Description
                <Slider :min="8" :max="28" :value="$globalConf.pencil.lineWidth" @on-change="changePencilWidth" ></Slider>
               </div>
             </div>
+          </div>
+        </li>
+        <li ref="larserPen-tool" @click.stop.prevent="clickLaserPenTool" :class="{'activeTool':isActive('laserPen-tool')}">
+          <div class="inner">
+            <Tooltip content="激光笔" placement="top-end">
+              <i class="iconfont icon-jiguangbi"></i>
+            </Tooltip>
           </div>
         </li>
        <!-- </Tooltip> -->
@@ -397,6 +397,8 @@ export default {
         this.clickPanTool(); break
       case 'text':
         this.clickTextTool(); break
+      case 'laserPen':
+        this.clickLaserPenTool(); break
       default: break
       }
     },
@@ -438,6 +440,18 @@ export default {
       this.setBoxName('pencil')
       this.changePencilTool(this.$globalConf.pencil.activePencilTool)
     },
+    clickLaserPenTool() {
+      this.setBoxName('')
+      Vue.eventBus.$emit('deactive-tool', {
+        toolName: this.$globalConf.activeTool,
+      })
+      this.$globalConf.activeTool = 'laserPen'
+      const stage = this.$globalConf.board
+      Vue.eventBus.$emit('active-tool', {
+        toolName: this.$globalConf.activeTool,
+        stage,
+      })
+    },
     clickEraserTool() {
       // this.setLiStyle('eraser-tool')
       this.setBoxName('eraser')
@@ -470,10 +484,9 @@ export default {
     clickFile() {
       // this.setLiStyle('file-tool')
       this.setBoxName('file')
-      this.getFiles()
     },
-    getFiles() {
-
+    clickBd() {
+      this.setBoxName('board')
     },
     // 打开文档
     openFile({ documentId, url: documentPath }) {
@@ -557,7 +570,7 @@ export default {
     setBoxName(boxName) {
       this.boxName = this.boxName === boxName ? '' : boxName
       console.log(this.boxName)
-      Vue.eventBus.$emit('setTbMask', this.boxName !== '')
+      Vue.eventBus.$emit('setTbMask', { id: 'toolbar', visible: this.boxName !== '' })
     },
     // 预览图
     resetCanvas() {

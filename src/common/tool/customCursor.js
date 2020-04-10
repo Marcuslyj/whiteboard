@@ -16,6 +16,7 @@ export function setCustomCursor(stage, key = 'eraser') {
     strokeWidth: 1,
   }
   const circle = new Konva.Circle(props)
+  layer.destroyChildren()
   layer.add(circle)
   let mouseCursor = true
   stage.on('mousemove.cursor touchmove.cursor wheel.cursor', () => {
@@ -26,6 +27,7 @@ export function setCustomCursor(stage, key = 'eraser') {
     }
     const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     circle.position(poi)
+    circle.visible(true)
     const keys = ['pen', 'markPencil', 'arrow']
     let newkey = keys.includes(key) ? 'pencil' : key
     if (key === 'eraser') {
@@ -64,9 +66,16 @@ export function setCustomCursor(stage, key = 'eraser') {
   //     'z-index': 99,
   //   })
 
-//   const konvaContent = stage.content
-//   // 增加到当前面板
-//   konvaContent.insertBefore(cursor, konvaContent.firstElementChild)
+  //   const konvaContent = stage.content
+  //   // 增加到当前面板
+  //   konvaContent.insertBefore(cursor, konvaContent.firstElementChild)
+
+  stage.on('mouseleave.cursor', () => {
+    if (circle) {
+      circle.visible(false)
+      layer.draw()
+    }
+  })
 }
 
 export function cancelCustomCursor() {
@@ -74,7 +83,7 @@ export function cancelCustomCursor() {
   if (layer) {
     layer.destroyChildren()
     layer.batchDraw()
-    currentStage.off('mousemove.cursor touchmove.cursor wheel.cursor')
+    currentStage.off('mousemove.cursor touchmove.cursor wheel.cursor mouseleave.cursor')
   }
   const de = document.querySelector('#board-container')
   de && (de.style.cursor = 'default')

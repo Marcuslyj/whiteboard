@@ -52,6 +52,7 @@ export default {
       name: 'clearBoard',
       icon: 'icon-clear',
     },
+
   ],
   boxName: '',
   files: [],
@@ -63,5 +64,7 @@ export default {
     'pencil-tool': ['pen', 'markPencil', 'arrow'],
     'eraser-tool': ['eraser', 'deleteGraphic', 'clearBoard'],
     'text-tool': ['text'],
+    'laserPen-tool': ['laserPen'],
   },
+  selectNum: 0,
 }

@@ -202,7 +202,7 @@ function downloadExportFile(blob, tagFileName, fileType) {
   }
 }
 
-export function base64UrlToBlob(urlData) {
+export function base64UrlToBlob(urlData, type = 'image/jpeg') {
   let bytes = window.atob(urlData.split(',')[1]) // 去掉url的头，并转换为byte
   // 处理异常,将ascii码小于0的转换为大于0
   let ab = new ArrayBuffer(bytes.length)
@@ -211,7 +211,7 @@ export function base64UrlToBlob(urlData) {
     ia[i] = bytes.charCodeAt(i)
   }
   return new Blob([ab], {
-    type: 'image/jpeg',
+    type,
 
   })
 }
@@ -243,3 +243,11 @@ export const blobToFile = (blob) => {
   let suffix = blob.type.split('/')[1]
   return new window.File([blob], generateUID('', `.${suffix}`, ''), { type: blob.type })
 }
+
+export const getImg = (src) => new Promise((resolve) => {
+  const img = new Image()
+  img.src = src
+  img.onload = () => {
+    resolve(img)
+  }
+})

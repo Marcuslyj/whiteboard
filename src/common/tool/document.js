@@ -329,6 +329,7 @@ export function openDocument({ documentId, documentPath }) {
   }
   socketUtil.syncAction({
     meetingId: config.meetingId,
+    whiteboardId: config.whiteboardId,
     syncAction: JSON.stringify(syncAction),
   })
   // 2.主讲先跳转,添加必要特殊组件

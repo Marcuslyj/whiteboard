@@ -143,6 +143,21 @@ function reportDocumentAction(params) {
   socket.emit(socketEvent.reportDocumentAction, params)
 }
 
+
+/**
+ * 保存白板图片，作为预览图和后台合成pdf下载
+ * @param {*} params
+ */
+function reportWhiteboardAction(params) {
+  let { meetingId } = config
+  params = {
+    ...params,
+    meetingId,
+  }
+  socket.emit(socketEvent.reportWhiteboardAction, params)
+}
+
+
 /**
  * 获取用户列表
  */
@@ -171,4 +186,5 @@ export default {
   deleteComponentsTypesState,
   getDocumentPages,
   reportDocumentAction,
+  reportWhiteboardAction,
 }
