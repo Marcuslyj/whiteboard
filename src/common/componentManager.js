@@ -194,8 +194,15 @@ async function addLaserPen(component) {
   let layer = config.layerManager[config.layerIds.CUSTOM_CURSOR_LAYER]
   const node = layer.findOne('#laserPen')
   if (node) {
-    const { x, y } = component
+    const { x, y, visible } = component
     node.setPosition({ x, y })
+    node.setAttrs({
+      position: {
+        x,
+        y,
+      },
+      visible,
+    })
   } else {
     const image = await getImg(laserIcon)
     const KonvaImage = new Konva.Image({ id: 'laserPen', ...component, image })
