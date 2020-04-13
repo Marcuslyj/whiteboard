@@ -185,10 +185,10 @@ export function formatCoverUrl(url) {
  * @param {*} param1
  */
 export async function getConvertImage({
-  pdf, page, pageIndex = 1, type = 'file', viewport,
+  pdf, page, pageIndex = 1, type = 'file', viewport, imgWidth,
 }) {
   page = page || await pdf.getPage(pageIndex)
-  viewport = viewport || await getViewport({ pdf, page })
+  viewport = viewport || await getViewport({ pdf, page, width: imgWidth })
   const { width, height } = viewport
 
   // 获取转换画板，设置转换画板尺寸
@@ -200,7 +200,7 @@ export async function getConvertImage({
   }
   // 渲染
   await page.render(renderContext).promise
-  const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL()
+  const imgUrl = convertCanvas.layer.canvas._canvas.toDataURL('image/jpeg')
   // convertCanvas.destroyChildren()
   convertCanvas.clear()
   convertCanvas.rendering = false
@@ -226,7 +226,8 @@ export async function addCover(pdf, {
   let stage = getStage()
   const page = await pdf.getPage(1)
   const viewport = await getCoverViewport({ pdf, page })
-  const img = await getConvertImage({ pdf, pageIndex: 1 })
+  // 封面图片宽度同一250，防止过大或过小
+  const img = await getConvertImage({ pdf, pageIndex: 1, imgWidth: 250 })
 
   // 还原缩放和偏移的处理
   // 封面宽度是baseWidth/10
