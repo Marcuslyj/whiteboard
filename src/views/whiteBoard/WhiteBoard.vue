@@ -601,7 +601,6 @@ export default {
     },
     handleGetMeet(res) {
       this.$globalConf.mode = 'board'
-      let whiteboards
       const whiteboards = res.whiteboards ? res.whiteboards : []
       if (whiteboards.length > 0) {
         // 取出指定的board(whiteboardId+documentId)
@@ -822,7 +821,7 @@ export default {
         if (obj.callback) {
           getSocket().on('report-whiteboard-action', (res) => {
             if (res) {
-              obj.callback && (obj.callback(res.urls[0].url))
+              obj.callback(res.urls[0].url)
               getSocket().off('report-whiteboard-action')
             }
           })
