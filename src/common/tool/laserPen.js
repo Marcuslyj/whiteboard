@@ -5,6 +5,7 @@ import laserIcon from '@assets/laser_pen.png'
 import socketUtil from '../socketUtil'
 
 let currentStage
+let timeout
 // let cursor
 async function create(params) {
   const { stage } = params
@@ -23,7 +24,7 @@ async function create(params) {
   layer.destroyChildren()
   layer.add(image)
   let mouseCursor = true
-  stage.on('mousemove.cursor touchmove.cursor wheel.cursor', () => {
+  stage.on('mousemove.cursor touchmove.cursor wheel.cursor', ({ type }) => {
     const de = document.querySelector('#board-container')
     if (mouseCursor) {
       de.style.cursor = 'none'
@@ -32,6 +33,24 @@ async function create(params) {
     const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     image.position(poi)
     image.visible(true)
+    // 滚动文档时隐藏，避免副屏文档和激光笔动作不一致
+    if (type === 'wheel') {
+      image.visible(false)
+      clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        image.visible(true)
+        // 广播给其他用户
+        const param = {
+          meetingId: config.meetingId,
+          msg: JSON.stringify({
+            event: 'laserPen',
+            component: { ...image.getAttrs() },
+          }),
+        }
+        socketUtil.broadcast(param)
+        layer.draw()
+      }, 300)
+    }
     layer.draw()
     // 广播给其他用户
     const param = {
@@ -43,6 +62,8 @@ async function create(params) {
     }
     socketUtil.broadcast(param)
   })
+
+  // 滚动的时候同步到文档会发生时机不一致的问题，故滚动过程中隐藏
 
   stage.on('mouseleave.cursor', () => {
     if (image) {
@@ -70,6 +91,8 @@ function destroy() {
     }),
   }
   socketUtil.broadcast(param)
+  clearTimeout(timeout)
+  timeout = null
 }
 
 
