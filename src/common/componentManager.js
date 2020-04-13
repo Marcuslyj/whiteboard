@@ -204,6 +204,12 @@ async function addLaserPen(component) {
   layer.draw()
 }
 
+function removeLaserPen() {
+  let layer = config.layerManager[config.layerIds.CUSTOM_CURSOR_LAYER]
+  layer.destroyChildren()
+  layer.batchDraw()
+}
+
 export default {
   addComponent,
   updateComponentState,
@@ -215,4 +221,5 @@ export default {
   updateVisible,
   renderUpdateComponent,
   addLaserPen,
+  removeLaserPen,
 }
