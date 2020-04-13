@@ -89,7 +89,6 @@ export default {
     return {
       stage: null,
       tbMask: false,
-      whiteboards: [],
       enable: false,
       miniMenuType: '',
       miniMenuStyle: {},
@@ -637,10 +636,10 @@ export default {
           // 没有就默认首个板
           const params = {
             meetingId: this.$globalConf.meetingId,
-            whiteboardId: this.whiteboards[0].whiteboardId,
+            whiteboardId: this.$globalConf.whiteboards[0].whiteboardId,
             documentId: null,
           }
-          this.$globalConf.whiteboardId = this.whiteboards[0].whiteboardId
+          this.$globalConf.whiteboardId = this.$globalConf.whiteboards[0].whiteboardId
           this.$globalConf.documentId = null
           this.$globalConf.documentPath = null
 
@@ -819,7 +818,7 @@ export default {
             },
           ],
         }
-        if (obj) {
+        if (obj.callback) {
           getSocket().on('report-whiteboard-action', (res) => {
             if (res) {
               obj.callback(res.urls[0].url)

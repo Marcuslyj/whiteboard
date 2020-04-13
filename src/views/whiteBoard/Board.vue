@@ -127,7 +127,6 @@ export default {
       if (this.$globalConf.mode === 'document') {
         // 打开文档默认手掌
         this.$globalConf.activeTool = 'pan'
-        console.log('set')
       }
     }, 1000)
     Vue.eventBus.$on('resize', () => {
@@ -156,7 +155,6 @@ export default {
         const url = formateUrl(api.downloadWhiteboards, { meetingId: this.$globalConf.meetingId })
         this.$api.post(url, {}, (res) => {
           if (res.ret.retCode === '0') {
-            console.log(`${fileService}res.data.url`)
             fileLinkToStreamDownload(`${fileService}${res.data.url}`, this.$globalConf.theme, 'pdf')
           }
         })
@@ -222,8 +220,6 @@ export default {
         syncAction: JSON.stringify({ whiteboardId }),
       }
       socketUtil.syncAction(options)
-      Vue.eventBus.$emit('clipAndSend')
-      // 2.主讲先跳转（所有数据都重新初始化）
       this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
     },
     goHome() {
