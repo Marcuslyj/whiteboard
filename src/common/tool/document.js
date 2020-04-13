@@ -78,7 +78,7 @@ export async function init(documentId, documentPath) {
 
   // 初始化前清掉相关数据
   destroy()
-  docOpened = {}
+  docOpened = docOpened || {}
   // 清屏
   clearBoard()
 
@@ -123,7 +123,10 @@ export function clearBoard() {
 export function destroy({ all = false } = {}) {
   if (docOpened) {
     let stage = getStage()
-    docOpened = pageSigned = elWrapper = null
+    pageSigned = elWrapper = null
+    if (!config.resizeFlag) {
+      docOpened = null
+    }
     stage.off('wheel dragmove')
     stage.setAttrs({
       y: 0,
@@ -153,8 +156,9 @@ export function destroy({ all = false } = {}) {
  */
 export async function loadPdf({ url, documentId }) {
   let pdf
-
-  if (url) {
+  if (config.resizeFlag && docOpened && docOpened.pdf) {
+    pdf = docOpened.pdf
+  } else if (url) {
     if (process.env.NODE_ENV === 'development' && url.indexOf(fileService) !== 0) {
       url = `${fileService}${url}`
     } else if (!/^((ht|f)tps?):\/\//.test(url)) {
