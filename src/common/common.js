@@ -14,6 +14,8 @@ export const api = {
   auth: '/meeting-manager/meeting/{meetingId}/auth',
   documentList: '/meeting-manager/meeting/{meetingId}/documents',
   downloadPostil: '/meeting-manager/meeting/whiteboard/document/{documentId}/imgs-to-pdf',
+  deleteBoards: '/meeting-manager/meeting/{meetingId}/whiteboard',
+  downloadWhiteboards: '/meeting-manager/meeting/{meetingId}/whiteboard/imgs-to-pdf',
 }
 
 export const fbId = {
@@ -23,6 +25,8 @@ export const fbId = {
   docCover: 'F4710100',
   // 批注图片
   postil: 'F4720100',
+  // 空白板图片(多白板管理,下载)
+  whiteboard: 'F4730100',
 }
 
 export const socketUrl = process.env.VUE_APP_socketUrl
@@ -67,7 +71,15 @@ export const socketEvent = {
    */
   authPermission: 'auth-permission-session',
   /**
-   * 申请授权
+   * 接收白板切换数据
+   */
+  synchronousAction: 'synchronous-action',
+  /**
+   * 保存空白板可视范围内图片
+   */
+  reportWhiteboardAction: 'report-whiteboard-action',
+  /**
+    * 申请授权
    */
   applyAuth: 'apply-permission-session',
   authReply: 'reply-permission-session',

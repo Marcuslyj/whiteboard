@@ -1,8 +1,10 @@
 import syncArea from '@common/syncArea'
 import { Message } from 'view-design'
+import Konva from 'konva'
+import laserIcon from '@assets/laser_pen.png'
 import config from './config'
 import socketUtil from './socketUtil'
-import { formateComponent } from './utils'
+import { formateComponent, getImg } from './utils'
 
 
 /**
@@ -187,6 +189,21 @@ function pushCache(obj) {
   console.log(config.cPIndex)
 }
 
+// 激光笔，绘制到 光标layer, 不是常规的组件
+async function addLaserPen(component) {
+  let layer = config.layerManager[config.layerIds.CUSTOM_CURSOR_LAYER]
+  const node = layer.findOne('#laserPen')
+  if (node) {
+    const { x, y } = component
+    node.setPosition({ x, y })
+  } else {
+    const image = await getImg(laserIcon)
+    const KonvaImage = new Konva.Image({ id: 'laserPen', ...component, image })
+    layer.add(KonvaImage)
+  }
+  layer.draw()
+}
+
 export default {
   addComponent,
   updateComponentState,
@@ -197,4 +214,5 @@ export default {
   clearLayer,
   updateVisible,
   renderUpdateComponent,
+  addLaserPen,
 }
