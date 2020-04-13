@@ -9,6 +9,7 @@ import deleteGraphic from './deleteGraphic'
 import pan from './pan'
 import select from './select'
 import text from './text'
+import laserPen from './laserPen'
 
 const toolCollection = {
   markPencil,
@@ -20,6 +21,7 @@ const toolCollection = {
   pan,
   select,
   text,
+  laserPen,
 }
 
 export const initTool = () => {

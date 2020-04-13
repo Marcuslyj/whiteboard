@@ -8,7 +8,12 @@ export default Vue.observable({
   // 下载权限
   downloadPermission: false,
   user: {},
+  // 白板集合
+  whiteboards: [],
+  // 激活了第几个
+  activeWhiteboardNum: 0,
   meetingId: null,
+  theme: '',
   whiteboardId: null,
   documentId: null,
   documentPath: null,

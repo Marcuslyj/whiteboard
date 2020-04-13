@@ -65,11 +65,11 @@ import {
 } from '@common/tool/document'
 import socketUtil, { getSocket, destroySocket } from '@common/socketUtil'
 import {
-  socketEvent, api, sComponentId,
+  socketEvent, api, sComponentId, fbId, webService,
 } from '@common/common'
 import Vue from 'vue'
 import {
-  formateUrl, isEmpty, formateComponent, cache, generateUID,
+  formateUrl, isEmpty, formateComponent, cache, generateUID, base64UrlToBlob, blobToFile,
 } from '@common/utils'
 import cManager from '@common/componentManager'
 import syncArea from '@common/syncArea'
@@ -109,6 +109,9 @@ export default {
     }
   },
   created() {
+    if (this.$parent.$data.boxName !== '') {
+      this.tbMask = true
+    }
     this.$nextTick(() => {
       this.$globalConf.mode = 'board'
       // 创建stage
@@ -127,8 +130,13 @@ export default {
         this.stage.add(layer)
       })
       initTool()
-      Vue.eventBus.$on('setTbMask', (visible) => {
-        this.tbMask = visible
+      Vue.eventBus.$on('setTbMask', (obj) => {
+        const { visible, id } = obj
+        if (id === 'toolbar' && this.$parent.$data.boxName !== '' && !visible) {
+          this.tbMask = true
+        } else {
+          this.tbMask = visible
+        }
       })
       Vue.eventBus.$on('setMiniMenu', (params) => {
         const { miniMenuType = '', miniMenuStyle, textColor } = params
@@ -136,11 +144,68 @@ export default {
         this.miniMenuStyle = miniMenuStyle
         this.textColor = textColor
       })
+      Vue.eventBus.$on('createWhiteboard', this.createWhiteboard)
+      Vue.eventBus.$on('clipAndSend', this.clipAndSend)
       this.initConvertCanvas()
       this.startMeeting()
     })
   },
   methods: {
+    createWhiteboard() {
+      // 创建一个白板
+      const url = formateUrl(api.createBoard, { meetingId: this.$globalConf.meetingId })
+      const wbs = this.$globalConf.whiteboards
+      const name = wbs.length > 0 ? `board_${Number(wbs[wbs.length - 1].whiteboardName.split('_')[1]) + 1}` : 'board_1'
+      this.$api.post(url, { whiteboardName: name }, (ret) => {
+        if (ret.ret.retCode === '0') {
+          this.$globalConf.whiteboardId = ret.data.whiteboardId
+          this.$globalConf.documentId = null
+          // 记录主讲屏size,特殊组件
+          this.addSpecialComponent()
+
+          // 记录打开的画板id，文档id， 副屏打开时可以初始化
+          let syncAction = {
+            whiteboardId: ret.data.whiteboardId,
+            documentId: null,
+          }
+          const params = {
+            meetingId: this.$globalConf.meetingId,
+            whiteboardId: this.$globalConf.whiteboardId,
+            syncAction: JSON.stringify(syncAction),
+          }
+          socketUtil.syncAction(params)
+          this.$globalConf.syncAction = syncAction
+
+          // 通知后台全局记录下打开白板的id
+          let options = {
+            meetingId: this.$globalConf.meetingId,
+            whiteboardId: 0,
+            syncAction: JSON.stringify({ whiteboardId: ret.data.whiteboardId }),
+          }
+          socketUtil.syncAction(options)
+
+          this.updateStageInfo()
+          // 增加一个白板
+          this.$globalConf.whiteboards.push({
+            meetingId: this.$globalConf.meetingId,
+            whiteboardId: this.$globalConf.whiteboardId,
+            whiteboardName: name,
+          })
+          this.$globalConf.toggleRouter = !this.$globalConf.toggleRouter
+          // 点击新增的话遮罩不能消失
+          console.log(this.$globalConf.whiteboards)
+        } else {
+          this.$error('创建白板失败')
+        }
+      })
+    },
+    // 同步批注
+    savePostil() {
+      clearTimeout(this.timerSavePostil)
+      this.timerSavePostil = setTimeout(() => {
+        Vue.eventBus.$emit('savePostil')
+      }, 500)
+    },
     // 接受刷新广播
     onRefresh() {
       this.$globalConf.resizeFlag = true
@@ -325,6 +390,7 @@ export default {
     clickTbMask() {
       this.$refs['tool-bar'].boxName = ''
       this.tbMask = false
+      Vue.eventBus.$emit('hideTbMask')
     },
     // 开始初始化组件到Canvas 中，有特殊组件和普通组件,对layer 进行缩放
     initComponents(components) {
@@ -482,7 +548,8 @@ export default {
         .on(socketEvent.addComponent, this.handleAddComponent)
         .on(socketEvent.updateComponentState, this.handleUpdateComponentState)
         .on(socketEvent.broadcast, ({ msg }) => {
-          let { event } = JSON.parse(msg)
+          msg = JSON.parse(msg)
+          let { event } = msg
           switch (event) {
           case 'refresh':
             if (!this.$globalConf.speakerPermission) this.onRefresh()
@@ -492,6 +559,12 @@ export default {
             break
           case 'updateDocumentList':
             this.$refs['tool-bar'].getDocumentList()
+            break
+          case 'laserPen':
+            cManager.addLaserPen(msg.component)
+            break
+          case 'removeLaserPen':
+            cManager.removeLaserPen()
             break
           default:
             break
@@ -529,13 +602,21 @@ export default {
     },
     handleGetMeet(res) {
       this.$globalConf.mode = 'board'
-      this.whiteboards = res.whiteboards
-      if (this.whiteboards) {
+      const whiteboards = res.whiteboards ? res.whiteboards : []
+      if (whiteboards.length > 0) {
         // 取出指定的board(whiteboardId+documentId)
-        let { syncAction } = res
-        syncAction = this.$globalConf.syncAction = !isEmpty(syncAction) ? JSON.parse(syncAction) : {}
-        if (!isEmpty(syncAction.whiteboardId)) {
-          const { whiteboardId, documentId, documentPath } = this.$globalConf.syncAction = JSON.parse(res.syncAction)
+        this.$globalConf.whiteboardId = JSON.parse(res.syncAction).whiteboardId
+        this.$globalConf.theme = res.theme
+        // 找出对应白板的syncAction
+        const i = whiteboards.findIndex((item) => item.whiteboardId === this.$globalConf.whiteboardId)
+        const targetBoard = whiteboards[i]
+        const syncAction = this.$globalConf.syncAction = !isEmpty(targetBoard.syncAction) ? JSON.parse(targetBoard.syncAction) : {}
+
+        this.$globalConf.whiteboards = whiteboards
+        this.$globalConf.activeWhiteboardNum = i + 1
+
+        if (!isEmpty(syncAction)) {
+          const { whiteboardId, documentId, documentPath } = this.$globalConf.syncAction = syncAction
           this.$globalConf.mode = documentId == null ? 'board' : 'document'
           // 缓存whiteboard实例
           this.$globalConf.whiteboard = this.$globalConf.mode === 'document' ? this : null
@@ -565,7 +646,8 @@ export default {
 
           // 重新存syncAction
           const paramsSA = {
-            meetingId: this.$globalConf.meetingId,
+            meetingId: this.this.$globalConf.meetingId,
+            whiteboardId: this.$globalConf.whiteboardId,
             syncAction: JSON.stringify({
               ...syncAction,
               whiteboardId: this.$globalConf.whiteboardId,
@@ -576,34 +658,7 @@ export default {
           socketUtil.getComponent(params)
         }
       } else {
-        // 创建一个白板
-        // console.log('创建白板')
-        const url = formateUrl(api.createBoard, { meetingId: this.$globalConf.meetingId })
-        const name = 'board_1'
-        this.$api.post(url, { whiteboardName: name }, (ret) => {
-          if (ret.ret.retCode === '0') {
-            this.$globalConf.whiteboardId = ret.data.whiteboardId
-            this.$globalConf.documentId = null
-            // 记录主讲屏size,特殊组件
-            this.addSpecialComponent()
-
-            // 记录打开的画板id，文档id， 副屏打开时可以初始化
-            let syncAction = {
-              whiteboardId: ret.data.whiteboardId,
-              documentId: null,
-            }
-            const params = {
-              meetingId: this.$globalConf.meetingId,
-              syncAction: JSON.stringify(syncAction),
-            }
-            socketUtil.syncAction(params)
-            //
-            this.$globalConf.syncAction = syncAction
-            this.updateStageInfo()
-          } else {
-            this.$error('创建白板失败')
-          }
-        })
+        this.createWhiteboard()
       }
       // 获取文档
       this.$refs['tool-bar'].getDocumentList()
@@ -705,6 +760,7 @@ export default {
       cManager.clearCache()
       const params = {
         meetingId: this.$globalConf.meetingId,
+        whiteboardId: this.$globalConf.whiteboardId,
         syncAction: JSON.stringify({
           whiteboardId: this.$globalConf.whiteboardId,
           documentId: null,
@@ -720,6 +776,61 @@ export default {
     //   this.clip.clipImg = this.$globalConf.board.toDataURL()
     // },
     saveClipImg() {
+      const link = document.createElement('a')
+      link.download = true
+      link.href = this.getClip()
+      document.body.appendChild(link)
+      link.click()
+    },
+    showUsers() {
+      this.showSideDrawer = true
+    },
+    cancelClipImg() {
+      this.clip.showClip = false
+    },
+    async clipAndSend(obj) {
+      const param = new FormData()
+      const dataUrl = this.getClip()
+      param.append('fbId', fbId.whiteboard)
+      param.append('file', blobToFile(base64UrlToBlob(dataUrl, 'img/png')))
+      const result = await new Promise((resolve, reject) => {
+        this.$api.post(
+          api.upload,
+          param,
+          (res) => resolve(res),
+          (err) => reject(err),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            baseURL: webService,
+          },
+        )
+      })
+      if (result.ret.retCode === '0') {
+        const { whiteboardId } = this.$globalConf
+        console.log(whiteboardId)
+        // 通知后台更新白板图片
+        const params = {
+          urls: [
+            {
+              whiteboardId,
+              url: result.data.filePath,
+            },
+          ],
+        }
+        if (obj) {
+          getSocket().on('report-whiteboard-action', (res) => {
+            if (res) {
+              obj.callback(res.urls[0].url)
+              getSocket().off('report-whiteboard-action')
+            }
+          })
+        }
+        socketUtil.reportWhiteboardAction(params)
+      }
+    },
+    getClip() {
       if (isEmpty(this.tempLayer)) {
         this.tempLayer = new Konva.Layer()
         this.$globalConf.board.add(this.tempLayer)
@@ -737,18 +848,7 @@ export default {
       })
       this.tempLayer.add(rect)
       this.tempLayer.batchDraw()
-      const link = document.createElement('a')
-      link.href = this.$globalConf.board.toDataURL()
-      console.log(this.$globalConf.stageXY.x)
-      link.download = true
-      document.body.appendChild(link)
-      link.click()
-    },
-    showUsers() {
-      this.showSideDrawer = true
-    },
-    cancelClipImg() {
-      this.clip.showClip = false
+      return this.$globalConf.board.toDataURL()
     },
   },
   beforeDestroy() {
@@ -765,6 +865,8 @@ export default {
     this.stopListener()
     Vue.eventBus.$off('setTbMask')
     Vue.eventBus.$off('setMiniMenu')
+    Vue.eventBus.$off('createWhiteboard')
+    Vue.eventBus.$off('clipAndSend')
     // 销毁文档相关
     destroyDocument({ all: true })
   },
