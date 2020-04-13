@@ -62,6 +62,14 @@ function destroy() {
   }
   const de = document.querySelector('#board-container')
   de && (de.style.cursor = 'default')
+  // 通知副屏清空
+  const param = {
+    meetingId: config.meetingId,
+    msg: JSON.stringify({
+      event: 'removeLaserPen',
+    }),
+  }
+  socketUtil.broadcast(param)
 }
 
 

@@ -563,6 +563,9 @@ export default {
           case 'laserPen':
             cManager.addLaserPen(msg.component)
             break
+          case 'removeLaserPen':
+            cManager.removeLaserPen()
+            break
           default:
             break
           }
