@@ -11,7 +11,8 @@ function create(params) {
   let line
   // 标记正在画线
   let isDrawing = false
-  stage.on('mousedown touchstart', () => {
+  stage.on('mousedown touchstart', (ev) => {
+    ev.evt.preventDefault()
     isDrawing = true
     const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     const toolConfig = Vue.prototype.$globalConf.pencil
@@ -29,7 +30,8 @@ function create(params) {
     line = new Konva.Line(lineConfig)
     layer.add(line)
   })
-  stage.on('mousemove touchmove', () => {
+  stage.on('mousemove touchmove', (ev) => {
+    ev.evt.preventDefault()
     if (!isDrawing) {
       return
     }
@@ -38,7 +40,8 @@ function create(params) {
     layer.batchDraw()
   })
   // 清除事件
-  stage.on('mouseup touchend mouseleave', () => {
+  stage.on('mouseup touchend mouseleave', (ev) => {
+    ev.evt.preventDefault()
     if (isDrawing) {
       isDrawing = false
       if (line.points().length && line.points().length <= 2) {
