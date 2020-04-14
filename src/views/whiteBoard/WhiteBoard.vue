@@ -451,7 +451,7 @@ export default {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)
             remarkLayer.add(shape)
-            // cache(shape)
+            cache(shape)
           } else if (component.type === 'text') {
             shape = new Konva[component.className](component.attrs)
             shape.visible(component.visible)

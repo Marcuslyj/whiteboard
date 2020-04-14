@@ -41,7 +41,8 @@ function create(params) {
   stage.on('mouseup touchend mouseleave', () => {
     if (isDrawing) {
       isDrawing = false
-      if (line.points().length === 2) {
+      if (line.points().length && line.points().length <= 2) {
+        line.remove()
         const toolConfig = Vue.prototype.$globalConf.pencil
         line = new Konva.Circle({
           id: generateUID(),
