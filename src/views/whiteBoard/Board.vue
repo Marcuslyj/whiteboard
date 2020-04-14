@@ -56,6 +56,7 @@ import {
   formateUrl, fileLinkToStreamDownload, fullscreen, exitFullscreen,
 } from '@common/utils'
 import { api, fileService } from '@common/common'
+import Konva from 'konva'
 import whiteboard from './WhiteBoard'
 
 export default {
@@ -86,6 +87,11 @@ export default {
     // 销毁socket
     destroySocket()
     Vue.eventBus.$off('hideTbMask')
+  },
+  beforeCreate() {
+    // 看高清屏是否改善卡顿
+    Konva.pixelRatio = 1
+    console.log('pixelRatio: ', Konva.pixelRatio)
   },
   created() {
     Vue.eventBus.$on('hideTbMask', () => {
