@@ -9,7 +9,7 @@ import { formateComponent, isEmpty } from './utils'
 function setLayerScale() {
   console.log(`layer 缩放${config.scale}`)
   const bgLayer = config.layerManager[config.layerIds.BG_LAYER]
-  const layers = [config.layerManager[config.layerIds.TEXT_LAYER], config.layerManager[config.layerIds.REMARK_LAYER], config.layerManager[config.layerIds.CUSTOM_CURSOR_LAYER]]
+  const layers = [config.layerManager[config.layerIds.TEXT_LAYER], config.layerManager[config.layerIds.REMARK_LAYER], config.layerManager[config.layerIds.CUSTOM_CURSOR_LAYER], config.layerManager[config.layerIds.DRAW_LAYER]]
   layers.forEach((layer) => {
     layer.scale({
       x: config.scale,
