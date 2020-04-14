@@ -44,6 +44,7 @@ function create(params) {
     if (isDrawing) {
       isDrawing = false
       if (line.points().length === 2) {
+        line.remove()
         // 只有一个点，提交一个圆
         const toolConfig = Vue.prototype.$globalConf.eraser
         line = new Konva.Circle({

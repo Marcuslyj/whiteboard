@@ -47,6 +47,7 @@ function create(params) {
     if (isDrawing) {
       isDrawing = false
       if (line.points().length === 2) {
+        line.remove()
         const toolConfig = Vue.prototype.$globalConf.pencil
         line = new Konva.Circle({
           id: generateUID(),
