@@ -1,6 +1,7 @@
 import Konva from 'konva'
 import Vue from 'vue'
 import { generateUID, getPoiWithOffset } from '@common/utils'
+import config from '@common/config'
 import cManager from '../componentManager'
 import { setCustomCursor, cancelCustomCursor } from './customCursor'
 
@@ -11,7 +12,9 @@ function create(params) {
   let isDrawing = false
   let line
   setCustomCursor(stage)
-  stage.on('mousedown touchstart', () => {
+  const drawingLayer = config.layerManager[config.layerIds.DRAW_LAYER]
+  stage.on('mousedown touchstart', ({ evt }) => {
+    evt.preventDefault()
     isDrawing = true
     const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     const toolConfig = Vue.prototype.$globalConf.eraser
@@ -21,19 +24,23 @@ function create(params) {
       strokeWidth: toolConfig.lineWidth,
       lineJoin: 'round',
       lineCap: 'round',
-      globalCompositeOperation: 'destination-out',
+      // globalCompositeOperation: 'destination-out',
       points: [poi.x, poi.y],
+      besizer: true,
     }
     line = new Konva.Line(eraserConfig)
-    layer.add(line)
+    drawingLayer.add(line)
   })
-  stage.on('mousemove touchmove', () => {
+  stage.on('mousemove touchmove', ({ evt }) => {
+    evt.preventDefault()
     if (!isDrawing) return
     const poi = getPoiWithOffset(stage.getPointerPosition(), stage)
     line.points(line.points().concat(poi.x, poi.y))
-    layer.draw()
+    drawingLayer.add(line)
+    drawingLayer.draw()
   })
-  stage.on('mouseup touchend', () => {
+  stage.on('mouseup touchend', ({ evt }) => {
+    evt.preventDefault()
     if (isDrawing) {
       isDrawing = false
       if (line.points().length === 2) {
@@ -46,12 +53,14 @@ function create(params) {
           y: line.points()[1],
           radius: toolConfig.lineWidth / 2,
         })
-        layer.add(line)
-        layer.draw()
       }
+      layer.add(line)
+      layer.draw()
       line.cache()
       cManager.addComponent(JSON.parse(line.toJSON()))
       line = null
+      drawingLayer.destroyChildren()
+      drawingLayer.draw()
     }
   })
 }

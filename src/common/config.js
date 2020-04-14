@@ -33,6 +33,7 @@ export default Vue.observable({
     BG_LAYER: 'BG_LAYER',
     TEXT_LAYER: 'TEXT_LAYER',
     REMARK_LAYER: 'REMARK_LAYER',
+    DRAW_LAYER: 'DRAW_LAYER',
     CUSTOM_CURSOR_LAYER: 'CUSTOM_CURSOR_LAYER',
   },
   layerManager: {},
