@@ -158,7 +158,7 @@ export async function loadPdf({ url, documentId }) {
   let pdf
   // 复用现有的pdf对象
   try {
-    if (docOpened.pdf.documentId === documentId) {
+    if (docOpened.pdf.documentId === config.documentId) {
       pdf = docOpened.pdf
     }
   } catch (error) {
