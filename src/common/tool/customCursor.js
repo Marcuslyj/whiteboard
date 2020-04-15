@@ -19,7 +19,8 @@ export function setCustomCursor(stage, key = 'eraser') {
   layer.destroyChildren()
   layer.add(circle)
   let mouseCursor = true
-  stage.on('mousemove.cursor touchmove.cursor wheel.cursor', () => {
+  stage.on('mousemove.cursor touchmove.cursor wheel.cursor', ({ evt }) => {
+    evt.preventDefault()
     const de = document.querySelector('#board-container')
     if (mouseCursor) {
       de.style.cursor = 'none'

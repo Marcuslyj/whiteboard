@@ -123,6 +123,7 @@ export default {
 
       Object.keys(this.$globalConf.layerIds).map((layerId) => {
         const layer = new Konva.Layer({
+          name: layerId,
           id: layerId,
         })
         this.$globalConf.layerManager[layerId] = layer
