@@ -156,19 +156,29 @@ export function destroy({ all = false } = {}) {
  */
 export async function loadPdf({ url, documentId }) {
   let pdf
-  if (config.resizeFlag && docOpened && docOpened.pdf) {
-    pdf = docOpened.pdf
-  } else if (url) {
-    if (process.env.NODE_ENV === 'development' && url.indexOf(fileService) !== 0) {
-      url = `${fileService}${url}`
-    } else if (!/^((ht|f)tps?):\/\//.test(url)) {
-      url = `${fileService}${url}`
+  // 复用现有的pdf对象
+  try {
+    if (docOpened.pdf.documentId === documentId) {
+      pdf = docOpened.pdf
     }
-    pdf = await pdfjsLib.getDocument(url).promise
-  } else if (documentId) {
-    //
+  } catch (error) {
+    pdf = null
   }
-
+  // 重新加载
+  if (!pdf) {
+    if (url) {
+      if (process.env.NODE_ENV === 'development' && url.indexOf(fileService) !== 0) {
+        url = `${fileService}${url}`
+      } else if (!/^((ht|f)tps?):\/\//.test(url)) {
+        url = `${fileService}${url}`
+      }
+      pdf = await pdfjsLib.getDocument(url).promise
+      // 标记
+      pdf.documentId = documentId
+    } else if (documentId) {
+      //
+    }
+  }
   return pdf
 }
 
