@@ -89,9 +89,9 @@ export default {
     Vue.eventBus.$off('hideTbMask')
   },
   beforeCreate() {
-    // 看高清屏是否改善卡顿
-    Konva.pixelRatio = 1
-    console.log('pixelRatio: ', Konva.pixelRatio)
+    // // 看高清屏是否改善卡顿
+    // Konva.pixelRatio = 1
+    // console.log('pixelRatio: ', Konva.pixelRatio)
   },
   created() {
     Vue.eventBus.$on('hideTbMask', () => {
