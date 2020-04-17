@@ -106,3 +106,114 @@ Konva.Line.prototype._sceneFunc = function (context) {
     context.strokeShape(this)
   }
 }
+
+// 区域拖动组件
+TransformerExtend()
+function TransformerExtend() {
+  let EVENTS_NAME = 'tr-konva'
+  let TRANSFORM_CHANGE_STR = [
+    'widthChange',
+    'heightChange',
+    'scaleXChange',
+    'scaleYChange',
+    'skewXChange',
+    'skewYChange',
+    'rotationChange',
+    'offsetXChange',
+    'offsetYChange',
+    'transformsEnabledChange',
+    'strokeWidthChange',
+  ]
+  // 转换一下
+  let $TRANSFORM_CHANGE_STR = TRANSFORM_CHANGE_STR.map((v) => `${v}.${EVENTS_NAME}`).join(' ')
+
+  Konva.Transformer.prototype.setNode = function (node) {
+    let _this = this
+    if (this._node) {
+      this.detach()
+    }
+    this._node = node
+    this._resetTransformCache()
+    let additionalEvents = node._attrsAffectingSize
+      .map(function (prop) { return `${prop}Change.${EVENTS_NAME}` })
+      .join(' ')
+    let onChange = function () {
+      // 标记拦截
+      if (_this._node.passiveMove) return
+      _this._resetTransformCache()
+      if (!_this._transforming) {
+        _this.update()
+      }
+    }
+    node.on(additionalEvents, onChange)
+    node.on($TRANSFORM_CHANGE_STR, onChange)
+    // 标记拦截
+    node.on(`xChange.${EVENTS_NAME} yChange.${EVENTS_NAME}`, function () {
+      if (_this._node.passiveMove) return
+      return _this._resetTransformCache()
+    })
+    let elementsCreated = !!this.findOne('.top-left')
+    if (elementsCreated) {
+      this.update()
+    }
+    return this
+  }
+
+  let { _createBack } = Konva.Transformer.prototype
+  Konva.Transformer.prototype._createBack = function () {
+    // 原型拦截
+    _createBack.call(this)
+    let back = this.findOne('.back')
+    // 可拖动
+    back.setAttrs({
+      listening: true,
+      draggable: true,
+    })
+
+    // drag事件
+    // 这里--
+    // 取矩形的position变化，保证同步
+    let _this = this
+    let { x: lastX, y: lastY } = back.getPosition()
+    let nowX
+    let nowY
+    let nowPosition
+    back.on('dragmove', function () {
+      nowPosition = back.getPosition()
+      nowX = nowPosition.x
+      nowY = nowPosition.y
+      let deltaX = nowX - lastX
+      let deltaY = nowY - lastY
+      lastX = nowX
+      lastY = nowY
+
+      // anchors的旋转角度一直为零，因为旋转的是Transformer
+      // 旋转元素需要自己计算角度旋转后的坐标
+      let m = { x: deltaX, y: deltaY }
+      // let cos = Math.cos(Global_1.Konva.getAngle(_this._node.rotation()))
+      // let sin = Math.sin(Global_1.Konva.getAngle(_this._node.rotation()))
+      let cos = Math.cos(Konva.getAngle(_this._node.rotation()))
+      let sin = Math.sin(Konva.getAngle(_this._node.rotation()))
+      let m2 = { x: deltaX * cos - deltaY * sin, y: deltaY * cos + deltaX * sin }
+      _this._node.move(m2)
+
+      _this.findOne('.top-left').move(m)
+      _this.findOne('.top-right').move(m)
+      _this.findOne('.bottom-right').move(m)
+      _this.findOne('.bottom-left').move(m)
+      _this.findOne('.rotater').move(m)
+    })
+
+    back.on('dragstart', function () {
+      // console.log('start')
+      // 加标记
+      _this._node.passiveMove = true
+    })
+    back.on('dragend', function () {
+      // console.log('end')
+      _this._node.passiveMove = false
+      // 触发dragmoveend时间，让transformer重新创建实例，否则后续旋转缩放有问题
+      _this._fire('dragmoveend')
+    })
+  }
+}
