@@ -276,8 +276,8 @@ export default {
     //   ret: { retCode: 0 },
     // })
 
-    // document.body.addEventListener('mousedown', this.handleBodyClick)
-    // document.body.addEventListener('touchstart', this.handleBodyClick)
+    document.body.addEventListener('mousedown', this.handleBodyClick)
+    document.body.addEventListener('touchstart', this.handleBodyClick)
   },
   // 关闭时销毁工具
   beforeDestroy() {
@@ -386,7 +386,7 @@ export default {
       case 'pan':
         this.clickPanTool(); break
       case 'select':
-        this.clickPanTool(); break
+        this.clickSelectTool(); break
       case 'text':
         this.clickTextTool(); break
       case 'laserPen':
@@ -562,7 +562,7 @@ export default {
     setBoxName(boxName) {
       this.boxName = this.boxName === boxName ? '' : boxName
       console.log(this.boxName)
-      Vue.eventBus.$emit('setTbMask', { id: 'toolbar', visible: this.boxName !== '' })
+      // Vue.eventBus.$emit('setTbMask', { id: 'toolbar', visible: this.boxName !== '' })
     },
     // 预览图
     resetCanvas() {
