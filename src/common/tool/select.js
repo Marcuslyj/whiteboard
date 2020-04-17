@@ -10,24 +10,27 @@ let opeTarget
 function create(params) {
   const { stage } = params
   currentStage = stage
-  stage.on('click tap', function ({ target }) {
+  stage.on('click tap', function ({ target, cacheTarget }) {
     // stage 非目标
-    if (target === stage) {
-      save()
-      return
+    if (!cacheTarget) {
+      if (target === stage) {
+        save()
+        return
+      }
+      if (target === opeTarget) {
+        return
+      }
+      if (opeTarget) {
+        save()
+        return
+      }
     }
-    if (target === opeTarget) {
-      return
-    }
-    if (opeTarget) {
-      save()
-      return
-    }
+
     // 初始化边框
     currentLayer = target.getLayer()
     stage.find('Transformer').destroy()
     // 防止浅克隆问题
-    origin = JSON.parse(target.toJSON())
+    origin = cacheTarget ? origin : JSON.parse(target.toJSON())
     opeTarget = target
     opeTarget.draggable(true)
     let tr
@@ -49,13 +52,18 @@ function create(params) {
         enabledAnchors: ['bottom-right', 'top-right', 'bottom-left', 'top-left'],
       })
     }
+    // drag后重新创建实例，否则旋转 缩放有问题
+    tr.on('dragmoveend', () => {
+      tr.destroy()
+      target.fire('click', { cacheTarget: opeTarget }, true)
+    })
 
     tr.on('transform', () => {
       setMenu()
     })
-    opeTarget.on('dragend', () => {
-      setMenu()
-    })
+    // opeTarget.on('dragend', () => {
+    //   setMenu()
+    // })
     currentLayer.add(tr)
     currentLayer.draw()
     // 增加便捷工具条
