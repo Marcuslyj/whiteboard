@@ -8,7 +8,7 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
   <div ref="menu" class="mini-menu" :style="[miniStyle]">
     <!-- 选中时只修改当前组件，编辑时修改全局 -->
     <Row v-show="type==='edit-text'||type==='select-text'" class="mini-menu-inner">
-        <Poptip placement="top" class="poptip-body menu-item">
+        <Poptip trigger="hover" placement="top" class="poptip-body menu-item">
              <i class="iconfont icon-circle" :style="{'color':activeColor}"></i>
              <div slot="content">
                  <ul class="color hor">
@@ -40,7 +40,7 @@ Description 组件旁边的便捷工具栏（选中，文字编辑时）
         <div class="menu-item" @click="selectDel">
           <i class="iconfont icon-menu-delete"></i>
         </div>
-         <Poptip placement="top" class="poptip-body menu-item">
+         <Poptip trigger="hover" placement="top" class="poptip-body menu-item">
              <i class="iconfont icon-circle" :style="{'color':activeColor}"></i>
              <div slot="content">
                  <ul class="color hor">
