@@ -11,8 +11,6 @@ const MyMeeting = () => import('../views/meeting/MyMeeting')
 const HistoryMeeting = () => import('../views/meeting/HistoryMeeting')
 const DocList = () => import('../views/meeting/DocList')
 const WhiteboardIndex = () => import('../views/whiteboard/Index')
-const Drawingboard = () => import('../views/whiteboard/drawingboard/Drawingboard')
-const Doc = () => import('../views/whiteboard/doc/Doc')
 
 export default new Router({
   routes: [
@@ -35,7 +33,6 @@ export default new Router({
     },
     {
       path: '/meeting',
-      name: 'meeting',
       component: Meeting,
       children: [
         {
@@ -66,24 +63,8 @@ export default new Router({
     },
     {
       path: '/:meetingId/whiteboard',
-      name: 'whiteboard',
       component: WhiteboardIndex,
-      children: [
-        {
-          path: '/',
-          redirect: 'drawingboard',
-        },
-        {
-          path: 'drawingboard',
-          name: 'drawingboard',
-          component: Drawingboard,
-        },
-        {
-          path: 'doc',
-          name: 'doc',
-          component: Doc,
-        },
-      ],
+      name: 'whiteboard',
     },
 
   ],
