@@ -7,6 +7,8 @@ export default Vue.observable({
   speakerPermission: true,
   // 下载权限
   downloadPermission: false,
+  // 文档
+  docs: [],
   user: {},
   // 白板集合
   whiteboards: [],

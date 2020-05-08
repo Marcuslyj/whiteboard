@@ -37,7 +37,7 @@ export default new Router({
       children: [
         {
           path: '/',
-          redirect: 'create',
+          redirect: 'myMeeting',
         },
         {
           path: 'create',

@@ -4,7 +4,7 @@ import './styles/index.scss'
 import '@common/konvaPolyfill'
 
 import {
-  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Dropdown, DropdownMenu, DropdownItem,
+  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Footer, Dropdown, DropdownMenu, DropdownItem,
 } from 'view-design'
 
 import base from '@common/base'
@@ -16,7 +16,7 @@ import router from './router'
 
 
 const components = {
-  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Dropdown, DropdownMenu, DropdownItem,
+  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Footer, Dropdown, DropdownMenu, DropdownItem,
 }
 
 Object.keys(components).forEach((e) => {

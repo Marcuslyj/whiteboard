@@ -7,6 +7,12 @@ Description
 <template>
   <div class="doc">
     <div class="main">
+       <div class="no-doc" v-if="$globalConf.docs.length===0">
+        <Icon type="ios-add-circle" />
+       </div>
+       <div class="has-doc" v-else>
+
+       </div>
     </div>
     <footer>
       <div class="left"></div>
@@ -50,17 +56,32 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+  @import '@/styles/variable.scss';
   .doc{
     height:100%;
     display: flex;
+    flex-direction: column;
     .main{
       flex:1;
+      .no-doc{
+        width:70%;
+        height:100%;
+        margin:0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background:#eee;
+        .ivu-icon{
+          font-size:20vmin;
+          cursor: pointer;
+          color:$theme-color;
+          &:hover{
+            color:#333;
+          }
+        }
+      }
     }
     footer{
-      position: fixed;
-      bottom:0;
-      left:0;
-      right:0;
       display:flex;
       justify-content: space-between;
       padding:10px;
