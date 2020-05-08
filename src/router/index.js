@@ -10,7 +10,7 @@ const CreateMeeting = () => import('../views/meeting/CreateMeeting')
 const MyMeeting = () => import('../views/meeting/MyMeeting')
 const HistoryMeeting = () => import('../views/meeting/HistoryMeeting')
 const DocList = () => import('../views/meeting/DocList')
-const WhiteboardIndex = () => import('../views/whiteboard/Index')
+const WhiteboardIndex = () => import('../views/whiteboard/Home')
 
 export default new Router({
   routes: [
