@@ -70,6 +70,7 @@ Description
 <script>
 import { Form, FormItem, Modal } from 'view-design'
 import { api } from '@common/common'
+import Vue from 'vue'
 
 const validatePassword = (rule, value, callback) => {
   if (!value) {
@@ -103,6 +104,15 @@ export default {
   },
   created() {
     this.getUser()
+  },
+  mounted() {
+    Vue.eventBus.$on('resize', () => {
+      if (document.documentElement.clientWidth < 700 && !this.isCollapsed) {
+        this.isCollapsed = true
+      } else if (document.documentElement.clientWidth > 700 && this.isCollapsed) {
+        this.isCollapsed = false
+      }
+    })
   },
   methods: {
     changeCollapsed() {
