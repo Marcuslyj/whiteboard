@@ -21,8 +21,8 @@ Description
       </Dropdown>
     </Header>
     <Layout class="meeting-body">
-      <Sider  hide-trigger collapsible :collapsed-width="50"  v-model="isCollapsed">
-        <Menu width="auto" theme="dark">
+      <Sider hide-trigger collapsible :collapsed-width="50"  v-model="isCollapsed">
+        <Menu width="auto" theme="dark" active-name="2">
         <MenuItem name="1">
           <Icon type="ios-navigate"></Icon>
           <span class="title">新建会议</span>
@@ -68,7 +68,8 @@ Description
 </template>
 
 <script>
-import { Form, FormItem } from 'view-design'
+import { Form, FormItem, Modal } from 'view-design'
+import { api } from '@common/common'
 
 const validatePassword = (rule, value, callback) => {
   if (!value) {
@@ -80,7 +81,7 @@ const validatePassword = (rule, value, callback) => {
   }
 }
 export default {
-  components: { Form, FormItem },
+  components: { Form, FormItem, Modal },
   data() {
     return {
       isCollapsed: false,
@@ -99,6 +100,9 @@ export default {
         },
       },
     }
+  },
+  created() {
+    this.getUser()
   },
   methods: {
     changeCollapsed() {
@@ -159,8 +163,18 @@ export default {
         }
       })
     },
+    getUser() {
+      this.$api.get(api.meeting.user, {}, (res) => {
+        if (res.ret.retCode === '0') {
+          this.user = res.data
+        } else {
+          this.$Message.error(res.ret.retMsg)
+        }
+      }, (err) => {
+        this.$Message.error(err.message)
+      })
+    },
   },
-
 }
 </script>
 

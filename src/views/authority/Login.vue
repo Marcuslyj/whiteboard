@@ -58,7 +58,6 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import {
   Row, Col, Input, Button, Icon, Tabs, TabPane, Form, FormItem,
 } from 'view-design'
@@ -74,10 +73,9 @@ const components = {
   Form,
   FormItem,
 }
-Object.keys(components).forEach((key) => {
-  Vue.component(key, components[key])
-})
+
 const AuthorityLoginComponent = {
+  components,
   data() {
     const checkAccount = (rule, value, callback) => {
       if (!value) {
@@ -124,7 +122,7 @@ const AuthorityLoginComponent = {
               if (this.mid && this.link) {
                 this.auth()
               } else {
-                this.$router.push({ name: 'meeting' })
+                this.$router.push({ name: 'myMeeting' })
               }
             } else {
               this.message = res.ret.retMsg
@@ -194,7 +192,7 @@ const AuthorityLoginComponent = {
     if (sid && this.link) {
       window.location.href = this.link
     } else if (sid && visitor === 'false') {
-      this.$router.push({ name: 'meeting' })
+      this.$router.push({ name: 'myMeeting' })
     }
   },
 }

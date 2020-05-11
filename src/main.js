@@ -4,19 +4,21 @@ import './styles/index.scss'
 import '@common/konvaPolyfill'
 
 import {
-  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Footer, Dropdown, DropdownMenu, DropdownItem,
+  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Button, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Footer, Dropdown, DropdownMenu, DropdownItem,
 } from 'view-design'
 
 import base from '@common/base'
 import globalConf from '@/common/config'
 
 import api from '@/common/api'
+import VueLazyload from 'vue-lazyload'
+import errorImg from '@/assets/errorImg.png'
 import App from './App.vue'
 import router from './router'
 
 
 const components = {
-  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Footer, Dropdown, DropdownMenu, DropdownItem,
+  Modal, Poptip, Row, Message, Tabs, TabPane, Icon, Input, Button, Tooltip, Slider, Checkbox, Layout, Menu, MenuItem, Sider, Header, Footer, Dropdown, DropdownMenu, DropdownItem,
 }
 
 Object.keys(components).forEach((e) => {
@@ -36,6 +38,12 @@ Vue.prototype.$api = api
 
 // 用来通信
 Vue.eventBus = new Vue()
+
+Vue.use(VueLazyload, {
+  error: errorImg,
+  loading: errorImg,
+  attempt: 1,
+})
 
 
 new Vue({

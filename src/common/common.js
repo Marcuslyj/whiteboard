@@ -6,6 +6,14 @@ export const fileService = process.env.VUE_APP_fileService
 export const imageService = process.env.VUE_APP_imageService
 
 export const api = {
+  meeting: {
+    meetings: '/meeting-manager/meetings',
+    createMeet: '/meeting-manager/meeting',
+    getMeet: '/meeting-manager/meeting/{meetingId}',
+    updateMeet: '/meeting-manager/meeting/{meetingId}',
+    delete: '/meeting-manager/meeting/{meetingId}',
+    user: '/user-manager/login-user',
+  },
   upload: `${webService}/upload/normal/file`,
   batchUpload: `${webService}/upload/normal/batch-file`,
   docToPdf: '/meeting-manager/meeting/{meetingId}/whiteboard/{whiteboardId}/doc-to-pdf',
