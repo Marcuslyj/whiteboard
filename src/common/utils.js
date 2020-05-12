@@ -251,3 +251,20 @@ export const getImg = (src) => new Promise((resolve) => {
     resolve(img)
   }
 })
+
+// 返回日期段
+export const getDateStr = (date, joinStr = '-') => {
+  const year = date.getFullYear()
+  let month = date.getMonth() + 1
+  let d = date.getDate()
+  if (month < 10) month = `0${month}`
+  if (d < 10) d = `0${d}`
+  return year + joinStr + month + joinStr + d
+}
+
+// 返回时间段
+export const getTimeStr = (date, str = ':') => {
+  let h = date.getHours() < 10 ? `0${date.getHours()}` : date.getHours()
+  let s = date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes()
+  return h + str + s
+}

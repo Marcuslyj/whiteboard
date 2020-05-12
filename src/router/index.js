@@ -41,7 +41,7 @@ export default new Router({
         },
         {
           path: 'create',
-          name: 'create',
+          name: 'createMeeting',
           component: CreateMeeting,
         },
         {

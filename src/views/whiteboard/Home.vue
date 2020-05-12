@@ -8,7 +8,7 @@ Description
   <div>
     <header>
       <div class="left">
-        <Icon type="ios-arrow-back" />
+        <Icon type="ios-arrow-back" @click="goback"/>
         <span class="theme">会议主题会议主题会议主题会议主题会议主题会议主题</span>
         <i class="sp"></i>
         <Tooltip content="白板" placement="bottom-end"><div class="btn" :class="{active:$globalConf.mode==='board'}" @click="changeMode('board')"><i class="iconfont icon-baiban"></i></div></Tooltip>
@@ -76,6 +76,9 @@ export default {
   methods: {
     changeMode(mode) {
       this.$globalConf.mode = mode
+    },
+    goback() {
+      this.$router.push({ name: 'myMeeting' })
     },
   },
 }

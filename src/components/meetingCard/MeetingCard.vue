@@ -5,13 +5,13 @@ Description
 @version 1.0.0
 -->
 <template>
-<Row class="meeting-cards" :gutter="10">
+<Row class="meeting-cards" :gutter="20">
     <Col class="card" v-for="(meeting,index) in list" :key="index" :lg="6" :md="8" :sm="12" :xs="24">
         <div class="img-wrapper">
         <img v-lazy="meeting.imgUrl" alt="会议截图">
         <div class="tips">
-            <Tag color="success">私密</Tag>
-            <Tag color="success">进行中</Tag>
+            <Tag color="#607d8b">私密</Tag>
+            <Tag color="#607d8b">进行中</Tag>
         </div>
         </div>
         <div class="detail">
@@ -64,7 +64,6 @@ export default {
       position: relative;
       >img{
         width:100%;
-        height:100%;
       }
       .tips{
         position: absolute;

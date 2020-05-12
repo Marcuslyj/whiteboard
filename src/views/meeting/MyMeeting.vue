@@ -69,10 +69,11 @@ Description
 
 <script>
 import {
-  Select, Option, Badge, Table, Page,
+  Select, Option, Badge, Table, Page, Tag,
 } from 'view-design'
 import { api } from '@common/common'
 import MeetingCard from '@/components/meetingCard/MeetingCard'
+import { getDateStr, getTimeStr } from '@common/utils'
 
 export default {
   components: {
@@ -111,6 +112,7 @@ export default {
         {
           title: '会议ID',
           key: 'meetingId',
+          width: 80,
         },
         {
           title: '会议主题',
@@ -122,15 +124,15 @@ export default {
         },
         {
           title: '会议日期',
-          key: 'date',
+          render: (h, params) => h('span', getDateStr(new Date(params.row.startTime))),
         },
         {
           title: '会议时间',
-          key: 'time',
+          render: (h, params) => h('span', `${getTimeStr(new Date(params.row.startTime))}~${getTimeStr(new Date(params.row.endTime))}`),
         },
         {
           title: '会议地点',
-          key: 'address ',
+          key: 'address',
         }, {
           title: '参会人员',
           render: (h, params) => {
@@ -145,6 +147,20 @@ export default {
         },
         {
           title: '状态',
+          render: (h, params) => {
+            h('div', null, [
+              h(Tag, {
+                props: {
+                  color: '#607d8b',
+                },
+              }, params.row.type === 0 ? '公开' : '私密'),
+              h(Tag, {
+                props: {
+                  color: '#607d8b',
+                },
+              }, params.row.state === 0 ? '进行中' : '结束'),
+            ])
+          },
         },
         {
           title: '操作',
@@ -204,11 +220,15 @@ export default {
         },
       )
     },
-    setPaginationSize() {
-
+    setPaginationNum(num) {
+      this.setPagination(this.activeTab, 'pageNum', num)
     },
-    setPaginationNum() {
-
+    setPaginationSize(num) {
+      this.setPagination(this.activeTab, 'pageSize', num)
+    },
+    setPagination(type, key, value) {
+      this.$set(this.pagination[type], key, value)
+      this.getMeeting(this.activeTab)
     },
 
   },

@@ -13,6 +13,7 @@ export const api = {
     updateMeet: '/meeting-manager/meeting/{meetingId}',
     delete: '/meeting-manager/meeting/{meetingId}',
     user: '/user-manager/login-user',
+    userTree: '/user-manager/user-tree',
   },
   upload: `${webService}/upload/normal/file`,
   batchUpload: `${webService}/upload/normal/batch-file`,

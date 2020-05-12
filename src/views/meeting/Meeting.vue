@@ -22,20 +22,20 @@ Description
     </Header>
     <Layout class="meeting-body">
       <Sider hide-trigger collapsible :collapsed-width="50"  v-model="isCollapsed">
-        <Menu width="auto" theme="dark" active-name="2">
-        <MenuItem name="1">
+        <Menu width="auto" theme="dark" :active-name="activeMenu" @on-select="selectMenu">
+        <MenuItem name="createMeeting">
           <Icon type="ios-navigate"></Icon>
           <span class="title">新建会议</span>
         </MenuItem>
-        <MenuItem name="2">
+        <MenuItem name="myMeeting">
           <Icon type="ios-keypad"></Icon>
           <span class="title">我的会议</span>
         </MenuItem>
-        <MenuItem name="3">
+        <MenuItem name="historyMeeting">
           <Icon type="ios-analytics"></Icon>
           <span class="title">历史会议</span>
         </MenuItem>
-        <MenuItem name="4">
+        <MenuItem name="docList">
           <Icon type="ios-paper"></Icon>
            <span class="title">文档检索</span>
         </MenuItem>
@@ -100,10 +100,12 @@ export default {
           rpwd: [{ required: true, validator: validatePassword }],
         },
       },
+      activeMenu: 'myMeeting',
     }
   },
   created() {
     this.getUser()
+    this.activeMenu = this.$route.name
   },
   mounted() {
     Vue.eventBus.$on('resize', () => {
@@ -184,6 +186,9 @@ export default {
         this.$Message.error(err.message)
       })
     },
+    selectMenu(name) {
+      this.$router.push({ name })
+    },
   },
 }
 </script>
@@ -225,6 +230,7 @@ export default {
     }
     .m-content{
       width:100%;
+      background-color:#fff;
     }
     .meeting-body{
       flex:1;
