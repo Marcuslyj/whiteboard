@@ -65,6 +65,7 @@ export default {
         {
           title: '会议ID',
           key: 'meetingId',
+          align: 'center',
           width: 80,
         },
         {

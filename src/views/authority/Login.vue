@@ -62,6 +62,9 @@ import {
   Row, Col, Input, Button, Icon, Tabs, TabPane, Form, FormItem,
 } from 'view-design'
 
+import { api } from '@common/common'
+import { formateUrl } from '@common/utils'
+
 const components = {
   Row,
   Col,
@@ -117,7 +120,7 @@ const AuthorityLoginComponent = {
     login() {
       this.$refs.accountForm.validate((valid) => {
         if (valid) {
-          this.$api.post('/user-manager/login', { ...this.accountForm.validate }, (res) => {
+          this.$api.post(api.user.login, { ...this.accountForm.validate }, (res) => {
             if (res.ret.retCode === '0') {
               if (this.mid && this.link) {
                 this.auth()
@@ -140,7 +143,7 @@ const AuthorityLoginComponent = {
             this.$Message.error('会议链接有误，请稍候再试')
           } else {
             this.$api.post(
-              'user-manager/visitor-login',
+              api.user.visitorLogin,
               { ...this.touristForm.validate },
               (res) => {
                 if (res.ret.retCode === '0') {
@@ -159,7 +162,7 @@ const AuthorityLoginComponent = {
     },
     auth(tourist = false) {
       this.$api.get(
-        `meeting-manager/meeting/${this.mid}/auth`,
+        formateUrl(api.meeting.auth, { meetingId: this.mid }),
         {},
         (res) => {
           if (res.ret.retCode === '0') {

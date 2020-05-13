@@ -176,7 +176,7 @@ export default {
       })
     },
     getUser() {
-      this.$api.get(api.meeting.user, {}, (res) => {
+      this.$api.get(api.user.user, {}, (res) => {
         if (res.ret.retCode === '0') {
           this.user = res.data
         } else {

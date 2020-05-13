@@ -42,6 +42,11 @@ function base(method, url, params, success, failure, config) {
     }
   }
   axios(configuration).then((res) => {
+    // 拦截登录超时
+    if (res.data.ret.retCode === 'A001' || res.data.ret.retCode === 'A005') {
+      window.location.href = '/'
+      return
+    }
     if ((typeof success).toUpperCase() === 'FUNCTION') success(res.data)
   }).catch((err) => {
     if ((typeof failure).toUpperCase() === 'FUNCTION') failure(err)

@@ -16,8 +16,8 @@ Description
     </div>
     <Row class="show-header">
       <div class="tabs">
-        <div :class="['tab-item',`${activeTab==='mine'?'active':''}`]" >我创建的会议</div>
-        <div :class="['tab-item',`${activeTab!=='mine'?'active':''}`]">待参加的会议<Badge :count="total.toJoin"></Badge></div>
+        <div :class="['tab-item',`${activeTab==='mine'?'active':''}`]" @click="changeTab('mine')">我创建的会议</div>
+        <div :class="['tab-item',`${activeTab!=='mine'?'active':''}`]" @click="changeTab('toJoin')">待参加的会议<Badge style="margin-left:10px" :count="total.toJoin"></Badge></div>
       </div>
       <div class="right">
         <Select v-model="sortType" style="width:200px">
@@ -73,7 +73,7 @@ import {
 } from 'view-design'
 import { api } from '@common/common'
 import MeetingCard from '@/components/meetingCard/MeetingCard'
-import { getDateStr, getTimeStr } from '@common/utils'
+import { getDateStr, getTimeStr, formateUrl } from '@common/utils'
 
 export default {
   components: {
@@ -113,28 +113,35 @@ export default {
           title: '会议ID',
           key: 'meetingId',
           width: 80,
+          align: 'center',
         },
         {
           title: '会议主题',
+          width: 150,
           key: 'theme',
         },
         {
           title: '发起人',
+          width: 80,
           key: 'creator',
         },
         {
           title: '会议日期',
+          width: 120,
           render: (h, params) => h('span', getDateStr(new Date(params.row.startTime))),
         },
         {
           title: '会议时间',
+          width: 120,
           render: (h, params) => h('span', `${getTimeStr(new Date(params.row.startTime))}~${getTimeStr(new Date(params.row.endTime))}`),
         },
         {
           title: '会议地点',
+          width: 120,
           key: 'address',
         }, {
           title: '参会人员',
+          minWidth: 200,
           render: (h, params) => {
             let resStr = params.row.users.reduce((sum, e, i) => {
               if (i > 0) {
@@ -147,23 +154,58 @@ export default {
         },
         {
           title: '状态',
-          render: (h, params) => {
-            h('div', null, [
-              h(Tag, {
-                props: {
-                  color: '#607d8b',
-                },
-              }, params.row.type === 0 ? '公开' : '私密'),
-              h(Tag, {
-                props: {
-                  color: '#607d8b',
-                },
-              }, params.row.state === 0 ? '进行中' : '结束'),
-            ])
-          },
+          width: 200,
+          render: (h, params) => h('div', [
+            h(Tag, {
+              props: {
+                color: '#607d8b',
+              },
+            }, params.row.type === 0 ? '公开' : '私密'),
+            h(Tag, {
+              props: {
+                color: '#607d8b',
+              },
+            }, params.row.endTime >= Date.now() && params.row.startTime <= Date.now() ? '进行中' : params.row.endTime < Date.now() ? '结束' : '未开始'),
+          ]),
         },
         {
           title: '操作',
+          width: 'auto',
+          render: (h, params) => h('div', [
+            h('icon', {
+              props: {
+                type: 'ios-create-outline',
+                size: '24',
+              },
+              on: {
+                click: () => {
+                  this.share(params.row)
+                },
+              },
+            }),
+            h('icon', {
+              props: {
+                type: 'ios-share-alt-outline',
+                size: '24',
+              },
+              on: {
+                click: () => {
+                  this.share(params.row)
+                },
+              },
+            }),
+            h('icon', {
+              props: {
+                type: 'ios-close-circle-outline',
+                size: '24',
+              },
+              on: {
+                click: () => {
+                  this.showdeleteModal(params.row.meetingId)
+                },
+              },
+            }),
+          ]),
         },
 
       ],
@@ -188,6 +230,9 @@ export default {
     this.getMeetings('toJoin')
   },
   methods: {
+    changeTab(name) {
+      this.activeTab = name
+    },
     changeListMode() {
       this.isList = !this.isList
     },
@@ -230,7 +275,35 @@ export default {
       this.$set(this.pagination[type], key, value)
       this.getMeeting(this.activeTab)
     },
-
+    share(params) {
+      console.log(params)
+    },
+    showdeleteModal(meetingId) {
+      this.$confirm(' 确定删除当前所选会议？', () => {
+        this.deleteMeeting(meetingId)
+      })
+    },
+    deleteMeeting(meetingId) {
+      if (meetingId && !isNaN(meetingId)) {
+        this.$api.delete(
+          formateUrl(api.meeting.delete, { meetingId }),
+          {},
+          (res) => {
+            if (res.ret.retCode === '0') {
+              this.$Message.success('删除成功')
+              this.getMeeting(this.activeTab)
+            } else {
+              this.$Message.error(res.ret.retMsg)
+            }
+          },
+          (err) => {
+            this.$Message.error(err.message)
+          },
+        )
+      } else {
+        this.$Message.error('会议ID有误，请刷新后再试')
+      }
+    },
   },
 }
 </script>
@@ -291,6 +364,14 @@ export default {
       .footer{
         padding:16px 0;
         text-align: center;
+      }
+      /deep/ .ivu-table{
+        .ivu-icon{
+          cursor: pointer;
+          &:not(:first-child){
+            // margin-left:10px;
+          }
+        }
       }
     }
 

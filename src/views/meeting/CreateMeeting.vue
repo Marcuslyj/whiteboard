@@ -94,7 +94,7 @@ import {
   Form, FormItem, RadioGroup, Radio, Tree, DatePicker, TimePicker,
 } from 'view-design'
 import { api } from '@common/common'
-import { getTimeStr } from '@common/utils'
+import { getDateStr, getTimeStr } from '@common/utils'
 
 export default {
   components: {
@@ -153,7 +153,7 @@ export default {
   methods: {
     getUsers() {
       this.$api.get(
-        api.meeting.userTree,
+        api.user.userTree,
         {
           queryParam: this.searchKey,
         },
@@ -174,10 +174,12 @@ export default {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this.loading = true
+          const date = getDateStr(this.model.date)
           const params = {
             theme: this.model.theme,
-            startTime: `${this.model.date} ${this.model.time[0]}:00`,
-            endTime: `${this.model.date} ${this.model.time[1]}:00`,
+            // 后台接收时间搓
+            startTime: new Date(`${date} ${this.model.time[0]}:00`).valueOf(),
+            endTime: new Date(`${date} ${this.model.time[1]}:00`).valueOf(),
             address: this.model.address,
             type: parseInt(this.model.type),
             userIds: this.selectUsers,
@@ -203,6 +205,7 @@ export default {
     },
     cancel() {
       this.$refs.form.resetFields()
+      this.users = []
     },
     setUsers(value) {
       const users = []
